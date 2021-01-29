@@ -13,3 +13,6 @@ Self-host monitoring stack or just push it all to new relic?
 
 ## Goals
 Describe all the services as docker-compose.yml, and basically have infrasturcture as code for everything - including ansible deployments - so that I can recreate all of this any time I'd like (and restore from backup more easily - just backup the volumes)
+
+## Reference
+https://github.com/DoTheEvo/selfhosted-apps-docker
