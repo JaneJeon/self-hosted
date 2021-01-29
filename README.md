@@ -1,7 +1,7 @@
 ## Applications to self-host on a VPS
 - [ ] Ghost 2x (MySQL) - no fucking SSO yet, the devs are being piece of shit about this. Is there really no way to easily move to JAMStack?
 - [ ] Analytics for said Ghost 2x: https://github.com/mikecao/umami (MySQL | Postgres)
-- [ ] Comments (I'm thinking Commento w/ SSO... Postgres)
+- [ ] Remark42 (GitHub integration, no DB, >1 bus factor)
 - [ ] Lynx (MySQL or Postgres?)
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
