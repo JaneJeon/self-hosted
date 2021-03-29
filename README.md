@@ -1,10 +1,11 @@
-## Applications to self-host on a VPS
+## Applications to self-host
+### "Serverless"/managed
+- [ ] Blog (Forestry/Vercel/git JAMStack!)
+- [ ] Auth0 SSO for Blink
+
 ### Public Facing Applications
-- [ ] Ghost 2x (MySQL) - no fucking SSO yet, the devs are being piece of shit about this. Is there really no way to easily move to JAMStack?
-- [ ] Analytics for said Ghost 2x: https://github.com/mikecao/umami (MySQL | Postgres)
+- [ ] Analytics for blog: https://github.com/mikecao/umami (MySQL | Postgres)
 - [ ] Remark42 (GitHub integration, no DB, >1 bus factor)
-- [ ] Lynx (MySQL or Postgres?)
-- [ ] SSO for Lynx/Discourse... just use Okta?
 
 Specifically for Lynx, how to abuse cloud free tiers?
 AWS provides EC2/RDS/Redis for free for a year, GCP gives you cloud run/object storage/compute engine/app engine/bigquery for free, Oracle gives you 2 VMs (w/ beefy block storage) and object storage for free.
@@ -14,7 +15,6 @@ Other than Lynx itself, the whole CDN logs -> ingest into a serverless analytics
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
-- [ ] Firefly III? (MySQL)
 - [ ] Monica? (MySQL)
 
 Self-host monitoring stack or just push it all to new relic?
@@ -24,3 +24,4 @@ Describe all the services as docker-compose.yml, and basically have infrasturctu
 
 ## Reference
 https://github.com/DoTheEvo/selfhosted-apps-docker
+https://github.com/docker/awesome-compose
