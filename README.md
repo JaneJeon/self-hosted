@@ -32,4 +32,5 @@ Describe all the services as docker-compose.yml, and basically have infrasturctu
 - https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
 - https://dev.to/phiilu/make-your-ubuntu-server-vps-more-secure-against-unauthorized-access-1e7c
 - https://www.digitalocean.com/community/tutorials/how-to-configure-multi-factor-authentication-on-ubuntu-18-04
+- https://github.com/CISOfy/lynis
 - https://pornhub.com
