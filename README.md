@@ -9,7 +9,7 @@
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
-- [ ] Keycloak (postgres)
+- [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
 - [ ] VPN + adblock OH GOD
 
 Monitor w/ new relic, inject new relic "generic" container proc to prebuilt images (like Keycloak) and also use it to monitor the host itself, use agent for Lynx, pipe docker-compose logs to new relic as well.
@@ -26,3 +26,4 @@ Describe all the services as docker-compose.yml, and basically have infrasturctu
 ## Reference
 - https://github.com/DoTheEvo/selfhosted-apps-docker
 - https://github.com/docker/awesome-compose
+- https://medium.com/@ravindrashekhawat5876/keycloak-heap-size-management-on-kubernetes-8f504ccf40cd
