@@ -10,6 +10,7 @@
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
 - [ ] Keycloak (postgres)
+- [ ] VPN + adblock OH GOD
 
 Monitor w/ new relic, inject new relic "generic" container proc to prebuilt images (like Keycloak) and also use it to monitor the host itself, use agent for Lynx, pipe docker-compose logs to new relic as well.
 
