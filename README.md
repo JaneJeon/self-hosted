@@ -3,7 +3,7 @@
 - [ ] Blink app
 - [ ] Blink worker
 - [ ] Dokku?
-- [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config)
+- [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
 - [ ] Caddy / nginx-proxy / hardened nginx (see stars)
 - [ ] Watchtower
