@@ -1,11 +1,11 @@
 ## Applications to self-host
 
-- [ ] Lynx app
-- [ ] Lynx worker
+- [ ] Blink app
+- [ ] Blink worker
 - [ ] Dokku?
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config)
 - [ ] Redis
-- [ ] Caddy
+- [ ] Caddy / nginx-proxy / hardened nginx (see stars)
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
