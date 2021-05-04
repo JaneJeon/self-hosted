@@ -11,6 +11,7 @@
 - [ ] bitwarden_rs (postgres)
 - [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
 - [ ] VPN + adblock OH GOD
+- [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 
 Monitor w/ new relic, inject new relic "generic" container proc to prebuilt images (like Keycloak) and also use it to monitor the host itself, use agent for Lynx, pipe docker-compose logs to new relic as well.
 
