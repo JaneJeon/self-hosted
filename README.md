@@ -13,6 +13,7 @@
 - [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
 - [ ] VPN + adblock OH GOD
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
+- [ ] Plausible to track activity on public-facing apps
 
 Need to absolutely bulletproof the actual machine
 
