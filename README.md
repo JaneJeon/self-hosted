@@ -18,6 +18,8 @@
 
 Need to absolutely bulletproof the actual machine
 
+Push docker-compose.yml and the related files via git or scp to remote machine, then run docker-compose up to renew
+
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
