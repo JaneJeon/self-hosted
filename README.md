@@ -14,8 +14,6 @@
 - [ ] VPN + adblock OH GOD
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 
-Monitor w/ new relic, inject new relic "generic" container proc to prebuilt images (like Keycloak) and also use it to monitor the host itself, use agent for Lynx, pipe docker-compose logs to new relic as well.
-
 Need to absolutely bulletproof the actual machine
 
 ### Private Applications
@@ -40,6 +38,8 @@ Autoscale EC2 group, Amazon Linux 2 base (handles all auto-updates)
 Envoy App Mesh
 
 k8s + helm to manage app infra
+
+Pipe docker-compose logs to syslog then vector
 
 ## Goals
 Describe all the services as docker-compose.yml, and basically have infrasturcture as code for everything - including ansible deployments - so that I can recreate all of this any time I'd like (and restore from backup more easily - just backup the volumes)
