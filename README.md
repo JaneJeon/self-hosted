@@ -11,7 +11,7 @@
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
 - [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
-- [ ] VPN + adblock OH GOD
+- [ ] VPN + adblock OH GOD (WireGuard, )
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 - [ ] Plausible to track activity on public-facing apps
 
