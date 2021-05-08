@@ -14,6 +14,7 @@
 - [ ] VPN + adblock OH GOD (WireGuard, )
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 - [ ] Plausible to track activity on public-facing apps
+- [ ] Kafka/Rabbit
 
 Need to absolutely bulletproof the actual machine
 
