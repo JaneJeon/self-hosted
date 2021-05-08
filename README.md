@@ -5,6 +5,7 @@
 - [ ] Dokku?
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
+- [ ] ClickHouse
 - [ ] Caddy / nginx-proxy / hardened nginx (see stars)
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
@@ -20,6 +21,9 @@ Need to absolutely bulletproof the actual machine
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
+
+## Infra
+Use https://www.terraform.io/docs/language/settings/backends/pg.html and https://www.terraform.io/docs/language/modules/sources.html#github to avoid using TFE, and also host Vault to host all secrets
 
 ## Goals
 Describe all the services as docker-compose.yml, and basically have infrasturcture as code for everything - including ansible deployments - so that I can recreate all of this any time I'd like (and restore from backup more easily - just backup the volumes)
