@@ -5,7 +5,7 @@
 - [ ] Dokku?
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
-- [ ] ClickHouse
+- [ ] ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse/)
 - [ ] Caddy / nginx-proxy / hardened nginx (see stars)
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
@@ -48,8 +48,10 @@ Describe all the services as docker-compose.yml, and basically have infrasturctu
 - https://github.com/DoTheEvo/selfhosted-apps-docker
 - https://github.com/docker/awesome-compose
 - https://medium.com/@ravindrashekhawat5876/keycloak-heap-size-management-on-kubernetes-8f504ccf40cd
+- https://theorangeone.net/posts/backup-restore-containers/
 
 ### Hardening guides
+- https://theorangeone.net/posts/securing-public-servers
 - https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
 - https://dev.to/phiilu/make-your-ubuntu-server-vps-more-secure-against-unauthorized-access-1e7c
 - https://www.digitalocean.com/community/tutorials/how-to-configure-multi-factor-authentication-on-ubuntu-18-04
