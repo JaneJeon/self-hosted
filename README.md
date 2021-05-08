@@ -50,6 +50,7 @@ Describe all the services as docker-compose.yml, and basically have infrasturctu
 - https://github.com/docker/awesome-compose
 - https://medium.com/@ravindrashekhawat5876/keycloak-heap-size-management-on-kubernetes-8f504ccf40cd
 - https://theorangeone.net/posts/backup-restore-containers/
+- https://theorangeone.net/posts/containers-as-root/ (docker rootless)
 
 ### Hardening guides
 - https://theorangeone.net/posts/securing-public-servers
