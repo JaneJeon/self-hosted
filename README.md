@@ -20,6 +20,8 @@ Need to absolutely bulletproof the actual machine
 
 Git push this entire repo up to remote server to update docker-compose.yml and related config files (taking care to NOT wipe out the data dirs), and run docker-compose up to refresh
 
+Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disallow unauthenticated access to internal applications; plug in plausible script on everything
+
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
