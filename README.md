@@ -6,7 +6,7 @@
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
 - [ ] ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)
-- [ ] Caddy / nginx-proxy / hardened nginx (see stars)
+- [ ] Traefik for live service discovery
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
@@ -18,7 +18,7 @@
 
 Need to absolutely bulletproof the actual machine
 
-Push docker-compose.yml and the related files via git or scp to remote machine, then run docker-compose up to renew
+Git push this entire repo up to remote server to update docker-compose.yml and related config files (taking care to NOT wipe out the data dirs), and run docker-compose up to refresh
 
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
