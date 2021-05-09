@@ -35,7 +35,7 @@ Use https://github.com/tricksterproxy/trickster to speed up prom + clickhouse qu
 
 Observability for the DBs? Esp. regarding perf...
 
-Auto-scanning registry w/ https://goharbor.io/docs/2.0.0/administration/vulnerability-scanning (backed by S3).
+Auto-scanning registry w/ https://goharbor.io/docs/2.0.0/administration/vulnerability-scanning (scan w/ trivy, backed by S3).
 
 Centralized Swagger UI
 
