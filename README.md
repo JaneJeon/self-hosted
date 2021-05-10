@@ -2,7 +2,6 @@
 
 - [ ] Blink app
 - [ ] Blink worker
-- [ ] Dokku?
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
 - [ ] ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)
