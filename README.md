@@ -2,6 +2,7 @@
 
 - [ ] Blink app
 - [ ] Blink worker
+- [ ] Ghost w/ S3 & SQLite (backup just the file?)
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
 - [ ] ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)
@@ -55,6 +56,7 @@ Describe all the services as docker-compose.yml, and basically have infrasturctu
 - https://medium.com/@ravindrashekhawat5876/keycloak-heap-size-management-on-kubernetes-8f504ccf40cd
 - https://theorangeone.net/posts/backup-restore-containers/
 - https://theorangeone.net/posts/containers-as-root/ (docker rootless)
+- https://support.atlassian.com/opsgenie/docs/integrate-opsgenie-with-prometheus/ (alerting)
 
 ### Hardening guides
 - https://theorangeone.net/posts/securing-public-servers
