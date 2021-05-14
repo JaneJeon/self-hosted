@@ -16,6 +16,19 @@
 - [ ] Plausible to track activity on public-facing apps
 - [ ] Kafka/Rabbit
 
+If we're not hosting stateful services:
+
+Use AWS for Redis/MySQL/S3, no need for volume backups - all containers should be stateless; use GA for analytics
+
+- [ ] Blink app & worker containers (need to MySQL)
+- [ ] Ghost w/ MySQL
+- [ ] Traefik
+- [ ] Watchtower
+- [ ] bitwarden_rs (MySQL)
+- [ ] Keycloak (MySQL)
+- [ ] WireGuard VPN
+- [ ] PiHole adblock (can it work w/ WireGuard?)
+
 Need to absolutely bulletproof the actual machine
 
 Git push this entire repo up to remote server to update docker-compose.yml and related config files (taking care to NOT wipe out the data dirs), and run docker-compose up to refresh
