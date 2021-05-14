@@ -14,6 +14,7 @@
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 - [ ] Plausible to track activity on public-facing apps
+- [ ] Portainer
 
 If we're not hosting stateful services:
 
