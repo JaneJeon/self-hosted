@@ -14,7 +14,6 @@
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 - [ ] Plausible to track activity on public-facing apps
-- [ ] Kafka/Rabbit
 
 If we're not hosting stateful services:
 
@@ -40,6 +39,7 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 - [ ] VSCode Server?
 - [ ] Monica CRM?
 - [ ] Firefly III?
+- [ ] Some sort of youtube-dl & gallery-dl server?
 
 ## Infra
 Use https://www.terraform.io/docs/language/settings/backends/pg.html and https://www.terraform.io/docs/language/modules/sources.html#github to avoid using TFE, and also host Vault to host all secrets.
