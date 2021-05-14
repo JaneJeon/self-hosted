@@ -18,16 +18,10 @@
 
 If we're not hosting stateful services:
 
-Use AWS for Redis/MySQL/S3, no need for volume backups - all containers should be stateless; use GA for analytics
-
-- [ ] Blink app & worker containers (need to MySQL)
-- [ ] Ghost w/ MySQL
-- [ ] Traefik
-- [ ] Watchtower
-- [ ] bitwarden_rs (MySQL)
-- [ ] Keycloak (MySQL)
-- [ ] WireGuard VPN
-- [ ] PiHole adblock (can it work w/ WireGuard?)
+Use AWS for Redis/MySQL/S3, no need for volume backups - all containers should be stateless; use GA for analytics. Would need to rewrite Blink for MySQL as well. Currently the only service that is only MySQL or Postgres is:
+- Blink (Postgres)
+- Ghost (MySQL)
+- Plausible (Postgres + ClickHouse)
 
 Need to absolutely bulletproof the actual machine
 
@@ -41,6 +35,7 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 - [ ] Monica CRM?
 - [ ] Firefly III?
 - [ ] Some sort of youtube-dl & gallery-dl server?
+- [ ] Some kind of torrent host
 
 ## Infra
 Use https://www.terraform.io/docs/language/settings/backends/pg.html and https://www.terraform.io/docs/language/modules/sources.html#github to avoid using TFE, and also host Vault to host all secrets.
