@@ -13,7 +13,7 @@
 - [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
 - [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
-- [ ] Plausible to track activity on public-facing apps
+- [ ] ~~Plausible to track activity on public-facing apps~~ Screw this, just go with GA
 - [ ] Portainer
 
 If we're not hosting stateful services:
