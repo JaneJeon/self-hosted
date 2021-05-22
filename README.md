@@ -32,8 +32,6 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
-- [ ] Monica CRM?
-- [ ] Firefly III?
 - [ ] Some sort of youtube-dl & gallery-dl server?
 - [ ] Some kind of torrent host
 
