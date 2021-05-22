@@ -38,7 +38,6 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 - [ ] Some kind of torrent host
 
 ## Infra
-Use https://www.terraform.io/docs/language/settings/backends/pg.html and https://www.terraform.io/docs/language/modules/sources.html#github to avoid using TFE, and also host Vault to host all secrets.
 
 Instrumentation with Prometheus + Grafana, APM w/ Jaeger (backed by Elasticsearch), Logs w/ Vector -> ES.
 
@@ -46,17 +45,13 @@ Use https://github.com/tricksterproxy/trickster to speed up prom + clickhouse qu
 
 Observability for the DBs? Esp. regarding perf...
 
-Auto-scanning registry w/ https://goharbor.io/docs/2.0.0/administration/vulnerability-scanning (scan w/ trivy, backed by S3).
-
-Centralized Swagger UI
-
 Autoscale EC2 group, Amazon Linux 2 base (handles all auto-updates)
 
-Envoy App Mesh
-
-k8s + helm to manage app infra
-
-Pipe docker-compose logs to syslog then vector
+- [ ] Auto-scanning registry w/ https://goharbor.io/docs/2.0.0/administration/vulnerability-scanning (scan w/ trivy, backed by S3).
+- [ ] Centralized Swagger UI?
+- [ ] vector (docker-compose logs via syslog, application log parsing)
+- [ ] Terraform remote state w/ https://www.terraform.io/docs/language/settings/backends/pg.html and modules via https://www.terraform.io/docs/language/modules/sources.html#github
+- [ ] Vault w/ DB
 
 ## Goals
 Describe all the services as docker-compose.yml, and basically have infrasturcture as code for everything - including ansible deployments - so that I can recreate all of this any time I'd like (and restore from backup more easily - just backup the volumes)
