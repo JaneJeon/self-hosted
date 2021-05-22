@@ -10,9 +10,9 @@
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
-- [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
+- [ ] Keycloak (postgres) - use Keycloak.X image for lower mem! clustering??
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
-- [ ] ~~Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
+- [ ] ~~Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit~~
 - [ ] ~~Plausible to track activity on public-facing apps~~ Screw this, just go with GA
 - [ ] Portainer
 
