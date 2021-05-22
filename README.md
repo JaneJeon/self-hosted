@@ -5,14 +5,14 @@
 - [ ] Ghost w/ S3 & SQLite (backup just the file?)
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
-- [ ] ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)
+- [ ] ~~ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)~~ too much operational burden
 - [ ] Traefik for live service discovery
 - [ ] Watchtower
 - [ ] Some container for automatic volume backups?
 - [ ] bitwarden_rs (postgres)
 - [ ] Keycloak (postgres) - use Keycloak.X image for lower mem!
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
-- [ ] Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
+- [ ] ~~Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit
 - [ ] ~~Plausible to track activity on public-facing apps~~ Screw this, just go with GA
 - [ ] Portainer
 
