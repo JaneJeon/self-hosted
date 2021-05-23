@@ -8,7 +8,7 @@
 - [ ] ~~ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)~~ too much operational burden
 - [ ] Traefik for live service discovery
 - [ ] Watchtower
-- [ ] restic/rclone
+- [ ] restic/rclone (I want to monitor this, esp. regarding failed backups! how?)
 - [ ] bitwarden_rs (postgres)
 - [ ] Keycloak (postgres) - use Keycloak.X image for lower mem! clustering?? (semi-stateful)
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
