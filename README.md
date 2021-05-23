@@ -19,6 +19,7 @@
 - [ ] vector (docker-compose logs via syslog, application log parsing) (semi-stateful)
 - [ ] Terraform remote state w/ https://www.terraform.io/docs/language/settings/backends/pg.html and modules via https://www.terraform.io/docs/language/modules/sources.html#github
 - [ ] Vault w/ DB
+- [ ] Some sort of youtube-dl & gallery-dl server?
 
 If we're not hosting stateful services:
 
@@ -36,7 +37,6 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 ### Private Applications
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
-- [ ] Some sort of youtube-dl & gallery-dl server?
 
 ## Infra
 
