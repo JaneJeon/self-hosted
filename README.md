@@ -8,13 +8,17 @@
 - [ ] ~~ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)~~ too much operational burden
 - [ ] Traefik for live service discovery
 - [ ] Watchtower
-- [ ] Some container for automatic volume backups? (most containers should be stateless but how about Prometheus?)
+- [ ] restic/rclone
 - [ ] bitwarden_rs (postgres)
-- [ ] Keycloak (postgres) - use Keycloak.X image for lower mem! clustering??
+- [ ] Keycloak (postgres) - use Keycloak.X image for lower mem! clustering?? (semi-stateful)
 - [ ] VPN + adblock OH GOD (WireGuard, https://pi-hole.net/)
 - [ ] ~~Gitea, because jesus christ GitHub and GitLab are bloated, I hate the "do everything" shit~~
 - [ ] ~~Plausible to track activity on public-facing apps~~ Screw this, just go with GA
-- [ ] Portainer
+- [ ] Portainer (stateful)
+- [ ] qbittorrent (semi-stateful)
+- [ ] vector (docker-compose logs via syslog, application log parsing) (semi-stateful)
+- [ ] Terraform remote state w/ https://www.terraform.io/docs/language/settings/backends/pg.html and modules via https://www.terraform.io/docs/language/modules/sources.html#github
+- [ ] Vault w/ DB
 
 If we're not hosting stateful services:
 
@@ -33,7 +37,6 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 - [ ] Music server: https://github.com/deluan/navidrome
 - [ ] VSCode Server?
 - [ ] Some sort of youtube-dl & gallery-dl server?
-- [ ] Some kind of torrent host
 
 ## Infra
 
@@ -47,9 +50,6 @@ Autoscale EC2 group, Amazon Linux 2 base (handles all auto-updates)
 
 - [ ] Auto-scanning registry w/ https://goharbor.io/docs/2.0.0/administration/vulnerability-scanning (scan w/ trivy, backed by S3).
 - [ ] Centralized Swagger UI?
-- [ ] vector (docker-compose logs via syslog, application log parsing)
-- [ ] Terraform remote state w/ https://www.terraform.io/docs/language/settings/backends/pg.html and modules via https://www.terraform.io/docs/language/modules/sources.html#github
-- [ ] Vault w/ DB
 
 ## Goals
 Describe all the services as docker-compose.yml, and basically have infrasturcture as code for everything - including ansible deployments - so that I can recreate all of this any time I'd like (and restore from backup more easily - just backup the volumes)
