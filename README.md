@@ -19,7 +19,7 @@
 - [ ] vector (docker-compose logs via syslog, application log parsing) (semi-stateful)
 - [ ] Terraform remote state w/ https://www.terraform.io/docs/language/settings/backends/pg.html and modules via https://www.terraform.io/docs/language/modules/sources.html#github
 - [ ] Vault w/ DB
-- [ ] Some sort of youtube-dl & gallery-dl server?
+- [ ] Some sort of youtube-dl ~~& gallery-dl~~ server? (fuck gdl and its author)
 
 If we're not hosting stateful services:
 
