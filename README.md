@@ -22,7 +22,7 @@
 - [ ] Some sort of youtube-dl ~~& gallery-dl~~ server? (fuck gdl and its author)
 - [ ] Prometheus (stateful)
 - [ ] Alertmanager (not stateful, but clustered)
-- [ ] Grafana
+- [ ] Grafana (stateless when using DB)
 
 If we're not hosting stateful services:
 
