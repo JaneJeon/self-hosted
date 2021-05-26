@@ -20,6 +20,9 @@
 - [ ] Terraform remote state w/ https://www.terraform.io/docs/language/settings/backends/pg.html and modules via https://www.terraform.io/docs/language/modules/sources.html#github
 - [ ] Vault w/ DB
 - [ ] Some sort of youtube-dl ~~& gallery-dl~~ server? (fuck gdl and its author)
+- [ ] Prometheus (stateful)
+- [ ] Alertmanager (not stateful, but clustered)
+- [ ] Grafana
 
 If we're not hosting stateful services:
 
@@ -40,7 +43,7 @@ Traefik set `Permissions-Policy: interest-cohort=()` header to block FLOC; disal
 
 ## Infra
 
-Instrumentation with Prometheus + Grafana, APM w/ Jaeger (backed by Elasticsearch), Logs w/ Vector -> ES.
+APM w/ Jaeger (backed by Elasticsearch), Logs w/ Vector -> ES.
 
 Use https://github.com/tricksterproxy/trickster to speed up prom + clickhouse queries
 
