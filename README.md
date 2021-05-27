@@ -6,7 +6,7 @@
 - [ ] Postgres (use https://pgtune.leopard.in.ua/ to optimize config, https://github.com/wal-g/wal-g to backup)
 - [ ] Redis
 - [ ] ~~ClickHouse (really need config https://theorangeone.net/posts/calming-down-clickhouse, backup w/ https://github.com/AlexAkulov/clickhouse-backup, dont run own zookeeper)~~ too much operational burden
-- [ ] Traefik for live config reload (how does it work? do I need to docker-compose up?), maybe even restrict access to only those originating from VPN using https://doc.traefik.io/traefik/middlewares/ipwhitelist/?
+- [ ] Traefik reverse proxy for cloud-native integration (no "hot reload" on docker-compose), maybe even restrict access to only those originating from VPN using https://doc.traefik.io/traefik/middlewares/ipwhitelist/?
 - [ ] Watchtower
 - [ ] backups w/ restic, use https://github.com/Southclaws/restic-robot for integrated monitoring
 - [ ] bitwarden_rs (postgres)
