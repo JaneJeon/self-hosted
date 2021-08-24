@@ -13,3 +13,11 @@ Obviously, whatever we used to originally supply the decryption key to the backu
 So the _backup encryption key_ should NOT be stored in Vault (even indirectly). What about others?
 
 Is it safe to store the master unseal key in the password manager?
+
+Are all the concerns gone if we don't encrypt our backups? I think so, because as long as we can restore the DB (but wait, how will we login)
+
+Conclusion: you need to store the "master" key that controls the infrastructure (e.g. backups, secrets management) OFF the system, hence the need for something like AWS Secrets Management. But Vultr doesn't have such a thing.
+
+So the only remedies are to either go for a high availability Vault setup to make sure it doesn't fail, OR, keep a copy in your head or something.
+
+Solution: rely on bitwarden local apps retaining their local secret values
