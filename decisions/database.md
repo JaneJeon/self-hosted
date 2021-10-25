@@ -6,7 +6,7 @@ So far the only ones that DON'T support both are:
 
 - ~~matomo (MySQL only, but could be easily replaced)~~
 - ghost (MySQL only, cannot be easily replaced but could go with sqlite3)
-- comments? (PostgreSQL only, cannot be easily replaced but could go with sqlite3; plus, I could end up writing my own)
+- ~~comments? (PostgreSQL only, cannot be easily replaced but could go with sqlite3; plus, I could end up writing my own)~~
 - ~~Blink (PostgreSQL only, but MySQL support on the works - sort of)~~
 - Photoprism (MySQL only, cannot be easily replaced but could go with sqlite3)
 - Invidious? (Postgres only, but looks like they're looking into making it available w/o Postgres)

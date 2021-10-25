@@ -1,1 +1,1 @@
-Whether I go w/ cusdis or commento, both are built w/ postgres
+https://github.com/giscus/giscus, "stateless", no need for DB
