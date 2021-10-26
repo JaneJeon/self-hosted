@@ -1,0 +1,1 @@
+Not sure if it's a "good" idea to do this, but install either pgAdmin or phpMyAdmin (depending on which database I end up with) so that I can administrate the database without having to SSH into the box.
