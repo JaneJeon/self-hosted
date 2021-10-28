@@ -1,1 +1,1 @@
-https://github.com/statping/statping/wiki/Docker-Compose
+https://github.com/louislam/uptime-kuma
