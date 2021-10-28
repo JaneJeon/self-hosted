@@ -10,10 +10,10 @@ As for the difference between a full-on VPN (Tailscale) and something like Telep
 
 Teleport is _built for_ SSH and database acces, but to access the databases using a GUI requires both the client and the database to be SSL cert-aware, at which point you may as well just use Vault directly (it is also database aware, so can do things like provisioning specific roles) to obtain credentials? Of course, you'd have to input them manually but...
 
-Both Tailscale and Teleport get around NAT shit so that you don't have to configure things like firewalls, open ports, and stuff like that.
+Both Tailscale and Teleport get around NAT shit so that you don't have to configure things like firewalls, open ports, and stuff like that. Both of them only include GitHub for free tier.
 
 Obviously, for "other things" like cloud resources, it only makes sense to use Vault to obtain secrets. The only reason we're even considering something else for internal resources is for the transparency a VPN brings, but Boundary connected with Vault may replace the need for both Teleport and Tailscale in the future.
 
 For now, everything will be accessible via HTTP/HTTPS anyway, so there will be no "poking holes" necessary.
 
-And for everything else, resort to Vault for only the things necessary (e.g. credentials for cloud and online infrastructure services), and Tailscale for the "infra" pieces (not for the authz/authn, but _purely_ for the connectivity).
+And for everything else, resort to Vault for only the things necessary (e.g. credentials for cloud and online infrastructure services), and Teleport for the "infra" pieces (for connectivity) - Tailscale doesn't let you exclude traffic from one device to another (it's user-based).
