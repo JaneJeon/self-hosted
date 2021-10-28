@@ -1,4 +1,8 @@
-For storing secrets
+## Purpose
+
+Dynamic generation of secrets, for things like cloud
+
+## For storing secrets
 
 Is all self-referencing connection bad? e.g. Using MySQL as storage backend
 

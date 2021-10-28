@@ -1,1 +1,1 @@
-Secure non-SSO integrated applications using SSO
+Secure non-SSO integrated _web_ applications using SSO
