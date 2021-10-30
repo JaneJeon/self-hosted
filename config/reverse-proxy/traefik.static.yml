@@ -11,10 +11,10 @@ log:
 accessLog:
   format: json
 
-# TODO: enable API dashboard (blocked on integrating oauth2-proxy)
-# api:
-#   dashboard: true
-#   insecure: true
+# TODO: properly authorize w/ oauth2-proxy
+api:
+  dashboard: true
+  insecure: true
 
 certificatesResolvers:
   letsencrypt:

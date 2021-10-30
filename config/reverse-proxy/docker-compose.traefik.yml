@@ -12,14 +12,17 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik.static.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
-      - ./acme.json:/letsencrypt/acme.json
-    # labels:
-    #   - traefik.enable=true
-    #   - traefik.http.routers.traefik.tls=true
-    #   - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
-    #   - traefik.http.services.api@internal.loadbalancer.server.port=8080
+      - ./config/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
+      - ./config/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
+      - ./config/reverse-proxy/acme.json:/letsencrypt/acme.json
+      - ./traefik.userfile:/etc/traefik/traefik.userfile
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.janejeon.com`)
+      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
+      - traefik.http.routers.traefik.middlewares=auth
+      - traefik.http.services.api@internal.loadbalancer.server.port=8080
+      - traefik.http.middlewares.auth.basicauth.usersfile=/etc/traefik/traefik.userfile
 
 networks:
   public:
