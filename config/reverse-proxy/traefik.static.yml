@@ -16,6 +16,16 @@ accessLog:
 #   dashboard: true
 #   insecure: true
 
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: contact@janejeon.dev
+      storage: /letsencrypt/acme.json
+      tlsChallenge: true
+      httpChallenge:
+        # used during the challenge
+        entryPoint: web
+
 entryPoints:
   web:
     address: :80
