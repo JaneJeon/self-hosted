@@ -5,6 +5,11 @@ services:
     image: ghost:4-alpine
     container_name: ghost-devblog
     restart: always
+    entrypoint:
+      - wait-for
+      - mysql:3306
+      - --
+      - docker-entrypoint.sh
     networks:
       - public
       - private
@@ -12,6 +17,7 @@ services:
       - 3368:2368
     volumes:
       - ghost_devblog_content:/var/lib/ghost/content
+      - ./scripts/wait-for:/usr/local/bin/wait-for
     environment:
       url: https://janejeon.dev
       database__client: mysql

@@ -20,10 +20,8 @@ certificatesResolvers:
     acme:
       email: contact@janejeon.dev
       storage: /letsencrypt/acme.json
-      tlsChallenge: true
-      httpChallenge:
-        # used during the challenge
-        entryPoint: web
+      dnsChallenge:
+        provider: cloudflare
 
 entryPoints:
   web:
