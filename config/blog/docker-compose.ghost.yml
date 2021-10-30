@@ -42,3 +42,4 @@ networks:
 
 volumes:
   ghost_devblog_content:
+    name: ghost_devblog_content

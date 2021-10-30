@@ -21,3 +21,4 @@ networks:
 
 volumes:
   mysql_data:
+    name: mysql_data
