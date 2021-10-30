@@ -3,7 +3,7 @@
 D=docker
 DC=$(D) compose
 
-DC_ALL=$(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
+DC_ALL=-f docker-compose.base.yml $(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 
 network-up:
 	@$(D) network create public || true
