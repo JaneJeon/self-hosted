@@ -30,3 +30,9 @@ logs:
 
 tracked:
 	git ls-tree -r master --name-only
+
+init:
+	touch .env
+	touch config/reverse-proxy/acme.json
+	chmod 600 config/reverse-proxy/acme.json
+	htpasswd -Bc traefik.userfile jane
