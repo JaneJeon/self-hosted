@@ -1,14 +1,20 @@
 # static configuration
 # see: https://doc.traefik.io/traefik/reference/static-configuration/file/
 global:
+  checkNewVersion: false
   sendAnonymousUsage: false
 
 log:
   level: INFO
-  format: common
+  format: json
 
 accessLog:
-  format: common
+  format: json
+
+# TODO: enable API dashboard (blocked on integrating oauth2-proxy)
+# api:
+#   dashboard: true
+#   insecure: true
 
 entryPoints:
   web:
@@ -33,7 +39,3 @@ providers:
   file:
     watch: true
     filename: /etc/traefik/traefik.dynamic.yml
-
-api:
-  dashboard: true
-  insecure: true
