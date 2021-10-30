@@ -28,6 +28,9 @@ down-everything:
 logs:
 	$(DC) $(DC_ALL) logs -f
 
+check-config:
+	$(DC) $(DC_ALL) config
+
 tracked:
 	git ls-tree -r master --name-only
 
