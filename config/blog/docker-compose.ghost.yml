@@ -19,11 +19,16 @@ services:
       database__connection__user: ghost-devblog
       database__connection__password: ghost-devblog-password
       database__connection__database: devblog
+      mail__transport: SMTP
+      mail__options__service: SendGrid
+      mail__options__auth__user: apikey
+    env_file:
+      - ./devblog.mail.env
     labels:
       - traefik.enable=true
-      - traefik.http.routers.ghost.tls=true
-      - traefik.http.routers.ghost.rule=Host(`janejeon.dev`)
-      - traefik.http.services.ghost.loadbalancer.server.port=3368
+      - traefik.http.routers.devblog.rule=Host(`janejeon.dev`)
+      - traefik.http.routers.devblog.tls.certresolver=letsencrypt
+      - traefik.http.services.devblog.loadbalancer.server.port=3368
 
 networks:
   public:
