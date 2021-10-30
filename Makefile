@@ -16,8 +16,13 @@ network-down:
 up: network-up
 	$(DC) $(DC_ALL) up -d
 
-down: network-down
+down:
 	$(DC) $(DC_ALL) down --remove-orphans
+	$(MAKE) network-down
+
+down-everything: network-down
+	$(DC) $(DC_ALL) down --remove-orphans -v
+	$(MAKE) network-down
 
 logs:
 	$(DC) $(DC_ALL) logs -f
