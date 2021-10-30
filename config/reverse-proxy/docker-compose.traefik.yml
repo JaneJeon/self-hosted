@@ -16,6 +16,11 @@ services:
       - ./config/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
       - ./config/reverse-proxy/acme.json:/letsencrypt/acme.json
       - ./traefik.userfile:/etc/traefik/traefik.userfile
+    environment:
+      CLOUDFLARE_DNS_API_TOKEN: ${CLOUDFLARE_DNS_API_TOKEN}
+      CLOUDFLARE_ZONE_API_TOKEN: ${CLOUDFLARE_ZONE_API_TOKEN}
+      CF_DNS_API_TOKEN: ${CLOUDFLARE_DNS_API_TOKEN}
+      CF_ZONE_API_TOKEN: ${CLOUDFLARE_ZONE_API_TOKEN}
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik.rule=Host(`traefik.janejeon.com`)

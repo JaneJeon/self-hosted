@@ -28,6 +28,7 @@ services:
       mail__transport: SMTP
       mail__options__service: SendGrid
       mail__options__auth__user: apikey
+      mail__options__auth__pass: ${mail__options__auth__pass}
     labels:
       - traefik.enable=true
       - traefik.http.routers.devblog.rule=Host(`janejeon.dev`)
