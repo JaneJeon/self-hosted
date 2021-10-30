@@ -19,5 +19,8 @@ up: network-up
 down: network-down
 	$(DC) $(DC_ALL) down --remove-orphans
 
+logs:
+	$(DC) $(DC_ALL) logs -f
+
 tracked:
 	git ls-tree -r master --name-only
