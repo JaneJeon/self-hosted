@@ -20,7 +20,8 @@ down:
 	$(DC) $(DC_ALL) down --remove-orphans
 	$(MAKE) network-down
 
-down-everything: network-down
+down-everything:
+	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 	$(DC) $(DC_ALL) down --remove-orphans -v
 	$(MAKE) network-down
 
