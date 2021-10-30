@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  ghost:
+    image: ghost:4-alpine
+    container_name: ghost-devblog
+    restart: always
+    networks:
+      - public
+      - private
+    ports:
+      - 3368:2368
+    volumes:
+      - ghost_devblog_content:/var/lib/ghost/content
+    environment:
+      url: https://janejeon.dev
+      database__client: mysql
+      database__connection__host: mysql
+      database__connection__user: ghost-devblog
+      database__connection__password: ghost-devblog-password
+      database__connection__database: devblog
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ghost.tls=true
+      - traefik.http.routers.ghost.rule=Host(`janejeon.dev`)
+      - traefik.http.services.ghost.loadbalancer.server.port=3368
+
+networks:
+  public:
+    external: true
+  private:
+    external: true
+
+volumes:
+  ghost_devblog_content:
