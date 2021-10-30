@@ -26,7 +26,7 @@ down-everything:
 	$(MAKE) network-down
 
 logs:
-	$(DC) $(DC_ALL) logs -f
+	$(DC) $(DC_ALL) logs -f $(SERVICE)
 
 check-config:
 	$(DC) $(DC_ALL) config
