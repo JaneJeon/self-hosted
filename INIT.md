@@ -19,9 +19,11 @@ server init requirements:
 adduser jane # interactive prompts
 usermod -aG sudo jane # make myself sudo-er
 
+sudo update-alternatives --config editor # (enter /usr/bin/vim.basic prompt)
 sudo visudo # interactive prompt: add "jane ALL=(ALL:ALL) NOPASSWD: ALL" to the bottom of the file
 
-sudo update-alternatives --config editor # (enter /usr/bin/vim.basic prompt)
+sudo apt update && sudo apt upgrade && sudo apt install rsync make
+mkdir self-hosted
 
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
@@ -30,8 +32,6 @@ sudo ufw allow 'WWW Full'
 sudo ufw allow qBittorrent/dns/bonjour/'kerberos full' # (optional)
 sudo ufw enable
 
-# not needed on vultr
-sudo apt update && apt upgrade
 sudo apt install unattended-upgrades
 
 sudo vim /etc/apt/apt.conf.d/50unattended-upgrades

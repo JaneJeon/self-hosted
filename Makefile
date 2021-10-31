@@ -36,6 +36,13 @@ tracked:
 
 init:
 	touch .env
+	touch .server.env
 	touch config/reverse-proxy/acme.json
 	chmod 600 config/reverse-proxy/acme.json
 	htpasswd -Bc traefik.userfile jane
+
+deploy:
+	./scripts/deploy
+
+ssh:
+	source .server.env && ssh jane@$${REMOTE_IP}
