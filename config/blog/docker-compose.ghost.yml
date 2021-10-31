@@ -17,8 +17,8 @@ services:
     networks:
       - public
       - private
-    ports:
-      - 3368:2368
+    expose:
+      - 2368
     volumes:
       - ghost_devblog_content:/var/lib/ghost/content
       - ./scripts/wait-for:/usr/local/bin/wait-for
@@ -37,7 +37,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.devblog.rule=Host(`janejeon.dev`)
       - traefik.http.routers.devblog.tls.certresolver=letsencrypt
-      - traefik.http.services.devblog.loadbalancer.server.port=3368
+      - traefik.http.services.devblog.loadbalancer.server.port=2368
 
 networks:
   public:
