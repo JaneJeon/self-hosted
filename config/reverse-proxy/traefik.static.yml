@@ -40,7 +40,7 @@ entryPoints:
       middlewares:
         - floc@file
         - gzip@file
-        - https-www-strip@file
+        - no-www@file
 
 providers:
   docker:
