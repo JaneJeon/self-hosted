@@ -7,7 +7,7 @@ http:
     gzip:
       compress: {}
     no-www: # stripping https://www.blah -> https://blah
-      redirectregex:
+      redirectRegex:
         regex: ^(?:https://)?(?:www\.)?(.+)
         replacement: https://${1}
         permanent: true

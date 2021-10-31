@@ -43,6 +43,49 @@ services:
       - traefik.http.routers.devblog.tls.certresolver=letsencrypt
       - traefik.http.services.devblog.loadbalancer.server.port=2368
 
+  portfolio:
+    image: ghost:4-alpine
+    container_name: ghost-portfolio
+    restart: always
+    entrypoint:
+      - wait-for
+      - mysql:3306
+      - --timeout=60
+      - --
+      - docker-entrypoint.sh
+    command:
+      - node
+      - current/index.js
+    networks:
+      - public
+      - private
+    expose:
+      - 2369
+    volumes:
+      - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
+      - ./scripts/wait-for:/usr/local/bin/wait-for
+    environment:
+      url: https://nariahn.com
+      database__client: mysql
+      database__connection__host: mysql
+      database__connection__user: ghost-portfolio
+      database__connection__password: ghost-portfolio-password
+      database__connection__database: portfolio
+      mail__transport: SMTP
+      mail__options__service: SendGrid
+      mail__options__auth__user: apikey
+      mail__options__auth__pass: ${mail__options__auth__pass}
+      compress: "false" # let traefik handle this
+      caching__frontend__maxAge: 3600
+      logging__transports: '["stdout"]'
+      logging__rotation__enabled: "false"
+      server__port: 2369
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.devblog.rule=Host(`nariahn.com`)
+      - traefik.http.routers.devblog.tls.certresolver=letsencrypt
+      - traefik.http.services.devblog.loadbalancer.server.port=2369
+
 networks:
   public:
     external: true
