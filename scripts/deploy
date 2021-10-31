@@ -4,4 +4,4 @@ set -e
 
 source .env
 rsync -avzP --delete --exclude=.git --exclude=volumes . jane@$REMOTE_IP:~/self-hosted
-rsync -avzP volumes jane@$REMOTE_IP:~/self-hosted/volumes
+rsync -avzP volumes jane@$REMOTE_IP:~/self-hosted
