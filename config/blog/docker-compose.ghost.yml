@@ -81,9 +81,9 @@ services:
       logging__rotation__enabled: "false"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.devblog.rule=Host(`nariahn.com`)
-      - traefik.http.routers.devblog.tls.certresolver=letsencrypt
-      - traefik.http.services.devblog.loadbalancer.server.port=2368
+      - traefik.http.routers.portfolio.rule=Host(`nariahn.com`)
+      - traefik.http.routers.portfolio.tls.certresolver=letsencrypt
+      - traefik.http.services.portfolio.loadbalancer.server.port=2368
 
 networks:
   public:
