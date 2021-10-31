@@ -1,7 +1,5 @@
 Restic to backup stateful docker volumes
 
-Use Bivac to automate some of the shit
-
 Backup strategies:
 
 - for stateful, non-database containers, just backup the docker volume
