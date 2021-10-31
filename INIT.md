@@ -4,6 +4,7 @@ server init requirements:
 - basic ufw config https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-20-04 https://wiki.archlinux.org/title/Uncomplicated_Firewall
 - disable password auth https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-debian-11
 - unattended-upgrades https://haydenjames.io/how-to-enable-unattended-upgrades-on-ubuntu-debian/
+- install docker & compose https://docs.docker.com/compose/install/
 
 1. ssh into box as root
 2. `adduser jane` (prompts)
@@ -58,4 +59,12 @@ sudo vim /etc/ssh/sshd_config # (interactive prompt, set the following:)
 # UsePAM no
 # PermitRootLogin no
 /etc/init.d/ssh reload # interactive prompt: requires password
+
+# Installing docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Installing docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 ```

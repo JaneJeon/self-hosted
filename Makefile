@@ -1,7 +1,7 @@
 .DEFAULT_GOAL=up
 
 D=docker
-DC=$(D) compose
+DC=docker-compose
 
 DC_ALL=-f docker-compose.base.yml $(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 
