@@ -8,6 +8,6 @@ http:
       compress: {}
     https-www-strip: # stripping https://www.blah -> https://blah
       redirectRegex:
-        regex: "^https?://(?:www\\.)?(.+)"
-        replacement: "https://${1}"
+        regex: ^https?://(?:www\.)?(.+)
+        replacement: https://$${1}
         permanent: true
