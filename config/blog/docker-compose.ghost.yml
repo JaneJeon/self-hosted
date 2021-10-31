@@ -1,15 +1,19 @@
 version: "3"
 
 services:
-  ghost:
+  devblog:
     image: ghost:4-alpine
     container_name: ghost-devblog
     restart: always
     entrypoint:
       - wait-for
       - mysql:3306
+      - --timeout=60
       - --
       - docker-entrypoint.sh
+    command:
+      - node
+      - current/index.js
     networks:
       - public
       - private
