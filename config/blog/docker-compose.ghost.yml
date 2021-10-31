@@ -20,7 +20,7 @@ services:
     expose:
       - 2368
     volumes:
-      - ghost_devblog_content:/var/lib/ghost/content
+      - ./volumes/ghost/janejeon.dev:/var/lib/ghost/content
       - ./scripts/wait-for:/usr/local/bin/wait-for
     environment:
       url: https://janejeon.dev
@@ -48,7 +48,3 @@ networks:
     external: true
   private:
     external: true
-
-volumes:
-  ghost_devblog_content:
-    name: ghost_devblog_content
