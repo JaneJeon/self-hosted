@@ -42,6 +42,7 @@ init:
 
 deploy:
 	./scripts/check-git
+	git push
 	./scripts/deploy
 
 ssh:
