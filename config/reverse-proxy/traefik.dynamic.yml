@@ -4,3 +4,5 @@ http:
       headers:
         customResponseHeaders:
           Permissions-Policy: interest-cohort=()
+    gzip:
+      compress:

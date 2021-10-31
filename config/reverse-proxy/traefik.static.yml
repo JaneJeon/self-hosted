@@ -37,7 +37,7 @@ entryPoints:
     http:
       middlewares:
         - floc@file
-        - compress
+        - gzip@file
 
 providers:
   docker:
