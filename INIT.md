@@ -6,12 +6,6 @@ server init requirements:
 - unattended-upgrades https://haydenjames.io/how-to-enable-unattended-upgrades-on-ubuntu-debian/
 - install docker & compose https://docs.docker.com/compose/install/
 
-1. ssh into box as root
-2. `adduser jane` (prompts)
-3. `usermod -aG sudo jane`
-4. `ufw default deny incoming`
-5. `ufw default allow outgoing`
-
 ```sh
 # (computer) SSH into box as root
 # (server):
@@ -63,6 +57,9 @@ sudo vim /etc/ssh/sshd_config # (interactive prompt, set the following:)
 # Installing docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
+sudo usermod -aG docker jane
+newgrp docker
+sudo service docker restart
 
 # Installing docker-compose
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
