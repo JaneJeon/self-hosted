@@ -33,6 +33,10 @@ services:
       mail__options__service: SendGrid
       mail__options__auth__user: apikey
       mail__options__auth__pass: ${mail__options__auth__pass}
+      compress: false # let traefik handle this
+      caching__frontend__maxAge: 3600
+      logging__transports: stdout
+      logging__rotation__enabled: false
     labels:
       - traefik.enable=true
       - traefik.http.routers.devblog.rule=Host(`janejeon.dev`)
