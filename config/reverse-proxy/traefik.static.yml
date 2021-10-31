@@ -31,6 +31,8 @@ entryPoints:
         entryPoint:
           to: web-secure
           scheme: https
+          permanent: true
+          priority: 10
 
   web-secure:
     address: :443
@@ -38,7 +40,7 @@ entryPoints:
       middlewares:
         - floc@file
         - gzip@file
-        # - https-www-strip@file
+        - https-www-strip@file
 
 providers:
   docker:

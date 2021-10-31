@@ -6,8 +6,8 @@ http:
           Permissions-Policy: interest-cohort=()
     gzip:
       compress: {}
-    # https-www-strip: # stripping https://www.blah -> https://blah
-    #   redirectRegex:
-    #     regex: ^(?:https)?://(?:www\.)?(.+)
-    #     replacement: https://$${1}
-    #     permanent: true
+    https-www-strip: # stripping https://www.blah -> https://blah
+      redirectregex:
+        regex: ^(?:https)?://(?:www\.)?(.+)
+        replacement: https://$${1}
+        permanent: true
