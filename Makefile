@@ -41,6 +41,7 @@ init:
 	htpasswd -Bc traefik.userfile jane
 
 deploy:
+	./scripts/check-git
 	./scripts/deploy
 
 ssh:
