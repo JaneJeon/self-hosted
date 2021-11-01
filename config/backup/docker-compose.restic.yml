@@ -28,8 +28,8 @@ services:
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
       PRE_COMMANDS: |-
-        docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password devblog > /mnt/dumps/devblog-backup.sql
-        docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > /mnt/dumps/portfolio-backup.sql
+        docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password devblog > ./volumes/dumps/devblog-backup.sql
+        docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > ./volumes/dumps/portfolio-backup.sql
 
   prune:
     image: mazzolino/restic:1
