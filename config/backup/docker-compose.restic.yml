@@ -38,8 +38,6 @@ services:
   prune:
     image: mazzolino/restic:1
     container_name: restic-prune
-    networks:
-      - private
     hostname: docker
     environment:
       RUN_ON_STARTUP: "true"
@@ -53,8 +51,6 @@ services:
   check:
     image: mazzolino/restic:1
     container_name: restic-check
-    networks:
-      - private
     hostname: docker
     environment:
       RUN_ON_STARTUP: "false"
