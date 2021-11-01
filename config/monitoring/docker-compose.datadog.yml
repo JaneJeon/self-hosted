@@ -12,6 +12,6 @@ services:
       - /opt/datadog-agent/run:/opt/datadog-agent/run:rw
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
     environment:
-      - DD_API_KEY: ${DD_API_KEY}
-      - DD_LOGS_ENABLED: "true"
-      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_API_KEY: ${DD_API_KEY}
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
