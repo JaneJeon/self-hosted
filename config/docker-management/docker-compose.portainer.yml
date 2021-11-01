@@ -5,7 +5,6 @@ services:
     image: portainer/portainer-ce:alpine # there's no 2, 2.x tags
     container_name: portainer
     restart: unless-stopped
-    command: -H unix:///var/run/docker.sock
     security_opt:
       - no-new-privileges:true
     networks:
