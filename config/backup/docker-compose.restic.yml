@@ -2,7 +2,7 @@ version: "3"
 
 services:
   backup:
-    image: mazzolino/restic
+    image: mazzolino/restic:1
     container_name: restic-backup
     restart: always
     hostname: docker
@@ -32,7 +32,7 @@ services:
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > /mnt/dumps/portfolio-backup.sql
 
   prune:
-    image: mazzolino/restic
+    image: mazzolino/restic:1
     container_name: restic-prune
     restart: always
     hostname: docker
@@ -46,7 +46,7 @@ services:
       TZ: America/New_York
 
   check:
-    image: mazzolino/restic
+    image: mazzolino/restic:1
     container_name: restic-check
     restart: always
     hostname: docker
