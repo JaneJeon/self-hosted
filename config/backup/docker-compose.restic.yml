@@ -4,9 +4,12 @@ services:
   backup:
     image: mazzolino/restic:1
     container_name: restic-backup
+    networks:
+      - private
     hostname: docker
     volumes:
       - ./volumes:/mnt/volumes
+      - ./scripts/wait-for:/usr/local/bin/wait-for
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       RUN_ON_STARTUP: "true"
@@ -27,12 +30,16 @@ services:
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
       PRE_COMMANDS: |-
+        wait-for mysql:3306 --timeout=60 -- true
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password devblog > /mnt/volumes/dumps/devblog-backup.sql
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > /mnt/volumes/dumps/portfolio-backup.sql
+      # TODO: add post command to notify
 
   prune:
     image: mazzolino/restic:1
     container_name: restic-prune
+    networks:
+      - private
     hostname: docker
     environment:
       RUN_ON_STARTUP: "true"
@@ -46,6 +53,8 @@ services:
   check:
     image: mazzolino/restic:1
     container_name: restic-check
+    networks:
+      - private
     hostname: docker
     environment:
       RUN_ON_STARTUP: "false"
@@ -57,3 +66,7 @@ services:
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
+
+networks:
+  private:
+    external: true
