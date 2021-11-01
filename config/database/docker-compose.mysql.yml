@@ -7,8 +7,8 @@ services:
     restart: always
     networks:
       - private
-    ports:
-      - 3306:3306
+    expose:
+      - 3306
     volumes:
       - ./volumes/mysql:/var/lib/mysql
       - ./volumes/dumps:/mnt/dumps
