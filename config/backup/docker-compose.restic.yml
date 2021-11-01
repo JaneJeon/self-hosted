@@ -4,7 +4,6 @@ services:
   backup:
     image: mazzolino/restic:1
     container_name: restic-backup
-    restart: always
     hostname: docker
     volumes:
       - ./volumes:/mnt/volumes
@@ -34,7 +33,6 @@ services:
   prune:
     image: mazzolino/restic:1
     container_name: restic-prune
-    restart: always
     hostname: docker
     environment:
       RUN_ON_STARTUP: "true"
@@ -48,7 +46,6 @@ services:
   check:
     image: mazzolino/restic:1
     container_name: restic-check
-    restart: always
     hostname: docker
     environment:
       RUN_ON_STARTUP: "false"
