@@ -11,7 +11,7 @@ services:
     networks:
       - public
     volumes:
-      - /usr/share/zoneinfo/America/New_York:/etc/localtime
+      - /usr/share/zoneinfo/America/New_York:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/portainer:/data
     labels:
