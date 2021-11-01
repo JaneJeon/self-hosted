@@ -1,0 +1,59 @@
+version: "3"
+
+services:
+  backup:
+    image: mazzolino/restic
+    container_name: restic-backup
+    restart: always
+    hostname: docker
+    volumes:
+      - ./volumes:/mnt/volumes:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      RUN_ON_STARTUP: "true"
+      BACKUP_CRON: "0 30 3 * * *"
+      RESTIC_REPOSITORY: b2:${B2_BUCKET}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      RESTIC_BACKUP_SOURCES: /mnt/volumes
+      RESTIC_BACKUP_ARGS: >-
+        --tag docker-volumes
+        --exclude='*.tmp'
+        --verbose
+      RESTIC_FORGET_ARGS: >-
+        --keep-last 10
+        --keep-daily 7
+        --keep-weekly 5
+        --keep-monthly 12
+      B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
+      B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
+      TZ: America/New_York
+
+  prune:
+    image: mazzolino/restic
+    container_name: restic-prune
+    restart: always
+    hostname: docker
+    environment:
+      RUN_ON_STARTUP: "true"
+      PRUNE_CRON: "0 0 4 * * *"
+      RESTIC_REPOSITORY: b2:${B2_BUCKET}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
+      B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
+      TZ: America/New_York
+
+  check:
+    image: mazzolino/restic
+    container_name: restic-check
+    restart: always
+    hostname: docker
+    environment:
+      RUN_ON_STARTUP: "false"
+      CHECK_CRON: "0 15 5 * * *"
+      RESTIC_CHECK_ARGS: >-
+        --read-data-subset=10%
+      RESTIC_REPOSITORY: b2:${B2_BUCKET}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
+      B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
+      TZ: America/New_York

@@ -39,6 +39,7 @@ init:
 	touch config/reverse-proxy/acme.json
 	chmod 600 config/reverse-proxy/acme.json
 	htpasswd -Bc traefik.userfile jane
+	restic -r b2:$${B2_BUCKET} init
 
 deploy:
 	./scripts/check-git
@@ -46,4 +47,4 @@ deploy:
 	./scripts/deploy
 
 ssh:
-	source .env && ssh jane@$${REMOTE_IP}
+	ssh jane@$${REMOTE_IP}
