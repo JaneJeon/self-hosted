@@ -6,12 +6,12 @@ services:
     container_name: gc
     restart: always
     command:
-      - dcgc
       - --exclude-container-label
       - DOCKER_GC_DO_NOT_REMOVE_CONTAINER
       - --max-container-age
       - 7days
       - --max-image-age
       - 30days
+      - --dangling-volumes
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
