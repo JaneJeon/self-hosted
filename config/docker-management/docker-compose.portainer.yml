@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  portainer:
+    image: portainer/portainer-ce:alpine # there's no 2, 2.x tags
+    container_name: portainer
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - public
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/portainer:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portainer.rule=Host(`portainer.janejeon.com`)
+      - traefik.http.routers.portainer.tls.certresolver=letsencrypt
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+
+networks:
+  public:
+    external: true
