@@ -11,6 +11,7 @@ services:
     networks:
       - public
     volumes:
+      - /etc/localtime:/etc/localtime
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/portainer:/data
     labels:
