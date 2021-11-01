@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  newrelic:
+    image: newrelic/infrastructure:1
+    container_name: newrelic
+    restart: always
+    network_mode: host
+    pid: host
+    privileged: true
+    cap_add:
+      - SYS_PTRACE
+    volumes:
+      - /:/host:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      # https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/configuration/infrastructure-agent-configuration-settings
+      NRIA_LICENSE_KEY: ${NRIA_LICENSE_KEY}
+      NRIA_ENABLE_PROCESS_METRICS: "true"
