@@ -34,7 +34,6 @@ services:
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password devblog > /mnt/volumes/dumps/devblog-backup.sql
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > /mnt/volumes/dumps/portfolio-backup.sql
       # TODO: add post command to notify
-      DOCKER_GC_DO_NOT_REMOVE_CONTAINER: "true"
 
   prune:
     image: mazzolino/restic:1
@@ -48,7 +47,6 @@ services:
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
-      DOCKER_GC_DO_NOT_REMOVE_CONTAINER: "true"
 
   check:
     image: mazzolino/restic:1
@@ -64,7 +62,6 @@ services:
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
-      DOCKER_GC_DO_NOT_REMOVE_CONTAINER: "true"
 
 networks:
   private:

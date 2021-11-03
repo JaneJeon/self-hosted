@@ -4,10 +4,7 @@ services:
   gc:
     image: yelp/docker-custodian:latest
     container_name: gc
-    restart: always
     command:
-      - --exclude-container-label
-      - DOCKER_GC_DO_NOT_REMOVE_CONTAINER
       - --max-container-age
       - 7days
       - --max-image-age
