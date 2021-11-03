@@ -16,3 +16,7 @@ services:
       DD_LOGS_ENABLED: "true"
       DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
       DD_PROCESS_AGENT_ENABLED: "true"
+    labels:
+      com.datadoghq.ad.check_names: '["ssh_check"]'
+      com.datadoghq.ad.init_configs: "[{}]"
+      com.datadoghq.ad.instances: '[{"host": "localhost", "port":"22", "username":"jane"}]'
