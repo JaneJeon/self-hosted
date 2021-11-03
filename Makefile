@@ -45,7 +45,6 @@ deploy:
 	./scripts/check-git
 	git push
 	./scripts/deploy
-	ssh jane@$${REMOTE_IP} "cd ~/self-hosted && make up"
 
 ssh:
 	ssh jane@$${REMOTE_IP}
