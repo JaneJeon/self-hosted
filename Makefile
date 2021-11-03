@@ -1,4 +1,4 @@
-.DEFAULT_GOAL=up
+.DEFAULT_GOAL=deploy
 
 D=docker
 DC=docker-compose
@@ -45,6 +45,7 @@ deploy:
 	./scripts/check-git
 	git push
 	./scripts/deploy
+	ssh -t jane@$${REMOTE_IP} "cd ~/self-hosted && make up"
 
 ssh:
 	ssh jane@$${REMOTE_IP}
