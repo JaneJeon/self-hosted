@@ -16,6 +16,8 @@ usermod -aG sudo jane # make myself sudo-er
 sudo update-alternatives --config editor # (enter /usr/bin/vim.basic prompt)
 sudo visudo # interactive prompt: add "jane ALL=(ALL:ALL) NOPASSWD: ALL" to the bottom of the file
 
+sudo ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+
 sudo apt update && sudo apt upgrade && sudo apt install rsync make
 mkdir self-hosted
 
