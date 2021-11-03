@@ -1,3 +1,3 @@
-For homepage: https://github.com/bastienwirtz/homer
+For homepage: https://github.com/pawelmalak/flame
 
-https://github.com/WalkxCode/Homer-Theme
+Find icons on: https://mdi.bessarabov.com/
