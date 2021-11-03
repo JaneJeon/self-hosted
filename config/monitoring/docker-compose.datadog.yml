@@ -19,4 +19,4 @@ services:
     labels:
       com.datadoghq.ad.check_names: '["ssh_check"]'
       com.datadoghq.ad.init_configs: "[{}]"
-      com.datadoghq.ad.instances: '[{"host": "localhost", "port":"22", "username":"jane"}]'
+      com.datadoghq.ad.instances: '[{"host": "127.0.0.1", "port":"22", "username":"jane"}]'
