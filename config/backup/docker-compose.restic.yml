@@ -1,9 +1,10 @@
-version: "3"
+version: '3'
 
 services:
   backup:
     image: mazzolino/restic:1
     container_name: restic-backup
+    restart: always
     networks:
       - private
     hostname: docker
@@ -12,8 +13,8 @@ services:
       - ./scripts/wait-for:/usr/local/bin/wait-for
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      RUN_ON_STARTUP: "true"
-      BACKUP_CRON: "0 30 3 * * *"
+      RUN_ON_STARTUP: 'true'
+      BACKUP_CRON: '0 30 3 * * *'
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
       RESTIC_BACKUP_SOURCES: /mnt/volumes
@@ -38,10 +39,11 @@ services:
   prune:
     image: mazzolino/restic:1
     container_name: restic-prune
+    restart: always
     hostname: docker
     environment:
-      RUN_ON_STARTUP: "true"
-      PRUNE_CRON: "0 0 4 * * *"
+      RUN_ON_STARTUP: 'true'
+      PRUNE_CRON: '0 0 4 * * *'
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
@@ -51,10 +53,11 @@ services:
   check:
     image: mazzolino/restic:1
     container_name: restic-check
+    restart: always
     hostname: docker
     environment:
-      RUN_ON_STARTUP: "false"
-      CHECK_CRON: "0 15 5 * * *"
+      RUN_ON_STARTUP: 'false'
+      CHECK_CRON: '0 15 5 * * *'
       RESTIC_CHECK_ARGS: >-
         --read-data-subset=10%
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
