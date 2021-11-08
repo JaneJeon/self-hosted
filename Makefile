@@ -5,6 +5,8 @@ DC=docker-compose
 
 DC_ALL=-f docker-compose.base.yml $(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 
+ENV=. .env &&
+
 network-up:
 	@$(D) network create public || true
 	@$(D) network create private || true
@@ -39,7 +41,7 @@ init:
 	touch config/reverse-proxy/acme.json
 	chmod 600 config/reverse-proxy/acme.json
 	htpasswd -Bc traefik.userfile jane
-	restic -r b2:$${B2_BUCKET} init
+	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 deploy:
 	./scripts/check-git
@@ -47,4 +49,10 @@ deploy:
 	./scripts/deploy
 
 ssh:
-	ssh jane@$${REMOTE_IP}
+	$(ENV) ssh jane@$${REMOTE_IP}
+
+open-ports:
+	$(ENV) ssh jane@$${REMOTE_IP} sudo netstat -tulpn | grep LISTEN
+
+test-env:
+	$(ENV) echo $${REMOTE_IP}
