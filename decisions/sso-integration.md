@@ -2,6 +2,9 @@ For web-only applications that do not have built-in authentication, oauth2-proxy
 
 For applications that are _supposed_ to be public (e.g. analytics), we don't need to put anything on top.
 
+> Actually, for _any_ applications, with or without builtin auth, there is always a risk that there's a bug in the application that would allow someone to compromise the application _without_ the credentials, and that's where VPNs would come in - they won't even let you REACH the applications without the right credentials.
+> So technically, the correct answer is an SSO-integrated VPN (like Tailscale), but a VPN brings with it its own set of troubles, like DNS troubles (i.e. you don't get a "neat" DNS like janejeon.com unless you manually set it up), and HTTPS (reverse proxies don't play nice with it).
+
 There are private applications; however, all of them are (so far) web applications; anything that has mobile clients already seem to have auth baked-in, so no need for a VPN there.
 
 Then, the only thing left are "infrastructure" pieces; those can be transparently connected using a VPN (esp. for databases where we'd like to be able to "login" directly with desktop database clients).
