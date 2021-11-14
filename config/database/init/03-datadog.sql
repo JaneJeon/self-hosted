@@ -3,3 +3,4 @@ CREATE USER IF NOT EXISTS 'datadog'@'%' IDENTIFIED WITH mysql_native_password by
 ALTER USER 'datadog'@'%' WITH MAX_USER_CONNECTIONS 5;
 GRANT REPLICATION CLIENT ON *.* TO 'datadog'@'%';
 GRANT PROCESS ON *.* TO 'datadog'@'%';
+GRANT SELECT ON performance_schema.* TO 'datadog'@'%';
