@@ -3,7 +3,10 @@ For web-only applications that do not have built-in authentication, oauth2-proxy
 For applications that are _supposed_ to be public (e.g. analytics), we don't need to put anything on top.
 
 > Actually, for _any_ applications, with or without builtin auth, there is always a risk that there's a bug in the application that would allow someone to compromise the application _without_ the credentials, and that's where VPNs would come in - they won't even let you REACH the applications without the right credentials.
+
 > So technically, the correct answer is an SSO-integrated VPN (like Tailscale), but a VPN brings with it its own set of troubles, like DNS troubles (i.e. you don't get a "neat" DNS like janejeon.com unless you manually set it up), and HTTPS (reverse proxies don't play nice with it).
+
+> One possible way we might be able to get around all of this bullshit is by routing everything with Traefik as usual - so we get the HTTPS and the DNS for "free" - but exposing it on a port that's _not_ accessible from the public! Then, through the magic of Tailscale DNS, I would be able to access \*.janejeon.dev through the VPN and hit Traefik that way?
 
 There are private applications; however, all of them are (so far) web applications; anything that has mobile clients already seem to have auth baked-in, so no need for a VPN there.
 
