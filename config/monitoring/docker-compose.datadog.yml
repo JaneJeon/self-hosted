@@ -1,10 +1,12 @@
-version: "3"
+version: '3'
 
 services:
   datadog:
     image: gcr.io/datadoghq/agent:7
     container_name: datadog
     restart: always
+    networks:
+      - private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /proc/:/host/proc/:ro
@@ -13,6 +15,10 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
     environment:
       DD_API_KEY: ${DD_API_KEY}
-      DD_LOGS_ENABLED: "true"
-      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
-      DD_PROCESS_AGENT_ENABLED: "true"
+      DD_LOGS_ENABLED: 'true'
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: 'true'
+      DD_PROCESS_AGENT_ENABLED: 'true'
+
+networks:
+  private:
+    external: true
