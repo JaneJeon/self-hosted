@@ -21,7 +21,7 @@ services:
     labels:
       com.datadoghq.ad.check_names: '["mysql"]'
       com.datadoghq.ad.init_configs: '[{}]'
-      com.datadoghq.ad.instances: '[{"server": "%%host_private%%", "user": "datadog", "pass": "datadog-password"}]'
+      com.datadoghq.ad.instances: '[{"server": "mysql", "user": "datadog", "pass": "datadog-password"}]'
 
 networks:
   private:
