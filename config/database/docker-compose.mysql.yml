@@ -23,7 +23,7 @@ services:
       com.datadoghq.ad.init_configs: '[{}]'
       com.datadoghq.ad.instances: >
         [{
-          "server": "127.0.0.1",
+          "server": "mysql",
           "user": "datadog",
           "pass": "datadog-password",
           "options": {
