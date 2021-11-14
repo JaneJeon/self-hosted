@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 services:
   redis:
@@ -9,6 +9,11 @@ services:
       - private
     expose:
       - 6379
+    labels:
+      com.datadoghq.ad.check_names: '["redisdb"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"host": "redis"}]'
+      com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
 
 networks:
   private:
