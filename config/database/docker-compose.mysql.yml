@@ -13,6 +13,7 @@ services:
       - ./volumes/mysql:/var/lib/mysql
       - ./volumes/dumps:/mnt/dumps
       - ./config/database/init:/docker-entrypoint-initdb.d
+      - ./config/database/my.cnf:/etc/mysql/conf.d/my.cnf
     environment:
       MYSQL_ROOT_PASSWORD: mysql-root-password
     cap_add:
