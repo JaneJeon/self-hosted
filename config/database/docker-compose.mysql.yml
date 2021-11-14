@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 services:
   mysql:
@@ -18,6 +18,10 @@ services:
       MYSQL_ROOT_PASSWORD: mysql-root-password
     cap_add:
       - SYS_NICE
+    labels:
+      com.datadoghq.ad.check_names: '["mysql"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"server": "%%host%%", "user": "datadog", "pass": "datadog-password"}]'
 
 networks:
   private:
