@@ -34,8 +34,8 @@ services:
         wait-for mysql:3306 --timeout=60 -- true
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password devblog > /mnt/volumes/dumps/devblog-backup.sql
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > /mnt/volumes/dumps/portfolio-backup.sql
-      POST_COMMANDS_SUCCESS: curl -X POST -d 'body=Backup Successfully Run' http://apprise:8000/notify
-      POST_COMMANDS_FAILURE: curl -X POST -d 'body=Backup Failed!' http://apprise:8000/notify
+      POST_COMMANDS_SUCCESS: curl -X POST -d 'title=Backup Successfully Run' http://apprise:8000/notify
+      POST_COMMANDS_FAILURE: curl -X POST -d 'title=Backup Failed!' http://apprise:8000/notify
 
   prune:
     image: mazzolino/restic:1
