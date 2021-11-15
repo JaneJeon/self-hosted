@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  apprise:
+    image: caronc/apprise:latest
+    container_name: apprise
+    restart: always
+    networks:
+      - private
+    environment:
+      APPRISE_STATELESS_URLS: sendgrid://${SENDGRID_API_KEY}:bot@janejeon.dev/contact@janejeon.dev
+      APPRISE_STATEFUL_MODE: disabled
