@@ -28,6 +28,7 @@ services:
       traefik.http.routers.traefik.middlewares: auth
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
       traefik.http.middlewares.auth.basicauth.usersfile: /etc/traefik/traefik.userfile
+      com.centurylinklabs.watchtower.enable: 'true'
 
 networks:
   public:

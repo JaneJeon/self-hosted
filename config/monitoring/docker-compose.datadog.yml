@@ -18,6 +18,8 @@ services:
       DD_LOGS_ENABLED: 'true'
       DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: 'true'
       DD_PROCESS_AGENT_ENABLED: 'true'
+    labels:
+      com.centurylinklabs.watchtower.enable: 'true'
 
 networks:
   private:

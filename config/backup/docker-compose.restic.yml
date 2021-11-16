@@ -36,6 +36,8 @@ services:
         docker exec mysql /usr/bin/mysqldump -u root --password=mysql-root-password portfolio > /mnt/volumes/dumps/portfolio-backup.sql
       POST_COMMANDS_SUCCESS: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup ran successfully!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
       POST_COMMANDS_FAILURE: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup failed!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
+    labels:
+      com.centurylinklabs.watchtower.enable: 'true'
 
   prune:
     image: mazzolino/restic:1
@@ -52,6 +54,8 @@ services:
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
+    labels:
+      com.centurylinklabs.watchtower.enable: 'true'
 
   check:
     image: mazzolino/restic:1
@@ -70,6 +74,8 @@ services:
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
+    labels:
+      com.centurylinklabs.watchtower.enable: 'true'
 
 networks:
   private:

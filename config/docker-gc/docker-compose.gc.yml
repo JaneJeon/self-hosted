@@ -14,6 +14,9 @@ services:
       - private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      com.centurylinklabs.watchtower.enable: 'true'
+      com.centurylinklabs.watchtower.monitor-only: 'true'
 
 networks:
   private:

@@ -34,6 +34,7 @@ services:
           }
         }]
       com.datadoghq.ad.logs: '[{"source": "mysql", "service": "mysql"}]'
+      com.centurylinklabs.watchtower.enable: 'true'
 
 networks:
   private:
