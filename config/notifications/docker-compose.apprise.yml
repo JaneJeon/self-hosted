@@ -8,5 +8,5 @@ services:
     networks:
       - private
     environment:
-      APPRISE_STATELESS_URLS: sendgrid://${SENDGRID_API_KEY}:bot@janejeon.dev/contact@janejeon.dev
+      APPRISE_STATELESS_URLS: sendgrid://${SENDGRID_API_KEY}:bot@janejeon.dev/${SLACK_ENDPOINT}
       APPRISE_STATEFUL_MODE: disabled
