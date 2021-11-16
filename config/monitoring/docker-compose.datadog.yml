@@ -7,6 +7,7 @@ services:
     restart: always
     networks:
       - private
+      - public
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /proc/:/host/proc/:ro
@@ -20,4 +21,6 @@ services:
 
 networks:
   private:
+    external: true
+  public:
     external: true

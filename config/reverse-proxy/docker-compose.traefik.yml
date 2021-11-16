@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 services:
   traefik:
@@ -22,12 +22,12 @@ services:
       CF_DNS_API_TOKEN: ${CLOUDFLARE_DNS_API_TOKEN}
       CF_ZONE_API_TOKEN: ${CLOUDFLARE_ZONE_API_TOKEN}
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.traefik.rule=Host(`traefik.janejeon.com`)
-      - traefik.http.routers.traefik.tls.certresolver=letsencrypt
-      - traefik.http.routers.traefik.middlewares=auth
-      - traefik.http.services.api@internal.loadbalancer.server.port=8080
-      - traefik.http.middlewares.auth.basicauth.usersfile=/etc/traefik/traefik.userfile
+      traefik.enable: 'true'
+      traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
+      traefik.http.routers.traefik.tls.certresolver: letsencrypt
+      traefik.http.routers.traefik.middlewares: auth
+      traefik.http.services.api@internal.loadbalancer.server.port: 8080
+      traefik.http.middlewares.auth.basicauth.usersfile: /etc/traefik/traefik.userfile
 
 networks:
   public:

@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 services:
   gc:
@@ -10,5 +10,11 @@ services:
       - --max-image-age
       - 30days
       - --dangling-volumes
+    networks:
+      - private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+  private:
+    external: true

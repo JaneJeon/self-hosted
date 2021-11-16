@@ -5,6 +5,8 @@ services:
     image: containrrr/watchtower:latest
     container_name: watchtower
     restart: always
+    networks:
+      - private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
