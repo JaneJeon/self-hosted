@@ -43,6 +43,7 @@ services:
       traefik.http.routers.devblog.tls.certresolver: letsencrypt
       traefik.http.services.devblog.loadbalancer.server.port: 2368
       com.centurylinklabs.watchtower.enable: 'true'
+      com.centurylinklabs.watchtower.depends-on: mysql
 
   portfolio:
     image: ghost:4-alpine
@@ -86,6 +87,7 @@ services:
       traefik.http.routers.portfolio.tls.certresolver: letsencrypt
       traefik.http.services.portfolio.loadbalancer.server.port: 2368
       com.centurylinklabs.watchtower.enable: 'true'
+      com.centurylinklabs.watchtower.depends-on: mysql
 
 networks:
   public:
