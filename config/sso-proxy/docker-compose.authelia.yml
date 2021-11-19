@@ -24,6 +24,9 @@ services:
       traefik.http.routers.authelia.rule: Host(`auth.janejeon.com`)
       traefik.http.routers.authelia.tls.certresolver: letsencrypt
       traefik.http.services.authelia.loadbalancer.server.port: 9091
+      traefik.http.middlewares.authelia.forwardauth.address: http://authelia:9091/api/verify?rd=https://auth.janejeon.com
+      traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: 'true'
+      traefik.http.middlewares.authelia.forwardauth.authResponseHeaders: Remote-User,Remote-Groups,Remote-Name,Remote-Email
       com.centurylinklabs.watchtower.enable: 'true'
       com.centurylinklabs.watchtower.depends-on: mysql,redis
 
