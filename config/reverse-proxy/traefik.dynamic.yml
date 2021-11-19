@@ -15,4 +15,8 @@ http:
       forwardauth:
         address: http://authelia:9091/api/verify?rd=https://auth.janejeon.com
         trustForwardHeader: true
-        authResponseHeaders: Remote-User,Remote-Groups,Remote-Name,Remote-Email
+        authResponseHeaders:
+          - Remote-User
+          - Remote-Groups
+          - Remote-Name
+          - Remote-Email

@@ -25,7 +25,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
       traefik.http.routers.traefik.tls.certresolver: letsencrypt
-      traefik.http.routers.traefik.middlewares: authelia@docker
+      traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
       com.centurylinklabs.watchtower.enable: 'true'
 
