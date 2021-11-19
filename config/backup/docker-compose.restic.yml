@@ -4,7 +4,7 @@ services:
   backup:
     image: mazzolino/restic:1
     container_name: restic-backup
-    restart: always
+    restart: unless-stopped
     networks:
       - private
     hostname: docker
@@ -41,7 +41,7 @@ services:
   prune:
     image: mazzolino/restic:1
     container_name: restic-prune
-    restart: always
+    restart: unless-stopped
     networks:
       - private
     hostname: docker
@@ -59,7 +59,7 @@ services:
   check:
     image: mazzolino/restic:1
     container_name: restic-check
-    restart: always
+    restart: unless-stopped
     networks:
       - private
     hostname: docker

@@ -4,7 +4,7 @@ services:
   traefik:
     image: traefik:2.5
     container_name: traefik
-    restart: always
+    restart: unless-stopped
     networks:
       - public
     ports:
@@ -25,9 +25,8 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
       traefik.http.routers.traefik.tls.certresolver: letsencrypt
-      traefik.http.routers.traefik.middlewares: auth
+      traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
-      traefik.http.middlewares.auth.basicauth.usersfile: /etc/traefik/traefik.userfile
       com.centurylinklabs.watchtower.enable: 'true'
 
 networks:
