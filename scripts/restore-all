@@ -1,9 +1,14 @@
 #!/bin/sh
+# This script is to be run from host, with the appropriate secrets.
 
 set -e
 
-# TODO: write shit to restore restic from backup onto volumes folder
-# https://github.com/djmaze/resticker#restoring
+# First, find the snapshot to restore to:
+# docker-compose exec backup restic snapshots [-H docker]
 
+# Then, pass that snapshot id to restore volumes/ directory
+docker-compose exec backup restic restore --target /mnt/volumes $1
+
+# Finally, get the databases to ingest the restored WALs
 ./scripts/wait-for redis:6379 --timeout=60 -- docker exec redis /usr/local/bin/restore
 ./scripts/wait-for mysql:3306 --timeout=60 -- docker exec mysql /usr/local/bin/restore
