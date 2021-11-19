@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+
+./scripts/wait-for redis:6379 --timeout=60 -- docker exec redis restore
+./scripts/wait-for mysql:3306 --timeout=60 -- docker exec mysql restore

@@ -10,10 +10,11 @@ services:
     expose:
       - 3306
     volumes:
-      - ./volumes/mysql:/var/lib/mysql
-      - ./volumes/dumps:/mnt/dumps
+      - ./volumes/mysql-dump:/mnt/dump
       - ./config/database/init:/docker-entrypoint-initdb.d
       - ./config/database/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./config/database/dump.sh:/usr/local/bin/dump
+      - ./config/database/restore.sh:/usr/local/bin/restore
     environment:
       MYSQL_ROOT_PASSWORD: mysql-root-password
     cap_add:
@@ -35,6 +36,8 @@ services:
         }]
       com.datadoghq.ad.logs: '[{"source": "mysql", "service": "mysql"}]'
       com.centurylinklabs.watchtower.enable: 'true'
+      com.centurylinklabs.watchtower.lifecycle.pre-update: dump
+      com.centurylinklabs.watchtower.lifecycle.post-update: restore
 
 networks:
   private:

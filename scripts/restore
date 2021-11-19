@@ -1,4 +1,0 @@
-#!/bin/bash
-# TODO: write db restore script for every database
-
-cat backup.sql | docker exec -i CONTAINER /usr/bin/mysql -u root --password=root DATABASE

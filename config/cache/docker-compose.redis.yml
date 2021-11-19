@@ -9,12 +9,18 @@ services:
       - private
     expose:
       - 6379
+    volumes:
+      - ./volumes/redis-dump:/data # default redis container dump location - check using "config get dir"
+      - ./config/cache/dump.sh:/usr/local/bin/dump
+      - ./config/cache/restore.sh:/usr/local/bin/restore
     labels:
       com.datadoghq.ad.check_names: '["redisdb"]'
       com.datadoghq.ad.init_configs: '[{}]'
       com.datadoghq.ad.instances: '[{"host": "redis", "port": 6379}]'
       com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
       com.centurylinklabs.watchtower.enable: 'true'
+      com.centurylinklabs.watchtower.lifecycle.pre-update: dump
+      com.centurylinklabs.watchtower.lifecycle.post-update: restore
 
 networks:
   private:
