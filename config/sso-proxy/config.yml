@@ -416,7 +416,7 @@ notifier:
     host: smtp.sendgrid.net
 
     ## The port to connect to the SMTP host on.
-    port: 1025
+    port: 25
 
     ## The connection timeout.
     timeout: 5s
