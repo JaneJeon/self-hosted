@@ -1,0 +1,38 @@
+{
+  "url": "http://localhost:2368",
+  "server": {
+    "port": 2368,
+    "host": "0.0.0.0"
+  },
+  "database": {
+    "client": "mysql",
+    "connection": {
+      "host": "mysql"
+    },
+    "pool": {
+      "min": 0,
+      "max": 2
+    }
+  },
+  "mail": {
+    "transport": "SMTP",
+    "options": {
+      "service": "SendGrid",
+      "auth": {
+        "user": "apikey"
+      }
+    }
+  },
+  "logging": {
+    "transports": ["stdout"]
+  },
+  "paths": {
+    "contentPath": "/var/lib/ghost/content"
+  },
+  "compress": false,
+  "caching": {
+    "frontend": {
+      "maxAge": 10800
+    }
+  }
+}
