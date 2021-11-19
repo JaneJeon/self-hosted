@@ -16,7 +16,7 @@ network-down:
 	@$(D) network rm private || true
 
 up: network-up
-	$(DC) $(DC_ALL) up -d
+	$(DC) $(DC_ALL) up -d --remove-orphans
 
 down:
 	$(DC) $(DC_ALL) down --remove-orphans
