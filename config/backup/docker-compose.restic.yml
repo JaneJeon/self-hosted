@@ -31,8 +31,8 @@ services:
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: America/New_York
       PRE_COMMANDS: |-
-        wait-for redis:6379 --timeout=60 -- docker exec redis dump
-        wait-for mysql:3306 --timeout=60 -- docker exec mysql dump
+        wait-for redis:6379 --timeout=60 -- docker exec redis /usr/local/bin/dump
+        wait-for mysql:3306 --timeout=60 -- docker exec mysql /usr/local/bin/dump
       POST_COMMANDS_SUCCESS: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup ran successfully!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
       POST_COMMANDS_FAILURE: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup failed!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
     labels:

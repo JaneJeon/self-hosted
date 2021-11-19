@@ -5,5 +5,5 @@ set -e
 # TODO: write shit to restore restic from backup onto volumes folder
 # https://github.com/djmaze/resticker#restoring
 
-./scripts/wait-for redis:6379 --timeout=60 -- docker exec redis restore
-./scripts/wait-for mysql:3306 --timeout=60 -- docker exec mysql restore
+./scripts/wait-for redis:6379 --timeout=60 -- docker exec redis /usr/local/bin/restore
+./scripts/wait-for mysql:3306 --timeout=60 -- docker exec mysql /usr/local/bin/restore

@@ -11,8 +11,8 @@ services:
       - 6379
     volumes:
       - ./volumes/redis-dump:/data # default redis container dump location - check using "config get dir"
-      - ./config/cache/dump.sh:/bin/dump
-      - ./config/cache/restore.sh:/bin/restore
+      - ./config/cache/dump.sh:/usr/local/bin/dump
+      - ./config/cache/restore.sh:/usr/local/bin/restore
     labels:
       com.datadoghq.ad.check_names: '["redisdb"]'
       com.datadoghq.ad.init_configs: '[{}]'
