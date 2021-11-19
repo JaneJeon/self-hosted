@@ -11,9 +11,9 @@ log:
 accessLog:
   format: common
 
-# TODO: properly authorize w/ oauth2-proxy
 api:
   dashboard: true
+  insecure: true
 
 certificatesResolvers:
   letsencrypt:

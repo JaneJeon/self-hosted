@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  authelia:
+    image: authelia/authelia:4
+    container_name: authelia
+    restart: unless-stopped
+    command: --config /mnt/config.yml
+    networks:
+      - public
+      - private
+    expose:
+      - 9091
+    volumes:
+      - ./config/sso-proxy/config.yml:/mnt/config.yml
+      - ./authelia.userfile:/mnt/authelia.userfile
+    environment:
+      AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
+      AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET}
+      AUTHELIA_NOTIFIER_SMTP_PASSWORD: ${SENDGRID_API_KEY}
+      TZ: America/New_York
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.authelia.rule: Host(`auth.janejeon.com`)
+      traefik.http.routers.authelia.tls.certresolver: letsencrypt
+      traefik.http.services.authelia.loadbalancer.server.port: 9091
+      com.centurylinklabs.watchtower.enable: 'true'
+      com.centurylinklabs.watchtower.depends-on: mysql,redis
+
+networks:
+  public:
+    external: true
+  private:
+    external: true

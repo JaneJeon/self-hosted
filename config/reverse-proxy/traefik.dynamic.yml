@@ -11,3 +11,8 @@ http:
         regex: ^(?:https://)?(?:www\.)?(.+)
         replacement: https://${1}
         permanent: true
+    sso-proxy:
+      forwardauth:
+        address: http://authelia:9091/api/verify?rd=https://authelia.janejeon.com
+        trustForwardHeader: true
+        authResponseHeaders: Remote-User,Remote-Groups,Remote-Name,Remote-Email
