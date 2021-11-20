@@ -15,8 +15,8 @@ services:
       - ./volumes/portainer:/data
     labels:
       traefik.enable: 'true'
+      traefik.http.routers.portainer.tls: 'true'
       traefik.http.routers.portainer.rule: Host(`portainer.janejeon.com`)
-      traefik.http.routers.portainer.tls.certresolver: letsencrypt
       traefik.http.services.portainer.loadbalancer.server.port: 9000
       com.centurylinklabs.watchtower.enable: 'true'
       com.centurylinklabs.watchtower.monitor-only: 'true'

@@ -15,14 +15,6 @@ api:
   dashboard: true
   insecure: true
 
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: contact@janejeon.dev
-      storage: /letsencrypt/acme.json
-      dnsChallenge:
-        provider: cloudflare
-
 entryPoints:
   web:
     address: :80

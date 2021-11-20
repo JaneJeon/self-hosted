@@ -1,0 +1,20 @@
+acme:
+  email_account: contact@janejeon.dev
+
+profiles:
+  - name: cloudflare
+    provider: cloudflare
+    provider_options:
+      auth_token: ${CLOUDFLARE_CERT_API_TOKEN}
+
+certificates:
+  - domains:
+      - nariahn.com
+    profile: cloudflare
+  - domains:
+      - janejeon.dev
+    profile: cloudflare
+  - domains:
+      - '*.janejeon.com'
+    profile: cloudflare
+    name: homelab-wildcard
