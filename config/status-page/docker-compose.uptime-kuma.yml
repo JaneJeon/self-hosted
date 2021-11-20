@@ -11,9 +11,9 @@ services:
       - ./volumes/uptime-kuma:/app/data
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.devblog.tls: 'true'
-      traefik.http.routers.devblog.rule: Host(`up.janejeon.com`)
-      traefik.http.services.devblog.loadbalancer.server.port: 3001
+      traefik.http.routers.uptime-kuma.tls: 'true'
+      traefik.http.routers.uptime-kuma.rule: Host(`up.janejeon.com`)
+      traefik.http.services.uptime-kuma.loadbalancer.server.port: 3001
       com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: Uptime Kuma
