@@ -211,16 +211,6 @@ access_control:
 
   # https://www.authelia.com/docs/configuration/access-control.html
   rules:
-    ## For Ghost, expose everything. I know /ghost exists, but fuck it.
-    - domain: janejeon.dev
-      policy: bypass
-    - domain: nariahn.com
-      policy: bypass
-
-    ## Portainer has builtin auth
-    - domain: portainer.janejeon.com
-      policy: bypass
-
     - domain: '*.janejeon.com'
       policy: two_factor
 
@@ -371,19 +361,6 @@ storage:
     password: authelia-password
     timeout: 5s
 
-  ##
-  ## PostgreSQL (Storage Provider)
-  ##
-  # postgres:
-  #   host: 127.0.0.1
-  #   port: 5432
-  #   database: authelia
-  #   username: authelia
-  #   ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-  #   password: mypassword
-  #   timeout: 5s
-  #   sslmode: disable
-
 ##
 ## Notification Provider
 ##
@@ -461,85 +438,4 @@ notifier:
 ##
 ## Identity Providers
 ##
-# identity_providers:
 
-##
-## OpenID Connect (Identity Provider)
-##
-## It's recommended you read the documentation before configuration of this section:
-## https://www.authelia.com/docs/configuration/identity-providers/oidc.html
-# oidc:
-## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
-## HMAC Secret can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-# hmac_secret: this_is_a_secret_abc123abc123abc
-
-## The issuer_private_key is used to sign the JWT forged by OpenID Connect.
-## Issuer Private Key can also be set using a secret: https://docs.authelia.com/configuration/secrets.html
-# issuer_private_key: |
-#   --- KEY START
-#   --- KEY END
-
-## The lifespans configure the expiration for these token types.
-# access_token_lifespan: 1h
-# authorize_code_lifespan: 1m
-# id_token_lifespan: 1h
-# refresh_token_lifespan: 90m
-
-## Enables additional debug messages.
-# enable_client_debug_messages: false
-
-## SECURITY NOTICE: It's not recommended changing this option, and highly discouraged to have it below 8 for
-## security reasons.
-# minimum_parameter_entropy: 8
-
-## Clients is a list of known clients and their configuration.
-# clients:
-# -
-## The ID is the OpenID Connect ClientID which is used to link an application to a configuration.
-# id: myapp
-
-## The description to show to users when they end up on the consent screen. Defaults to the ID above.
-# description: My Application
-
-## The client secret is a shared secret between Authelia and the consumer of this client.
-# secret: this_is_a_secret
-
-## Sets the client to public. This should typically not be set, please see the documentation for usage.
-# public: false
-
-## The policy to require for this client; one_factor or two_factor.
-# authorization_policy: two_factor
-
-## Audience this client is allowed to request.
-# audience: []
-
-## Scopes this client is allowed to request.
-# scopes:
-# - openid
-# - groups
-# - email
-# - profile
-
-## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
-# redirect_uris:
-# - https://oidc.example.com:8080/oauth2/callback
-
-## Grant Types configures which grants this client can obtain.
-## It's not recommended to define this unless you know what you're doing.
-# grant_types:
-# - refresh_token
-# - authorization_code
-
-## Response Types configures which responses this client can be sent.
-## It's not recommended to define this unless you know what you're doing.
-# response_types:
-# - code
-
-## Response Modes configures which response modes this client supports.
-# response_modes:
-# - form_post
-# - query
-# - fragment
-
-## The algorithm used to sign userinfo endpoint responses for this client, either none or RS256.
-# userinfo_signing_algorithm: none

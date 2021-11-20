@@ -1,3 +1,2 @@
 **/*.env
 **/*.userfile
-config/reverse-proxy/acme.json
