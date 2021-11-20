@@ -14,7 +14,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
       - ./config/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
-      - ./volumes/certs/live:/mnt/certs:ro
+      - ./volumes/certs:/etc/letsencrypt:ro
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'

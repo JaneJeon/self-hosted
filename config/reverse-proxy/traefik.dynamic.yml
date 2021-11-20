@@ -1,11 +1,11 @@
 tls:
   certificates:
-    - keyFile: /mnt/certs/janejeon.dev/privkey.pem
-      certFile: /mnt/certs/janejeon.dev/fullchain.pem
-    - keyFile: /mnt/certs/nariahn.com/privkey.pem
-      certFile: /mnt/certs/nariahn.com/fullchain.pem
-    - keyFile: /mnt/certs/homelab-wildcard/privkey.pem
-      certFile: /mnt/certs/homelab-wildcard/fullchain.pem
+    - keyFile: /ets/letsencrypt/live/janejeon.dev/privkey.pem
+      certFile: /ets/letsencrypt/live/janejeon.dev/fullchain.pem
+    - keyFile: /ets/letsencrypt/live/nariahn.com/privkey.pem
+      certFile: /ets/letsencrypt/live/nariahn.com/fullchain.pem
+    - keyFile: /ets/letsencrypt/live/homelab-wildcard/privkey.pem
+      certFile: /ets/letsencrypt/live/homelab-wildcard/fullchain.pem
 
 http:
   middlewares:
