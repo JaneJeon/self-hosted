@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    networks:
+      - public
+    volumes:
+      - ./volumes/uptime-kuma:/app/data
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.devblog.tls: 'true'
+      traefik.http.routers.devblog.rule: Host(`up.janejeon.com`)
+      traefik.http.services.devblog.loadbalancer.server.port: 3001
+      com.centurylinklabs.watchtower.enable: 'true'
+      flame.type: application
+      flame.name: Uptime Kuma
+      flame.url: up.janejeon.com
+      flame.icon: swap-vertical
+
+networks:
+  public:
+    external: true
