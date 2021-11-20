@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     networks:
       - public
+      - private
     volumes:
       - ./volumes/uptime-kuma:/app/data
     labels:
@@ -18,9 +19,11 @@ services:
       com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: Uptime Kuma
-      flame.url: up.janejeon.com
+      flame.url: up.janejeon.com/status
       flame.icon: swap-vertical
 
 networks:
   public:
+    external: true
+  private:
     external: true
