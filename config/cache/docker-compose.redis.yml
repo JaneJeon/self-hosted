@@ -7,8 +7,6 @@ services:
     restart: unless-stopped
     networks:
       - private
-    expose:
-      - 6379
     volumes:
       - ./volumes/redis-dump:/data # default redis container dump location - check using "config get dir"
       - ./config/cache/dump.sh:/usr/local/bin/dump

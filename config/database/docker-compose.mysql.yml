@@ -7,8 +7,6 @@ services:
     restart: unless-stopped
     networks:
       - private
-    expose:
-      - 3306
     volumes:
       - ./volumes/mysql-dump:/mnt/dump
       - ./config/database/init:/docker-entrypoint-initdb.d

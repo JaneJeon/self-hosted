@@ -17,8 +17,6 @@ services:
     networks:
       - public
       - private
-    expose:
-      - 2368
     volumes:
       - ./volumes/ghost/janejeon.dev:/var/lib/ghost/content
       - ./scripts/wait-for:/usr/local/bin/wait-for
@@ -53,8 +51,6 @@ services:
     networks:
       - public
       - private
-    expose:
-      - 2368
     volumes:
       - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
       - ./scripts/wait-for:/usr/local/bin/wait-for

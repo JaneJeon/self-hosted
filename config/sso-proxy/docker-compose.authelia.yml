@@ -9,8 +9,6 @@ services:
     networks:
       - public
       - private
-    expose:
-      - 9091
     volumes:
       - ./config/sso-proxy/config.yml:/mnt/config.yml
       - ./authelia.userfile:/mnt/authelia.userfile
