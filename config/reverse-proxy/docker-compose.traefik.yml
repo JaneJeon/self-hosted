@@ -31,7 +31,7 @@ services:
       flame.type: application
       flame.name: Traefik
       flame.url: traefik.janejeon.com
-      flame.icon: routes
+      flame.icon: server-network
 
 networks:
   public:
