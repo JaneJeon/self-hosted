@@ -11,10 +11,10 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./config/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
       - ./config/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
-      - ./volumes/certs/live:/mnt/certs
+      - ./volumes/certs/live:/mnt/certs:ro
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'

@@ -10,7 +10,7 @@ services:
       - public
       - private
     volumes:
-      - ./config/sso-proxy/config.yml:/mnt/config.yml
+      - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
       - ./authelia.userfile:/mnt/authelia.userfile
     environment:
       AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
