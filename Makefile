@@ -40,7 +40,6 @@ init:
 	cp .env.example .env
 	touch config/reverse-proxy/acme.json
 	chmod 600 config/reverse-proxy/acme.json
-	htpasswd -Bc traefik.userfile jane
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 deploy:
@@ -56,3 +55,6 @@ open-ports:
 
 test-env:
 	$(ENV) echo $${REMOTE_IP}
+
+authelia-user:
+	docker run authelia/authelia:latest authelia hash-password $(PASSWORD)
