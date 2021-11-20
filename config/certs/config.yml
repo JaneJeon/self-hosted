@@ -11,10 +11,13 @@ certificates:
   - domains:
       - nariahn.com
     profile: cloudflare
+    deploy_hook: &chmod sudo chmod -R 755 volumes/certs
   - domains:
       - janejeon.dev
     profile: cloudflare
+    deploy_hook: *chmod
   - domains:
       - '*.janejeon.com'
     profile: cloudflare
     name: homelab-wildcard
+    deploy_hook: *chmod
