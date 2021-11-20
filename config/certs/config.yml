@@ -11,10 +11,13 @@ certificates:
   - domains:
       - nariahn.com
     profile: cloudflare
+    deploy_hook: &chmod chmod -R 755 /etc/letsencrypt/live
   - domains:
       - janejeon.dev
     profile: cloudflare
+    deploy_hook: *chmod
   - domains:
       - '*.janejeon.com'
     profile: cloudflare
     name: homelab-wildcard
+    deploy_hook: *chmod
