@@ -6,7 +6,7 @@ services:
     container_name: flame
     restart: unless-stopped
     networks:
-      - private
+      - public
     volumes:
       - ./volumes/flame:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -22,5 +22,5 @@ services:
       com.centurylinklabs.watchtower.monitor-only: 'true'
 
 networks:
-  private:
+  public:
     external: true
