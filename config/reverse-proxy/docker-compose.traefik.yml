@@ -28,6 +28,10 @@ services:
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
       com.centurylinklabs.watchtower.enable: 'true'
+      flame.type: application
+      flame.name: Traefik
+      flame.url: traefik.janejeon.com
+      flame.icon: routes
 
 networks:
   public:

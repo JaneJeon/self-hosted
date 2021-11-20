@@ -24,6 +24,10 @@ services:
       traefik.http.services.authelia.loadbalancer.server.port: 9091
       com.centurylinklabs.watchtower.enable: 'true'
       com.centurylinklabs.watchtower.depends-on: mysql,redis
+      flame.type: application
+      flame.name: Authelia
+      flame.url: auth.janejeon.com
+      flame.icon: lock-open-check-outline
 
 networks:
   public:

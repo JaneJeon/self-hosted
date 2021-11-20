@@ -34,6 +34,10 @@ services:
       traefik.http.services.devblog.loadbalancer.server.port: 2368
       com.centurylinklabs.watchtower.enable: 'true'
       com.centurylinklabs.watchtower.depends-on: mysql
+      flame.type: application
+      flame.name: Ghost - Blog
+      flame.url: janejeon.dev
+      flame.icon: feather
 
   portfolio:
     image: ghost:4-alpine
@@ -69,6 +73,10 @@ services:
       traefik.http.services.portfolio.loadbalancer.server.port: 2368
       com.centurylinklabs.watchtower.enable: 'true'
       com.centurylinklabs.watchtower.depends-on: mysql
+      flame.type: application
+      flame.name: Ghost - Portfolio
+      flame.url: nariahn.com
+      flame.icon: brush
 
 networks:
   public:

@@ -20,6 +20,10 @@ services:
       traefik.http.services.portainer.loadbalancer.server.port: 9000
       com.centurylinklabs.watchtower.enable: 'true'
       com.centurylinklabs.watchtower.monitor-only: 'true'
+      flame.type: application
+      flame.name: Portainer
+      flame.url: portainer.janejeon.com
+      flame.icon: docker
 
 networks:
   public:
