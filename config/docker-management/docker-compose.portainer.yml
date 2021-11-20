@@ -23,7 +23,7 @@ services:
       flame.type: application
       flame.name: Portainer
       flame.url: portainer.janejeon.com
-      flame.icon: docker
+      flame.icon: console
 
 networks:
   public:
