@@ -4,6 +4,7 @@ services:
   dnsrobocert:
     image: adferrand/dnsrobocert
     container_name: dnsrobocert
+    restart: unless-stopped
     networks:
       - private
     volumes:
