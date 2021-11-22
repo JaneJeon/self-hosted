@@ -2,8 +2,8 @@
 
 D=docker
 DC=docker-compose
-
-DC_ALL=-f docker-compose.base.yml $(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
+DC_BASE=-f docker-compose.base.yml
+DC_ALL=$(DC_BASE) $(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 
 ENV=. .env &&
 
@@ -57,4 +57,7 @@ test-env:
 	$(ENV) echo $${REMOTE_IP}
 
 authelia-user:
-	docker run authelia/authelia:latest authelia hash-password $(PASSWORD)
+	@$(D) run authelia/authelia:latest authelia hash-password $(PASSWORD)
+
+pull:
+	@$(DC) $(DC_ALL) pull
