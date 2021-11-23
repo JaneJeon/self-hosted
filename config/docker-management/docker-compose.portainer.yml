@@ -22,7 +22,7 @@ services:
       com.centurylinklabs.watchtower.monitor-only: 'true'
       flame.type: application
       flame.name: Portainer
-      flame.url: portainer.janejeon.com
+      flame.url: portainer.janejeon.com/#!/1/docker/containers
       flame.icon: console
 
 networks:
