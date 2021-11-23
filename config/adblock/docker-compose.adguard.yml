@@ -9,16 +9,23 @@ services:
       - public
     volumes:
       - ./volumes/adguardhome:/opt/adguardhome/work
+      - ./config/adblock/config.yml:/opt/adguardhome/conf/AdGuardHome.yaml
     labels:
       traefik.enable: 'true'
       traefik.http.routers.adguard.tls: 'true'
       traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
       traefik.http.routers.adguard.middlewares: sso-proxy@file
-      traefik.http.services.adguard.loadbalancer.server.port: 3000
+      traefik.http.services.adguard.loadbalancer.server.port: 80
+      # TODO: which endpoint am I supposed to use???
+      traefik.http.routers.adguard2.tls: 'true'
+      traefik.http.routers.adguard2.rule: Host(`adguard2.janejeon.com`)
+      traefik.http.routers.adguard2.middlewares: sso-proxy@file
+      traefik.http.services.adguard2.loadbalancer.server.port: 80
       com.centurylinklabs.watchtower.enable: 'true'
-      # flame.type: application
-      # flame.name: AdguardHome
-      # flame.url: adguard.janejeon.com
+      flame.type: application
+      flame.name: AdguardHome
+      flame.url: adguard.janejeon.com
+      flame.icon: shield-link-variant
 
 networks:
   public:
