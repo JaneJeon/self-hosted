@@ -8,15 +8,14 @@ services:
     networks:
       - public
     volumes:
-      - ./volumes/adguardhome:/opt/adguardhome/work
-      - ./config/adblock/conf:/opt/adguardhome/conf
-      # - ./config/adblock/config.yml:/opt/adguardhome/conf/AdGuardHome.yaml
+      - ./volumes/adguardhome/work:/opt/adguardhome/work
+      - ./volumes/adguardhome/conf:/opt/adguardhome/conf
     labels:
       traefik.enable: 'true'
       traefik.http.routers.adguard.tls: 'true'
       traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
       traefik.http.routers.adguard.middlewares: sso-proxy@file
-      traefik.http.services.adguard.loadbalancer.server.port: 80
+      traefik.http.services.adguard.loadbalancer.server.port: 3000
       com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: AdguardHome
