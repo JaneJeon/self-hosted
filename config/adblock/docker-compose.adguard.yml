@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    restart: unless-stopped
+    networks:
+      - public
+    volumes:
+      - ./volumes/adguardhome:/opt/adguardhome/work
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.adguard.tls: 'true'
+      traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
+      traefik.http.routers.adguard.middlewares: sso-proxy@file
+      traefik.http.services.adguard.loadbalancer.server.port: 3000
+      com.centurylinklabs.watchtower.enable: 'true'
+      # flame.type: application
+      # flame.name: AdguardHome
+      # flame.url: adguard.janejeon.com
+
+networks:
+  public:
+    external: true
