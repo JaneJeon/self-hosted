@@ -2,9 +2,7 @@ bind_host: 127.0.0.1
 bind_port: 80
 beta_bind_port: 0
 
-users:
-  - name: admin
-    password: $2a$10$ChfVuZCh8bdhGzstmUOq9uSQ8Zjn53mMHrG9tC3hdp/CDP0Q3lnty
+users: []
 
 auth_attempts: 5
 block_auth_min: 15
