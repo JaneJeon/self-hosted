@@ -16,9 +16,6 @@ services:
       traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
       traefik.http.routers.adguard.middlewares: sso-proxy@file # use Authelia to authenticate AdGuard admin panel users
       traefik.http.services.adguard.loadbalancer.server.port: 3000
-      traefik.http.routers.adguard-doh.tls: 'true'
-      traefik.http.routers.adguard-doh.rule: Host(`adguard-doh.janejeon.com`)
-      traefik.http.services.adguard-doh.loadbalancer.server.port: 443
       com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: AdguardHome
