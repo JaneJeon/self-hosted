@@ -15,7 +15,7 @@ services:
       traefik.http.routers.adguard.tls: 'true'
       traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
       traefik.http.routers.adguard.middlewares: sso-proxy@file
-      traefik.http.services.adguard.loadbalancer.server.port: 3000
+      traefik.http.services.adguard.loadbalancer.server.port: 80
       com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: AdguardHome
