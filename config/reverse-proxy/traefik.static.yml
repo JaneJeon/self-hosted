@@ -35,7 +35,7 @@ entryPoints:
         - no-www@file
 
   dns-over-tls:
-    address: 853
+    address: :853
 
 providers:
   docker:
