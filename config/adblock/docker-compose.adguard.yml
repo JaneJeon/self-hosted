@@ -9,7 +9,8 @@ services:
       - public
     volumes:
       - ./volumes/adguardhome:/opt/adguardhome/work
-      - ./config/adblock/config.yml:/opt/adguardhome/conf/AdGuardHome.yaml
+      - ./config/adblock/conf:/opt/adguardhome/conf
+      # - ./config/adblock/config.yml:/opt/adguardhome/conf/AdGuardHome.yaml
     labels:
       traefik.enable: 'true'
       traefik.http.routers.adguard.tls: 'true'
