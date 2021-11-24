@@ -11,11 +11,14 @@ services:
       - private
     volumes:
       - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
-      - ./authelia.userfile:/mnt/authelia.userfile
+      - ./volumes/authelia:/mnt
+      - ./key.pem:/mnt/key.pem
     environment:
       AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
       AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET}
       AUTHELIA_NOTIFIER_SMTP_PASSWORD: ${SENDGRID_API_KEY}
+      AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC_SECRET}
+      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /mnt/key.pem
       TZ: America/New_York
     labels:
       traefik.enable: 'true'
