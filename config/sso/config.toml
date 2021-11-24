@@ -75,7 +75,7 @@ key_file = "/data/key.pem"
 ## (example with "password"): LLDAP_SMTP_OPTIONS__PASSWORD
 #[smtp_options]
 ## Whether to enabled password reset via email, from LLDAP.
-#enable_password_reset=true
+enable_password_reset=false
 ## The SMTP server.
 #server="smtp.gmail.com"
 ## The SMTP port.
