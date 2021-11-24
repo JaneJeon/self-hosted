@@ -57,8 +57,8 @@ services:
       - private
     volumes:
       - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
-      - ./scripts/wait-for:/usr/local/bin/wait-for
-      - ./config/blog/config.json:/var/lib/ghost/config.production.json
+      - ./scripts/wait-for:/usr/local/bin/wait-for:ro
+      - ./config/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
       url: https://nariahn.com
       database__client: mysql
