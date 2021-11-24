@@ -12,7 +12,6 @@ services:
     volumes:
       - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
       - ./volumes/authelia:/mnt
-      - ./key.pem:/mnt/key.pem
     environment:
       AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
       AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET}
