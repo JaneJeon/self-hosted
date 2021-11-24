@@ -6,7 +6,7 @@ services:
     container_name: lldap
     restart: unless-stopped
     networks:
-      - private
+      - public
     volumes:
       - ./volumes/lldap:/data
       - ./config/sso/config.toml:/data/lldap_config.toml:ro
@@ -26,5 +26,5 @@ services:
       flame.icon: table-account
 
 networks:
-  private:
+  public:
     external: true
