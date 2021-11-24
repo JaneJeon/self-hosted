@@ -11,11 +11,12 @@ services:
       - private
     volumes:
       - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
-      - ./volumes/authelia:/mnt
+      - ./authelia.pem:/mnt/key.pem
     environment:
       AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
       AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET}
       AUTHELIA_NOTIFIER_SMTP_PASSWORD: ${SENDGRID_API_KEY}
+      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: ${LLDAP_LDAP_USER_PASS}
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC_SECRET}
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /mnt/key.pem
       TZ: America/New_York
@@ -29,7 +30,7 @@ services:
       flame.type: application
       flame.name: Authelia
       flame.url: auth.janejeon.com
-      flame.icon: lock-open-check-outline
+      flame.icon: badge-account-outline
 
 networks:
   public:

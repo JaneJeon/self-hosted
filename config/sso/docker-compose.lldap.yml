@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  lldap:
+    images: nitnelave/lldap:latest
+    container_name: lldap
+    restart: unless-stopped
+    networks:
+      - private
+    volumes:
+      - ./volumes/lldap:/data
+      - ./config/sso/config.toml:/data/lldap_config.toml:ro
+    environment:
+      LLDAP_JWT_SECRET: ${LLDAP_JWT_SECRET}
+      LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS}
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.lldap.tls: 'true'
+      traefik.http.routers.lldap.rule: Host(`ldap.janejeon.com`)
+      traefik.http.routers.lldap.middlewares: sso-proxy@file
+      traefik.http.services.lldap.loadbalancer.server.port: 17170
+      com.centurylinklabs.watchtower.enable: 'true'
+      flame.type: application
+      flame.name: LLDAP
+      flame.url: ldap.janejeon.com
+      flame.icon: table-account
+
+networks:
+  private:
+    external: true
