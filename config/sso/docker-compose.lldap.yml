@@ -6,13 +6,12 @@ services:
     container_name: lldap
     restart: unless-stopped
     init: true
-    command: /app/lldap run --config-file /mnt/lldap_config.toml
     networks:
       - public
     volumes:
       - ./volumes/lldap:/data
-      - ./config/sso/config.toml:/mnt/lldap_config.toml:ro
-      - ./lldap.pem:/mnt/key.pem:ro
+      - ./config/sso/config.toml:/data/lldap_config.toml:ro
+      - ./lldap.pem:/data/key.pem:ro
     environment:
       LLDAP_JWT_SECRET: ${LLDAP_JWT_SECRET}
       LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS}
