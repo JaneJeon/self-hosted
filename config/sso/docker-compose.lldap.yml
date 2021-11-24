@@ -12,6 +12,7 @@ services:
     volumes:
       - ./volumes/lldap:/data
       - ./config/sso/config.toml:/mnt/lldap_config.toml:ro
+      - ./lldap.pem:/mnt/key.pem:ro
     environment:
       LLDAP_JWT_SECRET: ${LLDAP_JWT_SECRET}
       LLDAP_LDAP_USER_PASS: ${LLDAP_LDAP_USER_PASS}

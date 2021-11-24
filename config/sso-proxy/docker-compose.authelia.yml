@@ -11,7 +11,7 @@ services:
       - private
     volumes:
       - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
-      - ./authelia.pem:/mnt/key.pem
+      - ./authelia.pem:/mnt/key.pem:ro
     environment:
       AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
       AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET}

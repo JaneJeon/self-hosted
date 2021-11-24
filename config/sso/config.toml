@@ -68,7 +68,7 @@ database_url = "sqlite:///data/users.db?mode=rwc"
 ## would still have to perform an (expensive) brute force attack to find
 ## each password.
 ## Randomly generated on first run if it doesn't exist.
-key_file = "/data/private_key"
+key_file = "/mnt/key.pem"
 
 ## Options to configure SMTP parameters, to send password reset emails.
 ## To set these options from environment variables, use the following format
