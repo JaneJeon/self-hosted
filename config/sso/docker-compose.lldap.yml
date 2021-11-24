@@ -2,7 +2,7 @@ version: '3'
 
 services:
   lldap:
-    images: nitnelave/lldap:latest
+    image: nitnelave/lldap:latest
     container_name: lldap
     restart: unless-stopped
     networks:
