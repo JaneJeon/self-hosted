@@ -14,7 +14,7 @@ For now, I'll deploy from my local computer - I just don't trust myself to prope
 
 Checklist for web-facing services:
 
-- [ ] Traefik labels
+- [ ] Traefik labels (incl. entrypoint)
 - [ ] Watchtower label(s)
 - [ ] Authelia middleware label
 - [ ] Flame label
