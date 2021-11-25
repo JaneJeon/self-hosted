@@ -15,6 +15,7 @@ services:
       # AGH Dashboard
       traefik.http.routers.adguard.tls: 'true'
       traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
+      traefik.http.routers.adguard.entrypoints: web-secure
       traefik.http.routers.adguard.middlewares: sso-proxy@file
       traefik.http.services.adguard.loadbalancer.server.port: 3000
       # AGH DNS-over-TLS

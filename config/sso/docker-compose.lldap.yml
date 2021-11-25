@@ -18,6 +18,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.lldap.tls: 'true'
       traefik.http.routers.lldap.rule: Host(`ldap.janejeon.com`)
+      traefik.http.routers.lldap.entrypoints: web-secure
       traefik.http.services.lldap.loadbalancer.server.port: 17170
       com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application

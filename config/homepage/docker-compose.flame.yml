@@ -16,6 +16,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.homepage.tls: 'true'
       traefik.http.routers.homepage.rule: Host(`home.janejeon.com`)
+      traefik.http.routers.homepage.entrypoints: web-secure
       traefik.http.routers.homepage.middlewares: sso-proxy@file
       traefik.http.services.homepage.loadbalancer.server.port: 5005
       com.centurylinklabs.watchtower.enable: 'true'
