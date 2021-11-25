@@ -21,13 +21,6 @@ sudo ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 sudo apt update && sudo apt upgrade && sudo apt install rsync make
 mkdir self-hosted
 
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo ufw limit ssh # allow with rate-limiting!
-sudo ufw allow 'WWW Full'
-sudo ufw allow qBittorrent/dns/bonjour/'kerberos full' # (optional)
-sudo ufw enable
-
 sudo apt install unattended-upgrades
 
 sudo vim /etc/apt/apt.conf.d/50unattended-upgrades
@@ -66,4 +59,21 @@ sudo service docker restart
 # Installing docker-compose
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
+
+# Rules
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw limit ssh # allow with rate-limiting!
+sudo ufw allow 'WWW Full'
+sudo ufw allow qBittorrent/dns/bonjour/'kerberos full' # (optional)
+sudo ufw enable
+
+# Need to write rules again for docker since it ignores it
+sudo wget -O /usr/local/bin/ufw-docker https://github.com/chaifeng/ufw-docker/raw/master/ufw-docker
+sudo chmod +x /usr/local/bin/ufw-docker
+sudo ufw-docker install
+
+# After starting containers: https://github.com/chaifeng/ufw-docker#solving-ufw-and-docker-issues
+sudo ufw-docker allow traefik 80/tcp
+sudo ufw-docker allow traefik 443/tcp
 ```
