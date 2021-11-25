@@ -24,7 +24,6 @@ entryPoints:
           to: web-secure
           scheme: https
           permanent: true
-          priority: 10
 
   web-secure:
     address: :443
