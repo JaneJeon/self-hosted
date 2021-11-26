@@ -38,7 +38,7 @@ services:
       flame.type: application
       flame.name: Ghost - Blog
       flame.url: janejeon.dev
-      flame.icon: feather
+      flame.icon: ghost-outline
 
   portfolio:
     image: ghost:4-alpine
@@ -78,7 +78,7 @@ services:
       flame.type: application
       flame.name: Ghost - Portfolio
       flame.url: nariahn.com
-      flame.icon: brush
+      flame.icon: ghost-outline
 
 networks:
   public:
