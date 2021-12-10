@@ -19,7 +19,7 @@ I want a composable coding infrastructure that integrates well with each another
 |                    | GitHub Stack                       | GitLab Stack                       | Gitea Stack                                                       |
 | ------------------ | ---------------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
 | Issue Tracker      | Built-in is serviceable            | Built-in is serviceable            | Built-in is serviceable                                           |
-| Project Management | Built-in is serviceable            | Built-in is serviceable            | Todoist for extra awesome                                         |
+| Task Management    | Built-in is serviceable            | Built-in is serviceable            | Todoist for extra awesome                                         |
 | Wiki               | Only for public repos              | Built-in is serviceable            | Built-in is serviceable, alternatives: Papyrs, Slab               |
 | Code Search        | Built-in is serviceable            | Built-in is serviceable            | Sourcegraph for extra awesome                                     |
 | Secret Scanning    | $21/mo                             | Built-in is serviceable            | Gitleaks pre-receive hook                                         |
