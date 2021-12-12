@@ -16,7 +16,7 @@ network-down:
 	@$(D) network rm private || true
 
 up: network-up
-	$(DC) $(DC_ALL) up -d --remove-orphans
+	$(DC) $(DC_ALL) up -d --remove-orphans $(SERVICE)
 
 down:
 	$(DC) $(DC_ALL) down --remove-orphans
@@ -60,4 +60,4 @@ authelia-user:
 	@$(D) run authelia/authelia:latest authelia hash-password $(PASSWORD)
 
 pull:
-	@$(DC) $(DC_ALL) pull
+	@$(DC) $(DC_ALL) pull $(SERVICE)
