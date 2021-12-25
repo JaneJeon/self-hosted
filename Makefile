@@ -56,8 +56,5 @@ open-ports:
 test-env:
 	$(ENV) echo $${REMOTE_IP}
 
-authelia-user:
-	@$(D) run authelia/authelia:latest authelia hash-password $(PASSWORD)
-
 pull:
 	@$(DC) $(DC_ALL) pull $(SERVICE)
