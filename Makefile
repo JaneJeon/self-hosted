@@ -18,6 +18,9 @@ network-down:
 up: network-up
 	$(DC) $(DC_ALL) up -d --remove-orphans $(SERVICE)
 
+restart:
+	$(DC) $(DC_ALL) up -d --force-recreate $(SERVICE)
+
 down:
 	$(DC) $(DC_ALL) down --remove-orphans
 	$(MAKE) network-down
