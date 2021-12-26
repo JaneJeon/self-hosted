@@ -53,8 +53,13 @@ deploy:
 ssh:
 	$(ENV) ssh jane@$${REMOTE_IP}
 
+check-ports:
+	sudo netstat -tulpn | grep LISTEN
+
 open-ports:
-	$(ENV) ssh jane@$${REMOTE_IP} sudo netstat -tulpn | grep LISTEN
+	sudo ufw-docker allow traefik 80/tcp
+	sudo ufw-docker allow traefik 443/tcp
+	sudo ufw-docker allow traefik 853/tcp
 
 test-env:
 	$(ENV) echo $${REMOTE_IP}
