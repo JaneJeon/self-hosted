@@ -19,3 +19,5 @@ sinks:
       image: '{{ image }}'
       stream: '{{ stream }}'
     remove_label_fields: true
+    encoding:
+      format: json
