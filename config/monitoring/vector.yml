@@ -31,5 +31,6 @@ sinks:
     inputs: [docker_host_logs]
     endpoint: ${ELASTICSEARCH_ENDPOINT}
     auth:
+      strategy: basic
       user: ${ELASTICSEARCH_USERNAME}
       password: ${ELASTICSEARCH_PASSWORD}
