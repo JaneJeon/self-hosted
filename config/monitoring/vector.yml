@@ -31,7 +31,7 @@ sinks:
     inputs: [docker_host_logs]
     endpoint: ${ELASTICSEARCH_ENDPOINT}
     encoding:
-      only_fields: [container_name, host, image, stream, message]
+      only_fields: ['container_name', 'host', 'image', 'stream', 'message']
     auth:
       strategy: basic
       user: ${ELASTICSEARCH_USERNAME}
