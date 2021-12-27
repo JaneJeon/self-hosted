@@ -2,7 +2,7 @@ version: '3'
 
 services:
   authelia:
-    image: authelia/authelia:4
+    image: authelia/authelia:4.33.1
     container_name: authelia
     restart: unless-stopped
     command: --config /mnt/config.yml
@@ -27,8 +27,6 @@ services:
       traefik.http.routers.authelia.rule: Host(`auth.janejeon.com`)
       traefik.http.routers.authelia.entrypoints: web-secure
       traefik.http.services.authelia.loadbalancer.server.port: 9091
-      com.centurylinklabs.watchtower.enable: 'true'
-      com.centurylinklabs.watchtower.depends-on: mysql,redis
       flame.type: application
       flame.name: Authelia
       flame.url: auth.janejeon.com

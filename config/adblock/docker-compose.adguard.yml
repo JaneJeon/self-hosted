@@ -2,7 +2,7 @@ version: '3'
 
 services:
   adguardhome:
-    image: adguard/adguardhome:latest
+    image: adguard/adguardhome:v0.107.0
     container_name: adguardhome
     restart: unless-stopped
     networks:
@@ -23,7 +23,6 @@ services:
       traefik.tcp.routers.adguard-dot.rule: HostSNI(`dns.janejeon.com`)
       traefik.tcp.routers.adguard-dot.entrypoints: dns-over-tls
       traefik.tcp.services.adguard-dot.loadbalancer.server.port: 53
-      com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: AdguardHome
       flame.url: adguard.janejeon.com

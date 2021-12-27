@@ -2,7 +2,7 @@ version: '3'
 
 services:
   gc:
-    image: yelp/docker-custodian:latest
+    image: yelp/docker-custodian:0.7.4
     container_name: gc
     command:
       - --max-container-age
@@ -14,9 +14,6 @@ services:
       - private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    labels:
-      com.centurylinklabs.watchtower.enable: 'true'
-      com.centurylinklabs.watchtower.monitor-only: 'true'
 
 networks:
   private:

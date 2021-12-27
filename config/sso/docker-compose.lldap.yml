@@ -2,7 +2,7 @@ version: '3'
 
 services:
   lldap:
-    image: nitnelave/lldap:latest
+    image: nitnelave/lldap:v0.2.0
     container_name: lldap
     restart: unless-stopped
     init: true
@@ -20,7 +20,6 @@ services:
       traefik.http.routers.lldap.rule: Host(`ldap.janejeon.com`)
       traefik.http.routers.lldap.entrypoints: web-secure
       traefik.http.services.lldap.loadbalancer.server.port: 17170
-      com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: LLDAP
       flame.url: ldap.janejeon.com

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   devblog:
-    image: ghost:4-alpine
+    image: ghost:4.32.0-alpine
     container_name: ghost-devblog
     restart: unless-stopped
     entrypoint:
@@ -33,15 +33,13 @@ services:
       traefik.http.routers.devblog.rule: Host(`janejeon.dev`)
       traefik.http.routers.devblog.entrypoints: web-secure
       traefik.http.services.devblog.loadbalancer.server.port: 2368
-      com.centurylinklabs.watchtower.enable: 'true'
-      com.centurylinklabs.watchtower.depends-on: mysql
       flame.type: application
       flame.name: Ghost - Blog
       flame.url: janejeon.dev
       flame.icon: ghost
 
   portfolio:
-    image: ghost:4-alpine
+    image: ghost:4.32.0-alpine
     container_name: ghost-portfolio
     restart: unless-stopped
     entrypoint:
@@ -73,8 +71,6 @@ services:
       traefik.http.routers.portfolio.rule: Host(`nariahn.com`)
       traefik.http.routers.portfolio.entrypoints: web-secure
       traefik.http.services.portfolio.loadbalancer.server.port: 2368
-      com.centurylinklabs.watchtower.enable: 'true'
-      com.centurylinklabs.watchtower.depends-on: mysql
       flame.type: application
       flame.name: Ghost - Portfolio
       flame.url: nariahn.com

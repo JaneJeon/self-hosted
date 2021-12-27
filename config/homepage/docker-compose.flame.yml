@@ -2,7 +2,7 @@ version: '3'
 
 services:
   flame:
-    image: pawelmalak/flame:latest
+    image: pawelmalak/flame:2.2.0
     container_name: flame
     restart: unless-stopped
     networks:
@@ -19,8 +19,6 @@ services:
       traefik.http.routers.homepage.entrypoints: web-secure
       traefik.http.routers.homepage.middlewares: sso-proxy@file
       traefik.http.services.homepage.loadbalancer.server.port: 5005
-      com.centurylinklabs.watchtower.enable: 'true'
-      com.centurylinklabs.watchtower.monitor-only: 'true'
 
 networks:
   public:

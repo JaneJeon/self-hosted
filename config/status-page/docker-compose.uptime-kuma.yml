@@ -2,7 +2,7 @@ version: '3'
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:1.11.1-alpine
     container_name: uptime-kuma
     restart: unless-stopped
     networks:
@@ -17,7 +17,6 @@ services:
       traefik.http.routers.uptime-kuma.entrypoints: web-secure
       traefik.http.routers.uptime-kuma.middlewares: sso-proxy@file
       traefik.http.services.uptime-kuma.loadbalancer.server.port: 3001
-      com.centurylinklabs.watchtower.enable: 'true'
       flame.type: application
       flame.name: Uptime Kuma
       flame.url: up.janejeon.com/status

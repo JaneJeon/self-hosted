@@ -2,7 +2,7 @@ version: '3'
 
 services:
   dnsrobocert:
-    image: adferrand/dnsrobocert
+    image: adferrand/dnsrobocert:3.15.0
     container_name: dnsrobocert
     restart: unless-stopped
     networks:
@@ -12,9 +12,6 @@ services:
       - ./config/certs/config.yml:/etc/dnsrobocert/config.yml:ro
     environment:
       CLOUDFLARE_CERT_API_TOKEN: ${CLOUDFLARE_CERT_API_TOKEN}
-    labels:
-      com.centurylinklabs.watchtower.enable: 'true'
-      com.centurylinklabs.watchtower.monitor-only: 'true'
 
 networks:
   private:

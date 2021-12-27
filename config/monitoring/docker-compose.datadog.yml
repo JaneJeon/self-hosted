@@ -2,7 +2,7 @@ version: '3'
 
 services:
   datadog:
-    image: gcr.io/datadoghq/agent:7
+    image: gcr.io/datadoghq/agent:7.32.4
     container_name: datadog
     restart: unless-stopped
     networks:
@@ -17,8 +17,6 @@ services:
       DD_LOGS_ENABLED: 'true'
       DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: 'true'
       DD_PROCESS_AGENT_ENABLED: 'true'
-    labels:
-      com.centurylinklabs.watchtower.enable: 'true'
 
 networks:
   private:
