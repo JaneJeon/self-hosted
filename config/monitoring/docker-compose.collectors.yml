@@ -15,6 +15,7 @@ services:
     environment:
       GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER}
       GRAFANA_CLOUD_LOKI_PASS: ${GRAFANA_CLOUD_LOKI_PASS}
+      NEW_RELIC_API_KEY: ${NEW_RELIC_API_KEY}
 
 networks:
   private:

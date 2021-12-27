@@ -21,3 +21,8 @@ sinks:
     remove_label_fields: true
     encoding:
       codec: text
+  new_relic_logs:
+    type: new_relic_logs
+    inputs: [docker_host_logs]
+    license_key: ${NEW_RELIC_API_KEY}
+    region: us
