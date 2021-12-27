@@ -26,3 +26,7 @@ sinks:
     inputs: [docker_host_logs]
     license_key: ${NEW_RELIC_API_KEY}
     region: us
+  elastic_cloud:
+    type: elasticsearch
+    inputs: [docker_host_logs]
+    endpoint: ${ELASTICSEARCH_ENDPOINT}
