@@ -20,4 +20,4 @@ sinks:
       stream: '{{ stream }}'
     remove_label_fields: true
     encoding:
-      codec: json
+      codec: text
