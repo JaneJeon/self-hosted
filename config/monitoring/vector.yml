@@ -30,7 +30,8 @@ sinks:
     type: elasticsearch
     inputs: [docker_host_logs]
     endpoint: ${ELASTICSEARCH_ENDPOINT}
-    index: my-index
+    encoding:
+      only_fields: [container_name, host, image, stream, message]
     auth:
       strategy: basic
       user: ${ELASTICSEARCH_USERNAME}
