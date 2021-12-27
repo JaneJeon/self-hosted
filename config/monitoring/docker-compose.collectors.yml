@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  vector:
+    image: timberio/vector:0.18.1-alpine
+    container_name: vector
+    restart: unless-stopped
+    command: --config /etc/vector/config.yml
+    networks:
+      - private
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/monitoring/vector.yml:/etc/vector/config.yml:ro
+      - ./volumes/vector:/var/lib/vector
+    environment:
+      GRAFANA_CLOUD_LOKI_USER: ${GRAFANA_CLOUD_LOKI_USER}
+      GRAFANA_CLOUD_LOKI_PASS: ${GRAFANA_CLOUD_LOKI_PASS}
+
+networks:
+  private:
+    external: true

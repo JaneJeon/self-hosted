@@ -1,0 +1,21 @@
+data_dir: /var/lib/vector
+
+sources:
+  docker_host_logs:
+    type: docker_logs
+
+sinks:
+  grafana_cloud_loki:
+    type: loki
+    inputs: [docker_host_logs]
+    endpoint: https://logs-prod-us-central1.grafana.net
+    auth:
+      strategy: bearer
+      user: ${GRAFANA_CLOUD_LOKI_USER}
+      password: ${GRAFANA_CLOUD_LOKI_PASS}
+    labels:
+      container: '{{ container_name }}'
+      host: '{{ host }}'
+      image: '{{ image }}'
+      stream: '{{ stream }}'
+    remove_label_fields: true
