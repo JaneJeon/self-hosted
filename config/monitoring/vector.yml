@@ -29,4 +29,4 @@ sinks:
   elastic_cloud:
     type: elasticsearch
     inputs: [docker_host_logs]
-    endpoint: ${ELASTICSEARCH_ENDPOINT}
+    endpoint: '${ELASTICSEARCH_ENDPOINT}'
