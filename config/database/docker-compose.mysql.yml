@@ -16,7 +16,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: mysql-root-password
     cap_add:
-      - SYS_NICE
+      - SYS_NICE # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
     labels:
       com.datadoghq.ad.check_names: '["mysql"]'
       com.datadoghq.ad.init_configs: '[{}]'
