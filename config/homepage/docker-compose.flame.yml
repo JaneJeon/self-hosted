@@ -2,7 +2,7 @@ version: '3'
 
 services:
   flame:
-    image: pawelmalak/flame:2.2.0
+    image: pawelmalak/flame:2.2.1
     container_name: flame
     restart: unless-stopped
     networks:
