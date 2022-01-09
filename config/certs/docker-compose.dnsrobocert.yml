@@ -2,7 +2,7 @@ version: '3'
 
 services:
   dnsrobocert:
-    image: adferrand/dnsrobocert:3.15.0
+    image: adferrand/dnsrobocert:3.16.0
     container_name: dnsrobocert
     restart: unless-stopped
     networks:
