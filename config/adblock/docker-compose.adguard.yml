@@ -19,10 +19,10 @@ services:
       traefik.http.routers.adguard.middlewares: sso-proxy@file
       traefik.http.services.adguard.loadbalancer.server.port: 3000
       # AGH DNS-over-HTTPS
-      traefik.tcp.routers.adguard-doh.tls: 'true'
-      traefik.tcp.routers.adguard-doh.rule: HostSNI(`dns.janejeon.com`)
-      traefik.tcp.routers.adguard-doh.entrypoints: web-secure
-      traefik.tcp.services.adguard-doh.loadbalancer.server.port: 443
+      traefik.http.routers.adguard-doh.tls: 'true'
+      traefik.http.routers.adguard-doh.rule: HostSNI(`dns.janejeon.com`)
+      traefik.http.routers.adguard-doh.entrypoints: web-secure
+      traefik.http.services.adguard-doh.loadbalancer.server.port: 443
       flame.type: application
       flame.name: AdguardHome
       flame.url: adguard.janejeon.com
