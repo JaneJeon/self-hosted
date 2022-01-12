@@ -219,8 +219,12 @@ access_control:
       policy: two_factor
       subject: group:infra_admin
 
-    - domain:
-        - auth.janejeon.com
+    # Bypass for DoH queries!
+    - domain: adguard.janejeon.com
+      policy: bypass
+      resources: ^/dns-query([/?].*)?$
+
+    - domain: auth.janejeon.com
       policy: bypass
 
     # Applications/Default Policy
