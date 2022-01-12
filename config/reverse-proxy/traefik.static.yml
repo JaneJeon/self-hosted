@@ -33,9 +33,6 @@ entryPoints:
         - gzip@file
         - no-www@file
 
-  dns-over-tls:
-    address: :853
-
 providers:
   docker:
     watch: true
