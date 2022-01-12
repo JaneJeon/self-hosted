@@ -212,6 +212,20 @@ access_control:
 
   # https://www.authelia.com/docs/configuration/access-control.html
   rules:
+    # Infra Access
+    - domain:
+        - portainer.janejeon.com
+        - ldap.janejeon.com
+      policy: two_factor
+      subject: group:infra_admin
+
+    - domain:
+        - janejeon.dev
+        - nariahn.com
+        - auth.janejeon.com
+      policy: bypass
+
+    # Applications/Default Policy
     - domain: '*.janejeon.com'
       policy: two_factor
 
