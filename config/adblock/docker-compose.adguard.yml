@@ -20,7 +20,7 @@ services:
       traefik.http.services.adguard.loadbalancer.server.port: 3000
       # AGH DNS-over-HTTPS
       traefik.http.routers.adguard-doh.tls: 'true'
-      traefik.http.routers.adguard-doh.rule: HostSNI(`dns.janejeon.com`)
+      traefik.http.routers.adguard-doh.rule: Host(`dns.janejeon.com`)
       traefik.http.routers.adguard-doh.entrypoints: web-secure
       traefik.http.services.adguard-doh.loadbalancer.server.port: 443
       flame.type: application
