@@ -32,7 +32,6 @@ services:
       traefik.http.routers.devblog.tls: 'true'
       traefik.http.routers.devblog.rule: Host(`janejeon.dev`)
       traefik.http.routers.devblog.entrypoints: web-secure
-      traefik.http.routers.devblog.middlewares: sso-proxy@file
       traefik.http.services.devblog.loadbalancer.server.port: 2368
       flame.type: application
       flame.name: Ghost - Blog
@@ -71,7 +70,6 @@ services:
       traefik.http.routers.portfolio.tls: 'true'
       traefik.http.routers.portfolio.rule: Host(`nariahn.com`)
       traefik.http.routers.portfolio.entrypoints: web-secure
-      traefik.http.routers.portfolio.middlewares: sso-proxy@file
       traefik.http.services.portfolio.loadbalancer.server.port: 2368
       flame.type: application
       flame.name: Ghost - Portfolio

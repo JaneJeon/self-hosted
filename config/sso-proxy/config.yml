@@ -220,8 +220,6 @@ access_control:
       subject: group:infra_admin
 
     - domain:
-        - janejeon.dev
-        - nariahn.com
         - auth.janejeon.com
       policy: bypass
 
