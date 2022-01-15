@@ -19,7 +19,7 @@ services:
       - private
     volumes:
       - ./volumes/ghost/janejeon.dev:/var/lib/ghost/content
-      - ./config/blog/themes/journal:/var/lib/ghost/content/themes/journal-git:ro
+      - ./config/blog/themes/journal:/var/lib/ghost/content/themes/journal:ro
       - ./scripts/wait-for:/usr/local/bin/wait-for:ro
       - ./config/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
@@ -57,7 +57,7 @@ services:
       - private
     volumes:
       - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
-      - ./config/blog/themes/london:/var/lib/ghost/content/themes/london-git:ro
+      - ./config/blog/themes/london:/var/lib/ghost/content/themes/london:ro
       - ./scripts/wait-for:/usr/local/bin/wait-for:ro
       - ./config/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
