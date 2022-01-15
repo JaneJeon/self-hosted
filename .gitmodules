@@ -1,0 +1,6 @@
+[submodule "config/blog/themes/journal"]
+	path = config/blog/themes/journal
+	url = https://github.com/TryGhost/Journal.git
+[submodule "config/blog/themes/london"]
+	path = config/blog/themes/london
+	url = https://github.com/TryGhost/London.git
