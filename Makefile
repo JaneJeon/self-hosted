@@ -59,7 +59,6 @@ check-ports:
 open-ports:
 	sudo ufw-docker allow traefik 80/tcp
 	sudo ufw-docker allow traefik 443/tcp
-	sudo ufw-docker allow traefik 853/tcp
 
 test-env:
 	$(ENV) echo $${REMOTE_IP}
