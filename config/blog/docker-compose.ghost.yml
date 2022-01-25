@@ -2,7 +2,7 @@ version: '3'
 
 services:
   devblog:
-    image: ghost:4.32.3-alpine
+    image: ghost:4.33.1-alpine
     container_name: ghost-devblog
     restart: unless-stopped
     entrypoint:
@@ -40,7 +40,7 @@ services:
       flame.icon: ghost
 
   portfolio:
-    image: ghost:4.32.3-alpine
+    image: ghost:4.33.1-alpine
     container_name: ghost-portfolio
     restart: unless-stopped
     entrypoint:
