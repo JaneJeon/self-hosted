@@ -17,10 +17,7 @@
   "mail": {
     "transport": "SMTP",
     "options": {
-      "service": "SendGrid",
-      "auth": {
-        "user": "apikey"
-      }
+      "service": "FastMail"
     }
   },
   "logging": {

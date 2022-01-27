@@ -407,23 +407,23 @@ notifier:
   ##     (configure in tls section)
   smtp:
     ## The SMTP host to connect to.
-    host: smtp.sendgrid.net
+    host: smtp.fastmail.com
 
     ## The port to connect to the SMTP host on.
-    port: 25
+    port: 465
 
     ## The connection timeout.
     timeout: 5s
 
     ## The username used for SMTP authentication.
-    username: apikey
+    # username: username
 
     ## The password used for SMTP authentication.
     ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
     # password: password
 
     ## The address to send the email FROM.
-    sender: auth@janejeon.dev
+    # sender: hello@example.com
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     # identifier: localhost
