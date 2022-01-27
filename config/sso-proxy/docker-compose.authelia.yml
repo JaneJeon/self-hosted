@@ -13,7 +13,7 @@ services:
       - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
       - ./volumes/authelia/key.pem:/mnt/key.pem:ro
     environment:
-      AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_USER}
+      AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_SENDER}
       AUTHELIA_NOTIFIER_SMTP_USERNAME: ${SMTP_USER}
       AUTHELIA_NOTIFIER_SMTP_PASSWORD: ${SMTP_PASS}
       AUTHELIA_STORAGE_ENCRYPTION_KEY: ${AUTHELIA_STORAGE_ENCRYPTION_KEY}

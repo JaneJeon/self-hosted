@@ -27,7 +27,7 @@ services:
       database__connection__user: ghost-devblog
       database__connection__password: ghost-devblog-password
       database__connection__database: devblog
-      mail__from: ${SMTP_USER}
+      mail__from: ${SMTP_SENDER}
       mail__options__auth__user: ${SMTP_USER}
       mail__options__auth__pass: ${SMTP_PASS}
     labels:
@@ -68,7 +68,7 @@ services:
       database__connection__user: ghost-portfolio
       database__connection__password: ghost-portfolio-password
       database__connection__database: portfolio
-      mail__from: ${SMTP_USER}
+      mail__from: ${SMTP_SENDER}
       mail__options__auth__user: ${SMTP_USER}
       mail__options__auth__pass: ${SMTP_PASS}
     labels:
