@@ -1,5 +1,5 @@
 acme:
-  email_account: contact@janejeon.dev
+  email_account: ${ACME_EMAIL}
 
 profiles:
   - name: cloudflare

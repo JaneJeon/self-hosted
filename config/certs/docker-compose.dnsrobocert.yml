@@ -12,6 +12,7 @@ services:
       - ./config/certs/config.yml:/etc/dnsrobocert/config.yml:ro
     environment:
       CLOUDFLARE_CERT_API_TOKEN: ${CLOUDFLARE_CERT_API_TOKEN}
+      ACME_EMAIL: ${SMTP_SENDER}
 
 networks:
   private:

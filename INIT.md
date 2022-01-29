@@ -32,7 +32,7 @@ sudo vim /etc/apt/apt.conf.d/50unattended-upgrades
 # origin=Debian,codename=${distro_codename},label=Debian-Security;
 # origin=Debian,codename=${distro_codename}-security,label=Debian-Security;
 # }
-# Unattended-Upgrade::Mail "contact@janejeon.dev";
+# Unattended-Upgrade::Mail "asdf@example.com";
 # Unattended-Upgrade::MailReport "on-change";
 # Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
 # Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
