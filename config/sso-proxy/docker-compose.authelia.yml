@@ -22,7 +22,7 @@ services:
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: ${LLDAP_LDAP_USER_PASS}
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC_SECRET}
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /mnt/key.pem
-      TZ: America/New_York
+      TZ: ${TIMEZONE}
     labels:
       traefik.enable: 'true'
       traefik.http.routers.authelia.tls: 'true'

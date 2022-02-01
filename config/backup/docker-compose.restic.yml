@@ -29,10 +29,11 @@ services:
         --keep-monthly 12
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
-      TZ: America/New_York
+      TZ: ${TIMEZONE}
+      # global context, can run anywhere within docker network
       PRE_COMMANDS: |-
-        wait-for redis:6379 --timeout=60 -- docker exec redis /usr/local/bin/dump
-        wait-for mysql:3306 --timeout=60 -- docker exec mysql /usr/local/bin/dump
+        wait-for redis:6379 --timeout=60 -- docker exec redis dump
+        wait-for mysql:3306 --timeout=60 -- docker exec mysql dump
       POST_COMMANDS_SUCCESS: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup ran successfully!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
       POST_COMMANDS_FAILURE: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup failed!"}'' ${SLACK_ALERTS_ENDPOINT}'
 
@@ -50,7 +51,7 @@ services:
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
-      TZ: America/New_York
+      TZ: ${TIMEZONE}
 
   check:
     image: mazzolino/restic:1.5.0
@@ -68,7 +69,7 @@ services:
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
       B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
-      TZ: America/New_York
+      TZ: ${TIMEZONE}
 
 networks:
   private:
