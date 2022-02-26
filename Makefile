@@ -45,9 +45,13 @@ init:
 	chmod 600 config/reverse-proxy/acme.json
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
-deploy:
+git-check:
 	./scripts/check-git
+
+git-push: git-check
 	git push
+
+deploy: git-push
 	./scripts/deploy
 
 ssh:
