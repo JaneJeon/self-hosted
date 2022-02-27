@@ -39,7 +39,7 @@ services:
       flame.type: application
       flame.name: Ghost - Blog
       flame.url: janejeon.dev
-      flame.icon: ghost
+      flame.icon: ghost-outline
 
   portfolio:
     image: ghost:4.36.3-alpine
@@ -80,7 +80,7 @@ services:
       flame.type: application
       flame.name: Ghost - Portfolio
       flame.url: nariahn.com
-      flame.icon: ghost
+      flame.icon: ghost-outline
 
 networks:
   public:

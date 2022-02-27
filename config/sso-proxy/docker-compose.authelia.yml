@@ -33,7 +33,7 @@ services:
       flame.type: application
       flame.name: Authelia
       flame.url: auth.janejeon.com
-      flame.icon: badge-account-outline
+      flame.icon: badge-account-horizontal-outline
 
 networks:
   public:
