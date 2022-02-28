@@ -24,7 +24,7 @@ services:
       flame.type: application
       flame.name: LLDAP
       flame.url: ldap.janejeon.com
-      flame.icon: table-account
+      flame.icon: badge-account-horizontal-outline
 
 networks:
   public:

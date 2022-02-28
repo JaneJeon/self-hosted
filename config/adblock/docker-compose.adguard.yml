@@ -20,7 +20,7 @@ services:
       flame.type: application
       flame.name: AdguardHome
       flame.url: adguard.janejeon.com
-      flame.icon: shield-account-variant-outline
+      flame.icon: shield-link-variant-outline
 
 networks:
   public:
