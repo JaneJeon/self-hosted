@@ -2,7 +2,7 @@ version: '3'
 
 services:
   authelia:
-    image: authelia/authelia:4.34.5
+    image: authelia/authelia:4.34.6
     container_name: authelia
     restart: unless-stopped
     command: --config /mnt/config.yml
