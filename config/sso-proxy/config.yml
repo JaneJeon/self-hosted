@@ -133,7 +133,7 @@ authentication_backend:
     ##
     ## To allow sign in both with username and email, one can use a filter like
     ## (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+    users_filter: (&({username_attribute}={input})(objectClass=person))
 
     ## The additional_groups_dn is prefixed to base_dn and delimited by a comma when searching for groups.
     ## i.e. with this set to OU=Groups and base_dn set to DC=a,DC=com; OU=Groups,DC=a,DC=com is searched for groups.
@@ -216,6 +216,7 @@ access_control:
     - domain:
         - portainer.janejeon.com
         - ldap.janejeon.com
+        - dozzle.janejeon.com
       policy: two_factor
       subject: group:infra_admin
 
@@ -260,11 +261,11 @@ session:
   ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
   ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last time
   ## Authelia detected user activity.
-  inactivity: 5m
+  inactivity: 10m
 
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
   ## Value of 0 disables remember me.
-  remember_me_duration: 1M
+  remember_me_duration: 1d
 
   ##
   ## Redis Provider
@@ -344,11 +345,11 @@ regulation:
   ## The time range during which the user can attempt login before being banned. The user is banned if the
   ## authentication failed 'max_retries' times in a 'find_time' seconds window. Find Time accepts duration notation.
   ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
-  find_time: 2m
+  find_time: 5m
 
   ## The length of time before a banned user can login again. Ban Time accepts duration notation.
   ## See: https://www.authelia.com/docs/configuration/index.html#duration-notation-format
-  ban_time: 15m
+  ban_time: 1h
 
 ##
 ## Storage Provider Configuration
@@ -452,16 +453,15 @@ notifier:
 
     #   ## Minimum TLS version for either StartTLS or SMTPS.
     #   minimum_version: TLS1.2
-
 ##
 ## Identity Providers
 ##
-identity_providers:
-  oidc:
-    clients:
-      - id: portainer
-        description: Portainer
-        public: true
-        authorization_policy: two_factor
-        redirect_uris:
-          - https://portainer.janejeon.com
+# identity_providers:
+#   oidc:
+#     clients:
+#       - id: portainer
+#         description: Portainer
+#         public: true
+#         authorization_policy: two_factor
+#         redirect_uris:
+#           - https://portainer.

@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  # Portainer fucking SUCKS, and is broken in so many ways.
+  # While Dozzle isn't made for docker *administration*, per se,
+  # it still allows me to view the various docker containers and logs
+  # (in a far more ergonomic manner, mind you);
+  # so for now, it will live alongside portainer.
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:v3.11.0
+    restart: unless-stopped
+    networks:
+      - public
+    environment:
+      DOZZLE_NO_ANALYTICS: 'true'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.dozzle.tls: 'true'
+      traefik.http.routers.dozzle.rule: Host(`dozzle.janejeon.com`)
+      traefik.http.routers.dozzle.entrypoints: web-secure
+      traefik.http.routers.dozzle.middlewares: sso-proxy@file
+      traefik.http.services.dozzle.loadbalancer.server.port: 8080
+      flame.type: application
+      flame.name: Dozzle
+      flame.url: dozzle.janejeon.com
+      flame.icon: docker
+
+networks:
+  public:
+    external: true
