@@ -456,12 +456,3 @@ notifier:
 ##
 ## Identity Providers
 ##
-identity_providers:
-  oidc:
-    clients:
-      - id: portainer
-        description: Portainer
-        public: true
-        authorization_policy: two_factor
-        redirect_uris:
-          - https://portainer.janejeon.com

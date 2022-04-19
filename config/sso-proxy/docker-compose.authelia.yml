@@ -11,7 +11,6 @@ services:
       - private
     volumes:
       - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
-      - ./volumes/authelia/key.pem:/mnt/key.pem:ro
     environment:
       AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_SENDER}
       AUTHELIA_NOTIFIER_SMTP_USERNAME: ${SMTP_USER}
@@ -20,8 +19,6 @@ services:
       AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET}
       AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET}
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD: ${LLDAP_LDAP_USER_PASS}
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC_SECRET}
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /mnt/key.pem
       TZ: ${TIMEZONE}
     labels:
       traefik.enable: 'true'
