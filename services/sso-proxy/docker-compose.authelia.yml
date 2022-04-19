@@ -18,6 +18,7 @@ services:
       - public
       - private
     volumes:
+      - ./scripts/wait-for:/usr/local/bin/wait-for:ro
       - ./services/sso-proxy/config.yml:/etc/authelia/config.yml:ro
     environment:
       AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_SENDER}
