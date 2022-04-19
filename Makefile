@@ -30,6 +30,9 @@ down-everything:
 	$(DC) $(DC_ALL) down --remove-orphans -v
 	$(MAKE) network-down
 
+exec:
+	$(DC) $(DC_ALL) exec $(SERVICE) sh
+
 logs:
 	$(DC) $(DC_ALL) logs -f $(SERVICE)
 
