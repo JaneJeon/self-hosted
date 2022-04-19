@@ -38,6 +38,12 @@ down-everything:
 	$(DC) $(DC_ALL) down --remove-orphans -v
 	$(MAKE) network-down
 
+rm:
+	$(DC) $(DC_ALL) rm --stop $(SERVICE)
+
+rm-hard:
+	$(DC) $(DC_ALL) rm --stop -v $(SERVICE)
+
 pull:
 	@$(DC) $(DC_ALL) pull $(SERVICE)
 
