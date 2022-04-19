@@ -5,11 +5,20 @@ services:
     image: authelia/authelia:4.35.0
     container_name: authelia
     restart: unless-stopped
+    entrypoint:
+      - wait-for
+      - mysql:3306
+      - --timeout=60
+      - --
+      - /app/entrypoint.sh
+    command:
+      - --config
+      - /etc/authelia/config.yml
     networks:
       - public
       - private
     volumes:
-      - ./services/sso-proxy/config.yml:/config/configuration.yml:ro
+      - ./services/sso-proxy/config.yml:/etc/authelia/config.yml:ro
     environment:
       AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_SENDER}
       AUTHELIA_NOTIFIER_SMTP_USERNAME: ${SMTP_USER}
