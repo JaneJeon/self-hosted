@@ -7,6 +7,7 @@ DC=docker-compose
 DC_BASE=-f docker-compose.base.yml
 DC_ALL=$(DC_BASE) $(shell ls services/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 DIR=~/self-hosted
+USER=jane
 
 ENV=. .env &&
 
@@ -77,14 +78,14 @@ git-push: git-check
 	git push
 
 push-files:
-	$(ENV) rsync -avzP --delete --exclude=.git --exclude=volumes . jane@$${REMOTE_IP}:$(DIR)
-	$(ENV) rsync -avzPO volumes jane@$${REMOTE_IP}:$(DIR)
+	$(ENV) rsync --chmod=Du+rwx -avzP --delete --exclude=.git --exclude=volumes . $(USER)@$${REMOTE_IP}:$(DIR)
+	$(ENV) rsync --chmod=Du+rwx -avzPO volumes $(USER)@$${REMOTE_IP}:$(DIR)
 
 deploy: check-config git-push push-files
 	$(MAKE) ssh-command COMMAND='$(M) up open-ports'
 
 ssh:
-	$(ENV) ssh jane@$${REMOTE_IP}
+	$(ENV) ssh $(USER)@$${REMOTE_IP}
 
 ssh-command:
-	$(ENV) ssh jane@$${REMOTE_IP} 'cd $(DIR) && $(COMMAND)'
+	$(ENV) ssh $(USER)@$${REMOTE_IP} 'cd $(DIR) && $(COMMAND)'
