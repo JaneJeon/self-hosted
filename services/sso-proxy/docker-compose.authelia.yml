@@ -9,7 +9,7 @@ services:
       - public
       - private
     volumes:
-      - ./config/sso-proxy/config.yml:/config/configuration.yml:ro
+      - ./services/sso-proxy/config.yml:/config/configuration.yml:ro
     environment:
       AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_SENDER}
       AUTHELIA_NOTIFIER_SMTP_USERNAME: ${SMTP_USER}

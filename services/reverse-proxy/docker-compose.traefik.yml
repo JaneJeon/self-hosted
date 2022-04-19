@@ -12,8 +12,8 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./config/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
-      - ./config/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
+      - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
+      - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
     labels:
       traefik.enable: 'true'

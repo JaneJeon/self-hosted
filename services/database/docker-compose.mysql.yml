@@ -9,10 +9,10 @@ services:
       - private
     volumes:
       - ./volumes/mysql-dump:/mnt/dump
-      - ./config/database/init:/docker-entrypoint-initdb.d:ro
-      - ./config/database/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-      - ./config/database/dump.sh:/usr/local/bin/dump:ro
-      - ./config/database/restore.sh:/usr/local/bin/restore:ro
+      - ./services/database/init:/docker-entrypoint-initdb.d:ro
+      - ./services/database/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./services/database/dump.sh:/usr/local/bin/dump:ro
+      - ./services/database/restore.sh:/usr/local/bin/restore:ro
     environment:
       MYSQL_ROOT_PASSWORD: mysql-root-password
     cap_add:

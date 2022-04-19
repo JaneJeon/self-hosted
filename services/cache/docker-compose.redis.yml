@@ -9,8 +9,8 @@ services:
       - private
     volumes:
       - ./volumes/redis-dump:/data # default redis container dump location - check using "config get dir"
-      - ./config/cache/dump.sh:/usr/local/bin/dump:ro
-      - ./config/cache/restore.sh:/usr/local/bin/restore:ro
+      - ./services/cache/dump.sh:/usr/local/bin/dump:ro
+      - ./services/cache/restore.sh:/usr/local/bin/restore:ro
     labels:
       com.datadoghq.ad.check_names: '["redisdb"]'
       com.datadoghq.ad.init_configs: '[{}]'

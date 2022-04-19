@@ -19,9 +19,9 @@ services:
       - private
     volumes:
       - ./volumes/ghost/janejeon.dev:/var/lib/ghost/content
-      - ./config/blog/themes/journal:/var/lib/ghost/content/themes/journal:ro
       - ./scripts/wait-for:/usr/local/bin/wait-for:ro
-      - ./config/blog/config.json:/var/lib/ghost/config.production.json:ro
+      - ./services/blog/themes/journal:/var/lib/ghost/content/themes/journal:ro
+      - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
       url: https://janejeon.dev
       database__connection__user: ghost-devblog
@@ -59,9 +59,9 @@ services:
       - private
     volumes:
       - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
-      - ./config/blog/themes/london:/var/lib/ghost/content/themes/london:ro
       - ./scripts/wait-for:/usr/local/bin/wait-for:ro
-      - ./config/blog/config.json:/var/lib/ghost/config.production.json:ro
+      - ./services/blog/themes/london:/var/lib/ghost/content/themes/london:ro
+      - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
       url: https://nariahn.com
       database__client: mysql

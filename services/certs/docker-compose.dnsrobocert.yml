@@ -9,7 +9,7 @@ services:
       - private
     volumes:
       - ./volumes/certs:/etc/letsencrypt
-      - ./config/certs/config.yml:/etc/dnsrobocert/config.yml:ro
+      - ./services/certs/config.yml:/etc/dnsrobocert/config.yml:ro
     environment:
       CLOUDFLARE_CERT_API_TOKEN: ${CLOUDFLARE_CERT_API_TOKEN}
       ACME_EMAIL: ${SMTP_SENDER}
