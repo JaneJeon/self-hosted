@@ -8,12 +8,15 @@ services:
     networks:
       - public
     environment:
-      WHOOGLE_RESULTS_PER_PAGE: '25'
-      WHOOGLE_CONFIG_DISABLE: 'true'
+      WHOOGLE_RESULTS_PER_PAGE: 25
+      WHOOGLE_CONFIG_DISABLE: 1
+      WHOOGLE_CONFIG_COUNTRY: US
+      WHOOGLE_CONFIG_LANGUAGE: lang_en
+      WHOOGLE_CONFIG_SEARCH_LANGUAGE: lang_en
+      WHOOGLE_CONFIG_BLOCK: pinterest.com
       WHOOGLE_CONFIG_THEME: system
-      WHOOGLE_CONFIG_ALTS: 'false'
-      WHOOGLE_CONFIG_VIEW_IMAGE: 'true'
-      WHOOGLE_CONFIG_GET_ONLY: 'true'
+      WHOOGLE_CONFIG_VIEW_IMAGE: 1
+      WHOOGLE_CONFIG_GET_ONLY: 1
       WHOOGLE_CONFIG_URL: whoogle.janejeon.com
     labels:
       traefik.enable: 'true'
