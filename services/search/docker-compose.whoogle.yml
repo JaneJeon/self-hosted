@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  whoogle:
+    container_name: whoogle
+    image: benbusby/whoogle-search:0.7.1
+    restart: unless-stopped
+    networks:
+      - public
+    environment:
+      FOO: BAR
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.whoogle.tls: 'true'
+      traefik.http.routers.whoogle.rule: Host(`whoogle.janejeon.com`)
+      traefik.http.routers.whoogle.entrypoints: web-secure
+      traefik.http.routers.whoogle.middlewares: sso-proxy@file
+      traefik.http.services.whoogle.loadbalancer.server.port: 5000
+      flame.type: application
+      flame.name: Whoogle
+      flame.url: whoogle.janejeon.com
+      flame.icon: magnify
+
+networks:
+  public:
+    external: true
