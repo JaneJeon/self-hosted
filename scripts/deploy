@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e
-
-source .env
-rsync -avzP --delete --exclude=.git --exclude=volumes . jane@$REMOTE_IP:~/self-hosted
-rsync -avzPO volumes jane@$REMOTE_IP:~/self-hosted
-
-ssh jane@$REMOTE_IP 'cd ~/self-hosted && make up open-ports'

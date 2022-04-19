@@ -76,4 +76,6 @@ sudo ufw-docker install
 # After starting containers: https://github.com/chaifeng/ufw-docker#solving-ufw-and-docker-issues
 sudo ufw-docker allow traefik 80/tcp
 sudo ufw-docker allow traefik 443/tcp
+
+sudo apt install jq
 ```
