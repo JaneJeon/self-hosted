@@ -5,12 +5,11 @@ services:
     image: authelia/authelia:4.35.0
     container_name: authelia
     restart: unless-stopped
-    command: --config /mnt/config.yml
     networks:
       - public
       - private
     volumes:
-      - ./config/sso-proxy/config.yml:/mnt/config.yml:ro
+      - ./config/sso-proxy/config.yml:/config/configuration.yml:ro
     environment:
       AUTHELIA_NOTIFIER_SMTP_SENDER: ${SMTP_SENDER}
       AUTHELIA_NOTIFIER_SMTP_USERNAME: ${SMTP_USER}
