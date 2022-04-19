@@ -3,7 +3,7 @@
 D=docker
 DC=docker-compose
 DC_BASE=-f docker-compose.base.yml
-DC_ALL=$(DC_BASE) $(shell ls config/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
+DC_ALL=$(DC_BASE) $(shell ls services/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 
 ENV=. .env &&
 
@@ -34,15 +34,13 @@ logs:
 	$(DC) $(DC_ALL) logs -f $(SERVICE)
 
 check-config:
-	$(DC) $(DC_ALL) config
+	$(DC) $(DC_ALL) services
 
 tracked:
 	git ls-tree -r master --name-only
 
 init:
 	cp .env.example .env
-	touch config/reverse-proxy/acme.json
-	chmod 600 config/reverse-proxy/acme.json
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 git-check:

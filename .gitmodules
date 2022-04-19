@@ -1,9 +1,9 @@
-[submodule "config/blog/themes/journal"]
-	path = config/blog/themes/journal
-	url = https://github.com/TryGhost/Journal.git
-[submodule "config/blog/themes/london"]
-	path = config/blog/themes/london
-	url = https://github.com/TryGhost/London.git
 [submodule "dependencies/wait-for"]
 	path = dependencies/wait-for
 	url = https://github.com/eficode/wait-for.git
+[submodule "services/blog/themes/journal"]
+	path = services/blog/themes/journal
+	url = https://github.com/TryGhost/Journal.git
+[submodule "services/blog/themes/london"]
+	path = services/blog/themes/london
+	url = https://github.com/TryGhost/London.git
