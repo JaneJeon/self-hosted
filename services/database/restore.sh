@@ -1,3 +1,3 @@
 #!/bin/sh
 
-mysql -u root --password=mysql-root-password < /mnt/dump/all.sql
+mysql -h mysql -u root --password=mysql-root-password < /mnt/dump/all.sql

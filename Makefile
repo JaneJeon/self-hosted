@@ -1,7 +1,7 @@
 .DEFAULT_GOAL=deploy
 
 # use $(MAKE) where possible, but for remote commands, $(M) makes more sense
-M=make
+M=make --no-print-directory
 D=docker
 DC=docker-compose
 DC_BASE=-f docker-compose.base.yml
@@ -21,43 +21,46 @@ network-down:
 	@$(D) network rm private || true
 
 up: network-up
-	$(DC) $(DC_ALL) up -d --remove-orphans $(SERVICE)
+	@$(DC) $(DC_ALL) up -d --remove-orphans $(SERVICE)
 
 restart:
-	$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate $(SERVICE)
+	@$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate $(SERVICE)
 
 restart-hard:
-	$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate --renew-anon-volumes $(SERVICE)
+	@$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate --renew-anon-volumes $(SERVICE)
 
 down:
-	$(DC) $(DC_ALL) down --remove-orphans
-	$(MAKE) network-down
+	@$(DC) $(DC_ALL) down --remove-orphans $(SERVICE)
+	$(M) network-down
 
 down-everything:
 	@echo "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	$(DC) $(DC_ALL) down --remove-orphans -v
-	$(MAKE) network-down
+	@$(DC) $(DC_ALL) down --remove-orphans -v
+	$(M) network-down
 
 rm:
-	$(DC) $(DC_ALL) rm --stop $(SERVICE)
+	@$(DC) $(DC_ALL) rm --stop $(SERVICE)
 
 rm-hard:
-	$(DC) $(DC_ALL) rm --stop -v $(SERVICE)
+	@$(DC) $(DC_ALL) rm --stop -v $(SERVICE)
 
 pull:
 	@$(DC) $(DC_ALL) pull $(SERVICE)
 
-exec:
-	$(DC) $(DC_ALL) exec $(SERVICE) $(COMMAND)
+exec: network-up
+	@$(DC) $(DC_ALL) exec $(SERVICE) $(COMMAND)
 
-sh:
-	$(DC) $(DC_ALL) exec $(SERVICE) sh
+run: network-up
+	@$(DC) $(DC_ALL) run --rm $(SERVICE) $(COMMAND)
+
+sh: network-up
+	@$(DC) $(DC_ALL) run --rm $(SERVICE) sh
 
 logs:
-	$(DC) $(DC_ALL) logs -f $(SERVICE)
+	@$(DC) $(DC_ALL) logs -f $(SERVICE)
 
 volumes:
-	$(D) inspect -f '{{json .Mounts}}' $(SERVICE) | jq
+	@$(D) inspect -f '{{json .Mounts}}' $(SERVICE) | jq
 
 ports:
 	sudo netstat -tulpn | grep LISTEN
@@ -65,6 +68,9 @@ ports:
 open-ports:
 	sudo ufw-docker allow traefik 80/tcp
 	sudo ufw-docker allow traefik 443/tcp
+
+restore:
+	./scripts/restore-all
 
 # |------------------------- Commands to be run locally -------------------------|
 tracked:
@@ -75,7 +81,7 @@ init:
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 check-config:
-	$(DC) $(DC_ALL) config --quiet
+	@$(DC) $(DC_ALL) config --quiet
 
 git-check:
 	./scripts/check-git
@@ -88,7 +94,7 @@ push-files:
 	$(ENV) rsync -avzPO volumes $(USER)@$${REMOTE_IP}:$(DIR)
 
 deploy: check-config git-push push-files
-	$(MAKE) ssh-command COMMAND='$(M) up open-ports'
+	$(M) ssh-command COMMAND='$(M) up open-ports'
 
 ssh:
 	$(ENV) ssh $(USER)@$${REMOTE_IP}

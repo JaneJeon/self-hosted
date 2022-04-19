@@ -3,12 +3,21 @@
 
 set -e
 
+# Clear out anything in volumes folder; otherwise, we get conflicts
+sudo rm -rf ./volumes/*
+
 # First, find the snapshot to restore to:
-# docker-compose exec backup restic snapshots [-H docker]
+make run SERVICE=backup COMMAND=snapshots
+
+read -p "Select backup ID: " BACKUP_ID
 
 # Then, pass that snapshot id to restore volumes/ directory
-docker-compose exec backup restic restore --target /mnt/volumes $1
+make run SERVICE=backup COMMAND="restore --target / $BACKUP_ID"
 
 # Finally, get the databases to ingest the restored WALs
-./scripts/wait-for redis:6379 --timeout=60 -- docker exec redis /usr/local/bin/restore
-./scripts/wait-for mysql:3306 --timeout=60 -- docker exec mysql /usr/local/bin/restore
+# Note: wait-for apparently doesn't work, 127.0.0.1/0.0.0.0/localhost/etc
+make run SERVICE=redis COMMAND=restore
+make run SERVICE=mysql COMMAND=restore
+
+# Chown this to prevent privilege problems with docker and rsync
+sudo chown -R $USER ./volumes
