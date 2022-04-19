@@ -78,8 +78,8 @@ git-push: git-check
 	git push
 
 push-files:
-	$(ENV) rsync --chmod=Du+rwx -avzP --delete --exclude=.git --exclude=volumes . $(USER)@$${REMOTE_IP}:$(DIR)
-	$(ENV) rsync --chmod=Du+rwx -avzPO volumes $(USER)@$${REMOTE_IP}:$(DIR)
+	$(ENV) rsync -avzP --delete --exclude=.git --exclude=volumes . $(USER)@$${REMOTE_IP}:$(DIR)
+	$(ENV) rsync -avzPO volumes $(USER)@$${REMOTE_IP}:$(DIR)
 
 deploy: check-config git-push push-files
 	$(MAKE) ssh-command COMMAND='$(M) up open-ports'
