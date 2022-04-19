@@ -5,7 +5,6 @@ services:
     image: nitnelave/lldap:v0.2.0
     container_name: lldap
     restart: unless-stopped
-    init: true
     networks:
       - public
     volumes:
