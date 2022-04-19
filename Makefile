@@ -31,6 +31,9 @@ down-everything:
 	$(MAKE) network-down
 
 exec:
+	$(DC) $(DC_ALL) exec $(SERVICE) $(COMMAND)
+
+sh:
 	$(DC) $(DC_ALL) exec $(SERVICE) sh
 
 logs:
