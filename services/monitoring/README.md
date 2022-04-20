@@ -1,1 +1,3 @@
-Infra monitoring + log management, tracing to come soon(TM)
+- logging: dozzle (for now)
+- monitoring: promstack
+- tracing: jaeger
