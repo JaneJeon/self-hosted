@@ -91,7 +91,7 @@ git-push: git-check
 
 push-files:
 	$(ENV) rsync -avzP --delete --exclude=.git --exclude=volumes . $(USER)@$${REMOTE_IP}:$(DIR)
-	$(ENV) rsync -avzPO volumes $(USER)@$${REMOTE_IP}:$(DIR)
+	$(ENV) rsync -avzPO volumes $(USER)@$${REMOTE_IP}:$(DIR) || true
 
 deploy: check-config git-push push-files
 	$(M) ssh-command COMMAND='$(M) up open-ports'
