@@ -97,7 +97,7 @@ push-files:
 	rsync -avzPO volumes $(SERVER):$(DIR) || true
 
 deploy: check-config git-push push-files
-	$(M) ssh-command COMMAND='$(M) prune up open-ports'
+	$(M) ssh-command COMMAND='$(M) up prune open-ports'
 
 ssh:
 	ssh $(SERVER)
