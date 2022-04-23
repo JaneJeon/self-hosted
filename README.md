@@ -24,3 +24,9 @@ Checklist for internal services:
 
 - [ ] Restart policy
 - [ ] Networks
+
+## Connecting to the server
+
+Use `~.ssh/config` to configure a specific host to connect to in the Makefile, named `vultr`, with your server's HostName and User.
+
+Then tell Makefile to use that server SSH configuration using the `SERVER` variable.
