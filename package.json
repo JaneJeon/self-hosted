@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "scripts": {
+    "lint": "run-s lint:*",
+    "lint:prettier": "prettier --check . --ignore-path .gitignore",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@janejeon/prettier-config": "^1.1.1",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.4.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.6.2"
+  }
+}
