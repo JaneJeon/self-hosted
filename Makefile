@@ -44,6 +44,9 @@ rm:
 rm-hard:
 	@$(DC) $(DC_ALL) rm --stop -v $(SERVICE)
 
+prune:
+	@$(D) system prune -f
+
 pull:
 	@$(DC) $(DC_ALL) pull $(SERVICE)
 
@@ -94,7 +97,7 @@ push-files:
 	rsync -avzPO volumes $(SERVER):$(DIR) || true
 
 deploy: check-config git-push push-files
-	$(M) ssh-command COMMAND='$(M) up open-ports'
+	$(M) ssh-command COMMAND='$(M) prune up open-ports'
 
 ssh:
 	ssh $(SERVER)
