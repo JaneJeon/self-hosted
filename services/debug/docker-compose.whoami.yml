@@ -1,6 +1,5 @@
 version: '3'
 
-# Note: UNSECURED, public access!
 services:
   whoami:
     image: traefik/whoami:v1.8.0
@@ -13,6 +12,7 @@ services:
       traefik.http.routers.whoami.tls: 'true'
       traefik.http.routers.whoami.rule: Host(`whoami.janejeon.com`)
       traefik.http.routers.whoami.entrypoints: web-secure
+      traefik.http.routers.whoami.middlewares: sso-proxy@file
       traefik.http.services.whoami.loadbalancer.server.port: 80
       flame.type: application
       flame.name: Whoami
