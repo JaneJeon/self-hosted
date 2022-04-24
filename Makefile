@@ -107,3 +107,7 @@ ssh:
 
 ssh-command:
 	ssh $(SERVER) 'cd $(DIR) && $(COMMAND)'
+
+# After calling this, set `CLOUDFLARE_IPS` environment variable with the output.
+get-cf-ips:
+	@./scripts/get-cloudflare-ips

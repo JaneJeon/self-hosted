@@ -15,6 +15,10 @@ services:
       - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
       - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
+    environment:
+      # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
+      # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
+      TRAEFIK_ENTRYPOINTS_WEB-SECURE_FORWARDEDHEADERS_TRUSTEDIPS: ${CLOUDFLARE_IPS}
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'
