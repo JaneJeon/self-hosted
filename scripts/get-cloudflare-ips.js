@@ -11,4 +11,4 @@ const IPs = promises
   .map(result => result.body.split('\n').sort())
   .reduce((arr1, arr2) => [...arr1, ...arr2], [])
 
-console.log(JSON.stringify(IPs))
+console.log(IPs.join(','))
