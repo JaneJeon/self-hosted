@@ -1,7 +1,0 @@
-#!/bin/bash
-
-IPv4=$(curl -s https://www.cloudflare.com/ips-v4 | xargs | sed -e 's/ /,/g')
-IPv6=$(curl -s https://www.cloudflare.com/ips-v6 | xargs | sed -e 's/ /,/g')
-IPs="$IPv4,$IPv6"
-
-echo $IPs

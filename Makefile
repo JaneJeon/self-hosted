@@ -31,12 +31,12 @@ restart-hard:
 
 down:
 	@$(DC) $(DC_ALL) down --remove-orphans $(SERVICE)
-	$(M) network-down
+	@$(M) network-down
 
 down-everything:
 	@echo "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 	@$(DC) $(DC_ALL) down --remove-orphans -v
-	$(M) network-down
+	@$(M) network-down
 
 rm:
 	@$(DC) $(DC_ALL) rm --stop $(SERVICE)
@@ -73,7 +73,7 @@ open-ports:
 	sudo ufw-docker allow traefik 443/tcp
 
 restore:
-	./scripts/restore-all
+	@./scripts/restore-all.sh
 
 mem:
 	free -h
@@ -90,10 +90,10 @@ check-config:
 	@$(DC) $(DC_ALL) config --quiet
 
 git-check:
-	./scripts/check-git
+	@./scripts/check-git.sh
 
 git-push: git-check
-	git push
+	@git push
 
 push-files:
 	rsync -avzP --delete --exclude=.git --exclude=volumes --exclude=node_modules . $(SERVER):$(DIR)
@@ -110,4 +110,4 @@ ssh-command:
 
 # After calling this, set `CLOUDFLARE_IPS` environment variable with the output.
 get-cf-ips:
-	@./scripts/get-cloudflare-ips
+	@./scripts/get-cloudflare-ips.js
