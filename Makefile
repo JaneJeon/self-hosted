@@ -75,6 +75,9 @@ open-ports:
 restore:
 	./scripts/restore-all
 
+mem:
+	free -h
+
 # |------------------------- Commands to be run locally -------------------------|
 tracked:
 	git ls-tree -r master --name-only
