@@ -17,7 +17,7 @@ http:
         replacement: https://${1}
         permanent: true
     sso-proxy:
-      forwardauth:
+      forwardAuth:
         address: http://authelia:9091/api/verify?rd=https://auth.janejeon.com
         trustForwardHeader: true
         authResponseHeaders:
