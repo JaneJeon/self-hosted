@@ -9,10 +9,6 @@ tls:
 
 http:
   middlewares:
-    floc:
-      headers:
-        customResponseHeaders:
-          Permissions-Policy: interest-cohort=()
     gzip:
       compress: {}
     no-www: # stripping https://www.blah -> https://blah
