@@ -5,7 +5,7 @@ services:
     image: traefik:v2.6.3
     container_name: traefik
     command:
-      - --entryPoints.web.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
+      - --entryPoints.web-secure.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
     restart: unless-stopped
     networks:
       - public
