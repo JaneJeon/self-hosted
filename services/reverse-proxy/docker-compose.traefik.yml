@@ -4,8 +4,6 @@ services:
   traefik:
     image: traefik:v2.6.3
     container_name: traefik
-    command:
-      - --entryPoints.web-secure.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
     restart: unless-stopped
     networks:
       - public
@@ -17,9 +15,10 @@ services:
       - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
       - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
-    # environment:
-    #   # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
-    #   # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
+    environment:
+      # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
+      # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
+      TRAEFIK_ENTRYPOINTS_WEB-SECURE_FORWARDEDHEADERS_TRUSTEDIPS: '172.70.134.33'
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'
