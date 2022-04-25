@@ -87,7 +87,7 @@ init:
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 check-config:
-	@$(DC) $(DC_ALL) config --quiet
+	@$(DC) $(DC_ALL) config
 
 git-check:
 	@./scripts/check-git.sh
