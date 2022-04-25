@@ -5,6 +5,14 @@ services:
     image: traefik:v2.6.3
     container_name: traefik
     restart: unless-stopped
+    command:
+      - --entryPoints.http.address=:80
+      - --entryPoints.http.http.redirections.entryPoint.to=https
+      - --entryPoints.http.http.redirections.entryPoint.scheme=https
+      - --entryPoints.http.http.redirections.entryPoint.permanent=true
+      - --entryPoints.https.address=:443
+      - --entryPoints.https.http.middlewares=gzip@file,no-www@file
+      - --entryPoints.https.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
     networks:
       - public
     ports:
@@ -15,12 +23,12 @@ services:
       - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
       - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
-    environment:
-      # TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
-      # TRAEFIK_ENTRYPOINTS_HTTPS_HTTP_MIDDLEWARES: gzip@file,no-www@file
-      # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
-      # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
-      TRAEFIK_ENTRYPOINTS_HTTPS_FORWARDEDHEADERS_TRUSTEDIPS: ${CLOUDFLARE_IPS}
+    # environment:
+    # TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
+    # TRAEFIK_ENTRYPOINTS_HTTPS_HTTP_MIDDLEWARES: gzip@file,no-www@file
+    # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
+    # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
+    # TRAEFIK_ENTRYPOINTS_HTTPS_FORWARDEDHEADERS_TRUSTEDIPS: ${CLOUDFLARE_IPS}
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'

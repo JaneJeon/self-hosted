@@ -15,22 +15,22 @@ api:
   dashboard: true
   insecure: true
 
-entryPoints:
-  http:
-    address: :80
-    http:
-      redirections:
-        entryPoint:
-          to: https
-          scheme: https
-          permanent: true
+# entryPoints:
+#   http:
+#     address: :80
+#     http:
+#       redirections:
+#         entryPoint:
+#           to: https
+#           scheme: https
+#           permanent: true
 
-  https:
-    address: :443
-    http:
-      middlewares:
-        - gzip@file
-        - no-www@file
+#   https:
+#     address: :443
+#     http:
+#       middlewares:
+#         - gzip@file
+#         - no-www@file
 
 providers:
   docker:
