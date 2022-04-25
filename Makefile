@@ -87,13 +87,13 @@ init:
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 check-config:
-	@$(DC) $(DC_ALL) config
+	$(DC) $(DC_ALL) config
 
 git-check:
-	@./scripts/check-git.sh
+	./scripts/check-git.sh
 
 git-push: git-check
-	@git push
+	git push
 
 push-files:
 	rsync -avzP --delete --exclude=.git --exclude=volumes --exclude=node_modules . $(SERVER):$(DIR)
