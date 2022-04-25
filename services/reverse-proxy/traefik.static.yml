@@ -16,16 +16,16 @@ api:
   insecure: true
 
 entryPoints:
-  web:
+  http:
     address: :80
     http:
       redirections:
         entryPoint:
-          to: web-secure
+          to: https
           scheme: https
           permanent: true
 
-  web-secure:
+  https:
     address: :443
     http:
       middlewares:

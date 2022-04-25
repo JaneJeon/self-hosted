@@ -18,12 +18,12 @@ services:
     environment:
       # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
       # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
-      TRAEFIK_ENTRYPOINTS_web-secure_FORWARDEDHEADERS_TRUSTEDIPS: 172.64.0.0/13
+      TRAEFIK_ENTRYPOINTS_https_FORWARDEDHEADERS_TRUSTEDIPS: 172.64.0.0/13
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'
       traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
-      traefik.http.routers.traefik.entrypoints: web-secure
+      traefik.http.routers.traefik.entrypoints: https
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
       flame.type: application

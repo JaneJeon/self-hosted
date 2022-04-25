@@ -22,7 +22,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.whoogle.tls: 'true'
       traefik.http.routers.whoogle.rule: Host(`whoogle.janejeon.com`)
-      traefik.http.routers.whoogle.entrypoints: web-secure
+      traefik.http.routers.whoogle.entrypoints: https
       traefik.http.routers.whoogle.middlewares: sso-proxy@file
       traefik.http.services.whoogle.loadbalancer.server.port: 5000
       flame.type: application

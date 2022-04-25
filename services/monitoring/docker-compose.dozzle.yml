@@ -20,7 +20,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.dozzle.tls: 'true'
       traefik.http.routers.dozzle.rule: Host(`dozzle.janejeon.com`)
-      traefik.http.routers.dozzle.entrypoints: web-secure
+      traefik.http.routers.dozzle.entrypoints: https
       traefik.http.routers.dozzle.middlewares: sso-proxy@file
       traefik.http.services.dozzle.loadbalancer.server.port: 8080
       flame.type: application
