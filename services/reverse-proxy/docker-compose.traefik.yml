@@ -19,12 +19,14 @@ services:
       - --entryPoints.http.http.redirections.entryPoint.permanent=true
       - --entryPoints.https.address=:443
       - --entryPoints.https.http.middlewares=gzip@file,no-www@file
+      # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
+      # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
       - --entryPoints.https.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
       - --providers.docker.watch=true
       - --providers.docker.exposedByDefault=false
       - --providers.docker.network=public
       - --providers.file.watch=true
-      - --providers.file.filename=/etc/traefik/traefik.dynamic.yml
+      - --providers.file.filename=/etc/traefik/dynamic.yml
     networks:
       - public
     ports:
@@ -33,14 +35,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
-      - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
+      - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
-    # environment:
-    # TRAEFIK_ENTRYPOINTS_HTTPS_ADDRESS: :443
-    # TRAEFIK_ENTRYPOINTS_HTTPS_HTTP_MIDDLEWARES: gzip@file,no-www@file
-    # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
-    # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
-    # TRAEFIK_ENTRYPOINTS_HTTPS_FORWARDEDHEADERS_TRUSTEDIPS: ${CLOUDFLARE_IPS}
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'
@@ -48,6 +44,7 @@ services:
       traefik.http.routers.traefik.entrypoints: https
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
+      traefik.http.middlewares.whitelist-cloudflare.ipwhitelist.ipstrategy.excludedips: ${CLOUDFLARE_IPS}
       flame.type: application
       flame.name: Traefik
       flame.url: traefik.janejeon.com
