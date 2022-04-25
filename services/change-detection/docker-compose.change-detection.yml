@@ -17,7 +17,7 @@ services:
       traefik.http.routers.change-detection.middlewares: sso-proxy@file
       traefik.http.services.change-detection.loadbalancer.server.port: 5000
       flame.type: application
-      flame.name: Change Detection
+      flame.name: ChangeDetection
       flame.url: change-detection.janejeon.com
       flame.icon: vector-difference-ba
 
