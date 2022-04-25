@@ -25,12 +25,12 @@ entryPoints:
           scheme: https
           permanent: true
 
-  # https:
-  #   address: :443
-  #   http:
-  #     middlewares:
-  #       - gzip@file
-  #       - no-www@file
+  https:
+    address: :443
+    http:
+      middlewares:
+        - gzip@file
+        - no-www@file
 
 providers:
   docker:
