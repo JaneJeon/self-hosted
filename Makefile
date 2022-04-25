@@ -99,8 +99,8 @@ push-files:
 	rsync -avzP --delete --exclude=.git --exclude=volumes --exclude=node_modules . $(SERVER):$(DIR)
 	rsync -avzPO volumes $(SERVER):$(DIR) || true
 
-deploy: check-config git-push push-files
-	$(M) ssh-command COMMAND='$(M) up prune open-ports'
+deploy: push-files
+	$(M) ssh-command COMMAND='$(M) up open-ports'
 
 ssh:
 	ssh $(SERVER)
