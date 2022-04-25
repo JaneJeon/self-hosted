@@ -9,6 +9,8 @@ services:
       - public
     volumes:
       - ./volumes/change-detection:/datastore
+    environment:
+      BASE_URL: https://change-detection.janejeon.com
     labels:
       traefik.enable: 'true'
       traefik.http.routers.change-detection.tls: 'true'
