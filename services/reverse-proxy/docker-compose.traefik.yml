@@ -18,7 +18,7 @@ services:
       - --entryPoints.http.http.redirections.entryPoint.scheme=https
       - --entryPoints.http.http.redirections.entryPoint.permanent=true
       - --entryPoints.https.address=:443
-      - --entryPoints.https.http.middlewares=gzip@file,no-www@file,whitelist-cloudflare@docker
+      - --entryPoints.https.http.middlewares=gzip@file,no-www@file
       # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
       # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
       - --entryPoints.https.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
@@ -44,7 +44,6 @@ services:
       traefik.http.routers.traefik.entrypoints: https
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
-      traefik.http.middlewares.whitelist-cloudflare.ipwhitelist.ipstrategy.excludedips: ${CLOUDFLARE_IPS}
       flame.type: application
       flame.name: Traefik
       flame.url: traefik.janejeon.com
