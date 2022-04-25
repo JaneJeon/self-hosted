@@ -5,6 +5,28 @@ services:
     image: traefik:v2.6.3
     container_name: traefik
     restart: unless-stopped
+    command:
+      - --global.checkNewVersion=false
+      - --global.sendAnonymousUsage=false
+      - --log.level=INFO
+      - --log.format=common
+      - --accessLog.format=common
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --entryPoints.http.address=:80
+      - --entryPoints.http.http.redirections.entryPoint.to=https
+      - --entryPoints.http.http.redirections.entryPoint.scheme=https
+      - --entryPoints.http.http.redirections.entryPoint.permanent=true
+      - --entryPoints.https.address=:443
+      - --entryPoints.https.http.middlewares=gzip@file,no-www@file
+      # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
+      # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
+      - --entryPoints.https.forwardedHeaders.trustedIPs=${CLOUDFLARE_IPS}
+      - --providers.docker.watch=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=public
+      - --providers.file.watch=true
+      - --providers.file.filename=/etc/traefik/dynamic.yml
     networks:
       - public
     ports:
@@ -12,18 +34,14 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
-      - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/traefik.dynamic.yml:ro
+      # - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
+      - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
-    environment:
-      # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
-      # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
-      TRAEFIK_ENTRYPOINTS_WEB-SECURE_FORWARDEDHEADERS_TRUSTEDIPS: 172.64.0.0/13
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls: 'true'
       traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
-      traefik.http.routers.traefik.entrypoints: web-secure
+      traefik.http.routers.traefik.entrypoints: https
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
       flame.type: application
