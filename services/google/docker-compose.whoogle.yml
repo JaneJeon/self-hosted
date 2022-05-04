@@ -21,13 +21,13 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.whoogle.tls: 'true'
-      traefik.http.routers.whoogle.rule: Host(`whoogle.janejeon.com`)
+      traefik.http.routers.whoogle.rule: Host(`google.janejeon.com`)
       traefik.http.routers.whoogle.entrypoints: https
       traefik.http.routers.whoogle.middlewares: sso-proxy@file
       traefik.http.services.whoogle.loadbalancer.server.port: 5000
       flame.type: application
       flame.name: Whoogle
-      flame.url: whoogle.janejeon.com
+      flame.url: google.janejeon.com
       flame.icon: magnify
 
 networks:
