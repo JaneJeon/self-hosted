@@ -2,7 +2,7 @@ version: '3'
 
 services:
   authelia:
-    image: authelia/authelia:4.35.2
+    image: authelia/authelia:4.35.3
     container_name: authelia
     restart: unless-stopped
     entrypoint:
