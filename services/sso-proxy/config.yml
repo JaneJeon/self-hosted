@@ -256,16 +256,16 @@ session:
   ## because a stolen cookie will last longer giving attackers more time to spy or attack.
 
   ## The time before the cookie expires and the session is destroyed if remember me IS NOT selected.
-  expiration: 1h
+  expiration: 1d
 
   ## The inactivity time before the session is reset. If expiration is set to 1h, and this is set to 5m, if the user
   ## does not select the remember me option their session will get destroyed after 1h, or after 5m since the last time
   ## Authelia detected user activity.
-  inactivity: 10m
+  inactivity: 15m
 
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
   ## Value of 0 disables remember me.
-  remember_me_duration: 1d
+  remember_me_duration: 1M
 
   ##
   ## Redis Provider
