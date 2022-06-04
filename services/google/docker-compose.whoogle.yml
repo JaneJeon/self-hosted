@@ -3,7 +3,7 @@ version: '3'
 services:
   whoogle:
     container_name: whoogle
-    image: benbusby/whoogle-search:0.7.2
+    image: benbusby/whoogle-search:0.7.3
     restart: unless-stopped
     networks:
       - public
