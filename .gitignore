@@ -75,3 +75,5 @@ typings/
 .yarn-integrity
 
 package-lock.json
+
+**/.DS_Store
