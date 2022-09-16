@@ -2,7 +2,7 @@ version: '3'
 
 services:
   whoami:
-    image: traefik/whoami:v1.8.1
+    image: traefik/whoami:v1.8.6
     container_name: whoami
     restart: unless-stopped
     networks:
