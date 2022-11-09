@@ -2,7 +2,7 @@ version: '3'
 
 services:
   adguardhome:
-    image: adguard/adguardhome:v0.107.12
+    image: adguard/adguardhome:v0.107.18
     container_name: adguardhome
     restart: unless-stopped
     networks:
