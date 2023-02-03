@@ -9,7 +9,7 @@ services:
       - public
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.whoami.tls: 'true'
+      traefik.http.routers.whoami.tls.certresolver: letsencrypt
       traefik.http.routers.whoami.rule: Host(`whoami.janejeon.com`)
       traefik.http.routers.whoami.entrypoints: https
       # traefik.http.routers.whoami.middlewares: sso-proxy@file

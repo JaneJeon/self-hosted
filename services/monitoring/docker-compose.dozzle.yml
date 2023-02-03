@@ -18,7 +18,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.dozzle.tls: 'true'
+      traefik.http.routers.dozzle.tls.certresolver: letsencrypt
       traefik.http.routers.dozzle.rule: Host(`dozzle.janejeon.com`)
       traefik.http.routers.dozzle.entrypoints: https
       traefik.http.routers.dozzle.middlewares: sso-proxy@file

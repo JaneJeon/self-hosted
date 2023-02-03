@@ -31,7 +31,7 @@ services:
       TZ: ${TIMEZONE}
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.authelia.tls: 'true'
+      traefik.http.routers.authelia.tls.certresolver: letsencrypt
       traefik.http.routers.authelia.rule: Host(`auth.janejeon.com`)
       traefik.http.routers.authelia.entrypoints: https
       traefik.http.routers.authelia.middlewares: sso-proxy@file

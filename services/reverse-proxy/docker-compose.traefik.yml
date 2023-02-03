@@ -27,6 +27,11 @@ services:
       - --providers.docker.network=public
       - --providers.file.watch=true
       - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --certificatesResolvers.letsencrypt.acme.email=${SMTP_SENDER}
+      - --certificatesResolvers.letsencrypt.acme.storage=/etc/traefik/acme.json
+      # for testing, try https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesResolvers.letsencrypt.acme.caserver=${ACME_CASERVER:-https://acme-v02.api.letsencrypt.org/directory}
+      - --certificatesResolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare
     networks:
       - public
     ports:
@@ -34,12 +39,16 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/traefik:/etc/traefik
       # - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/traefik.yml:ro
       - ./services/reverse-proxy/traefik.dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./volumes/certs:/etc/letsencrypt:ro # docker doesn't really handle symlinks
+    environment:
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN}
+      CF_ZONE_API_TOKEN: ${CF_ZONE_API_TOKEN}
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.traefik.tls: 'true'
+      traefik.http.routers.traefik.tls.certresolver: letsencrypt
       traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
       traefik.http.routers.traefik.entrypoints: https
       traefik.http.routers.traefik.middlewares: sso-proxy@file

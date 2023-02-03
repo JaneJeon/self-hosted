@@ -12,7 +12,7 @@ services:
       - ./volumes/uptime-kuma:/app/data
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.uptime-kuma.tls: 'true'
+      traefik.http.routers.uptime-kuma.tls.certresolver: letsencrypt
       traefik.http.routers.uptime-kuma.rule: Host(`up.janejeon.com`)
       traefik.http.routers.uptime-kuma.entrypoints: https
       traefik.http.routers.uptime-kuma.middlewares: sso-proxy@file

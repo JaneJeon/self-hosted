@@ -13,7 +13,7 @@ services:
       - ./volumes/portainer:/data
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.portainer.tls: 'true'
+      traefik.http.routers.portainer.tls.certresolver: letsencrypt
       traefik.http.routers.portainer.rule: Host(`portainer.janejeon.com`)
       traefik.http.routers.portainer.entrypoints: https
       traefik.http.routers.portainer.middlewares: sso-proxy@file

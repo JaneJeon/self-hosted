@@ -20,7 +20,7 @@ services:
       WHOOGLE_CONFIG_URL: whoogle.janejeon.com
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.whoogle.tls: 'true'
+      traefik.http.routers.whoogle.tls.certresolver: letsencrypt
       traefik.http.routers.whoogle.rule: Host(`google.janejeon.com`)
       traefik.http.routers.whoogle.entrypoints: https
       traefik.http.routers.whoogle.middlewares: sso-proxy@file
