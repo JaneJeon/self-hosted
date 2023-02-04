@@ -1,2 +1,6 @@
-'*.{yml,yaml,json,md}':
-  - prettier --write
+'*':
+  - prettier --ignore-unknown --write
+
+'*.py':
+  - black --quiet
+  - isort --quiet --profile black
