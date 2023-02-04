@@ -15,6 +15,6 @@ def get_template_paths(folder_to_check: str = ".") -> List[str]:
     """
     pattern = path.join(folder_to_check, "**/*.j2")
 
-    logger.info("Searching templates that match %s", pattern)
+    logger.debug("Searching templates that match %s", pattern)
 
     return sorted(glob(pattern, recursive=True))
