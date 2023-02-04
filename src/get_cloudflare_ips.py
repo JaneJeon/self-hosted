@@ -1,9 +1,11 @@
+from src.log_invocation import log_invocation
 from src.requests_session import get_session
 
 CLOUDFLARE_IPV4_LIST_URL = "https://www.cloudflare.com/ips-v4"
 CLOUDFLARE_IPV6_LIST_URL = "https://www.cloudflare.com/ips-v6"
 
 
+@log_invocation
 def get_cloudflare_ips() -> str:
     """
     Returns a concatenated list of Cloudflare's IPs (both IPv4 and IPv6).

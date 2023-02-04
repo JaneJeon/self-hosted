@@ -7,6 +7,8 @@ Module that, when imported, sets some logging defaults:
 import logging
 import os
 
+logger = logging.getLogger(__name__)
+
 
 def set_logging_defaults() -> None:
     log_level = os.environ.get("LOG_LEVEL", "INFO")
@@ -15,3 +17,8 @@ def set_logging_defaults() -> None:
     logging_format = "[%(levelname)s] %(name)s: %(message)s"
 
     logging.basicConfig(level=log_level, format=logging_format)
+
+    logger.debug("Finished setting logging defaults")
+
+
+# NOTE: can't test this
