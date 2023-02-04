@@ -1,0 +1,10 @@
+# Ignore all files (and only files) within the directory.
+# Otherwise, the !exclusion doesn't work: https://stackoverflow.com/a/26469809
+# *
+# !*/
+
+# !.gitignore
+# !*.j2
+
+# NOTE: this is the one place where we *will* check in the generated files, as we need them for testing.
+# Take care to update the generated files properly before committing!
