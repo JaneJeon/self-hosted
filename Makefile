@@ -11,6 +11,11 @@ SERVER=vultr
 
 ENV=. .env &&
 
+PATH=PYTHONPATH=.
+VENV=. .venv/bin/activate &&
+PYTHON=$(PATH) $(VENV) python
+PYTEST=$(PATH) $(VENV) pytest
+
 # |------------------------- Commands to be run within the server -------------------------|
 network-up:
 	@$(D) network create public || true
@@ -99,7 +104,10 @@ push-files:
 	rsync -avzP --delete --exclude=.git --exclude=volumes --exclude=node_modules . $(SERVER):$(DIR)
 	rsync -avzPO volumes $(SERVER):$(DIR) || true
 
-deploy: check-config git-push push-files
+render:
+	$(PYTHON) ./scripts/render_all.py
+
+deploy: check-config git-push push-files render
 	$(M) ssh-command COMMAND='$(M) up prune open-ports'
 
 ssh:
@@ -108,6 +116,6 @@ ssh:
 ssh-command:
 	ssh $(SERVER) 'cd $(DIR) && $(COMMAND)'
 
-# After calling this, set `CLOUDFLARE_IPS` environment variable with the output.
-get-cf-ips:
-	@./scripts/get-cloudflare-ips.js
+# Run all tests
+test:
+	$(PYTEST)
