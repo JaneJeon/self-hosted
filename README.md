@@ -1,3 +1,5 @@
+[![Python CI](https://github.com/JaneJeon/self-hosted/actions/workflows/python.yml/badge.svg)](https://github.com/JaneJeon/self-hosted/actions/workflows/python.yml)
+
 ## Prerequisites
 
 Cloudflare account, domains, API token
