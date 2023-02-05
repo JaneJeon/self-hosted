@@ -106,7 +106,7 @@ push-files:
 render:
 	$(PYTHON) ./scripts/render_all.py
 
-deploy: check-config git-push push-files render
+deploy: check-config git-push render push-files
 	$(M) ssh-command COMMAND='$(M) up prune open-ports'
 
 ssh:
