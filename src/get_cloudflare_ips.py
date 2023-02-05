@@ -17,6 +17,4 @@ def get_cloudflare_ips() -> str:
     ipv4s = session.get(CLOUDFLARE_IPV4_LIST_URL).text.split("\n")
     ipv6s = session.get(CLOUDFLARE_IPV6_LIST_URL).text.split("\n")
 
-    ips = sorted(ipv4s + ipv6s)
-
-    return ",".join(ips)
+    return sorted(ipv4s + ipv6s)

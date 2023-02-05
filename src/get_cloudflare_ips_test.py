@@ -9,7 +9,13 @@ def test_get_cloudflare_ips():
     """
     Test that the get_cloudflare_ips() function returns the list of IP addresses correctly.
     """
-    EXPECTED_RESULT = "1.1.1.1/20,2.2.2.2/18,3.3.3.3/16,4444:5555::/32,6666:7777::/26"
+    EXPECTED_RESULT = [
+        "1.1.1.1/20",
+        "2.2.2.2/18",
+        "3.3.3.3/16",
+        "4444:5555::/32",
+        "6666:7777::/26",
+    ]
 
     mock_cloudflare_ips()
 
