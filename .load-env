@@ -1,0 +1,4 @@
+#!/bin/sh
+# Loads the environment setup necessary to directly call `python` and `pytest` without relying on makefiles.
+# Activate using `source .load-env`.
+export PYTHONPATH=.

@@ -88,7 +88,6 @@ tracked:
 	git ls-tree -r master --name-only
 
 init:
-	cp .env.example .env
 	$(ENV) restic -r b2:$${B2_BUCKET} init
 
 check-config:
@@ -117,5 +116,10 @@ ssh-command:
 	ssh $(SERVER) 'cd $(DIR) && $(COMMAND)'
 
 # Run all tests
-test:
-	$(PYTEST)
+test: test-unit test-integration
+
+test-unit:
+	$(PYTEST) -m unit
+
+test-integration:
+	$(PYTEST) -m integration
