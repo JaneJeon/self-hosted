@@ -3,7 +3,9 @@
   "type": "module",
   "scripts": {
     "lint": "run-s lint:*",
-    "lint:prettier": "prettier --check . --ignore-path .gitignore",
+    "lint:prettier": "prettier --check .",
+    "lint-fix": "run-s lint-fix:*",
+    "lint-fix:prettier": "prettier --write .",
     "prepare": "husky install"
   },
   "devDependencies": {

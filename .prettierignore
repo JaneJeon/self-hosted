@@ -1,1 +1,11 @@
 fixtures/
+dependencies/
+**/themes/
+
+# These *should* be included as part of .gitignore;
+# however, as of now, prettier can't take in multiple --ignore-path values,
+# which means we need to copy over the .gitignore entries that tend to cause problem
+# with prettier: https://github.com/prettier/prettier/issues/8048
+.pytest_cache
+.venv
+services/reverse-proxy/traefik.static.yml
