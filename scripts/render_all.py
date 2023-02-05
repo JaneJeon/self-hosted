@@ -1,5 +1,4 @@
 import logging
-import os
 
 from src.get_cloudflare_ips import get_cloudflare_ips
 from src.set_logging_defaults import set_logging_defaults
@@ -41,19 +40,5 @@ def render_all(env_file: str = ".env", folder="services"):
 
 
 if __name__ == "__main__":
-    # Wrap render_all such that we can conditionally mock .env files and HTTP requests.
-    if os.environ.get("MOCK") == "1":
-        # We want to NOT load responses in "production" if possible,
-        # as it is a devDependency.
-        import responses
-
-        from fixtures.mocks.cloudflare_ips import mock_cloudflare_ips
-
-        mock_cloudflare_ips()
-
-        # Since decorators are just function wrappers, we can conditionally decorate the function,
-        # and call it directly.
-        wrapped_func = responses.activate(render_all)
-        wrapped_func(env_file="fixtures/.env", folder="fixtures")
-    else:
-        render_all()
+    # When calling it from CLI, just execute "as-is".
+    render_all()
