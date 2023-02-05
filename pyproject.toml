@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["Jane Jeon <git@janejeon.com>"]
 readme = "README.md"
-packages = [{include = "self_hosted"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
