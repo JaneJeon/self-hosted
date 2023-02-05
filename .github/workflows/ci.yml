@@ -16,12 +16,15 @@ jobs:
       - uses: actions/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4 # it will resolve from the .python-version file
-        with:
-          cache: poetry # caching poetry dependencies
       - name: Install Poetry
         run: pip install poetry
       - name: Configure Poetry
         run: poetry config virtualenvs.in-project true
+      - name: Cache Virtualenv
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
       - name: Install Dependencies
         run: poetry install
       - name: Lint
