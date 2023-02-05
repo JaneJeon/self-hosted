@@ -29,6 +29,6 @@ jobs:
           poetry install
         if: steps.cache-venv.outputs.cache-hit != 'true'
       - name: Lint
-        run: make lint
+        run: make lint-py
       - name: Test
         run: make test

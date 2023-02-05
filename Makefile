@@ -115,12 +115,17 @@ ssh:
 ssh-command:
 	ssh $(SERVER) 'cd $(DIR) && $(COMMAND)'
 
-lint: lint-black lint-isort
+lint: lint-js lint-py
 
-lint-black:
+lint-js:
+	npm run lint
+
+lint-py: lint-py-black lint-py-isort
+
+lint-py-black:
 	$(VENV) black --check .
 
-lint-isort:
+lint-py-isort:
 	$(VENV) isort --profile black --check .
 
 # Run all tests
