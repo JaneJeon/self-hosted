@@ -31,10 +31,20 @@ entryPoints:
       middlewares:
         - gzip@file
         - no-www@file
-    # forwardedHeaders:
-    #   trustedIPs:
-    #     - ip1
-    #     - ip2
+    # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
+    # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
+    forwardedHeaders:
+      trustedIPs: {{ cloudflare_ips | tojson }}
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: {{ env.SMTP_SENDER }}
+      storage: /mnt/traefik/acme.json
+      # for testing, try https://acme-staging-v02.api.letsencrypt.org/directory
+      caServer: {{ env.ACME_CASERVER | default('https://acme-v02.api.letsencrypt.org/directory') }}
+      dnsChallenge:
+        provider: cloudflare
 
 providers:
   docker:

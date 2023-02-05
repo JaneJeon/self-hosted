@@ -1,1 +1,2 @@
 fixtures/
+services/reverse-proxy/traefik.static.yml

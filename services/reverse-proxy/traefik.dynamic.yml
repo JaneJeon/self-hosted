@@ -1,12 +1,3 @@
-tls:
-  certificates:
-    - keyFile: /etc/letsencrypt/live/janejeon.dev/privkey.pem
-      certFile: /etc/letsencrypt/live/janejeon.dev/fullchain.pem
-    - keyFile: /etc/letsencrypt/live/nariahn.com/privkey.pem
-      certFile: /etc/letsencrypt/live/nariahn.com/fullchain.pem
-    - keyFile: /etc/letsencrypt/live/homelab-wildcard/privkey.pem
-      certFile: /etc/letsencrypt/live/homelab-wildcard/fullchain.pem
-
 http:
   middlewares:
     gzip:

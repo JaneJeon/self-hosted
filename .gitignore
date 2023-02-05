@@ -240,4 +240,5 @@ cython_debug/
 #.idea/
 
 # Intentionally gitignoring template rendered files!
+# And don't forget to add these to .prettierignore as well!
 services/reverse-proxy/traefik.static.yml
