@@ -115,6 +115,14 @@ ssh:
 ssh-command:
 	ssh $(SERVER) 'cd $(DIR) && $(COMMAND)'
 
+lint: lint-black lint-isort
+
+lint-black:
+	$(VENV) black --check .
+
+lint-isort:
+	$(VENV) isort --profile black --check .
+
 # Run all tests
 test: test-unit test-integration
 
