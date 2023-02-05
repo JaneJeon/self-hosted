@@ -42,7 +42,7 @@ services:
       flame.icon: ghost-outline
 
   portfolio:
-    image: ghost:4.48.9-alpine
+    image: ghost:5.33.6-alpine
     container_name: ghost-portfolio
     restart: unless-stopped
     entrypoint:
