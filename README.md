@@ -125,3 +125,17 @@ You can manually render the templates by running `make render` (mainly to inspec
 Right now, we're testing various pieces of "logic" (i.e. standalone functions that do not have external dependencies), but plan to expand the tests to cover more behaviours, such as e2e testing and integration testing (if I ever get to terraform modules), i.e. actually running the things and checking that the behaviour is what we expect.
 
 For now, simply run `make test` to run all the tests.
+
+### Unit vs. Integration Tests
+
+You'll note that _all_ tests are marked either with `@pytest.mark.unit` or `@pytest.mark.integration` - appropriately, for unit tests and integration tests respectively.
+
+This allows us to run only unit tests and only integration tests (`make test-unit` and `make test-integration`) and separate them out.
+
+This is useful because unit tests, unlike integration tests, test only the specific bits of _logic_ in its purest form; and so, they are able to be tested in _complete_ isolation, with mocks provided to them so they don't hit the actual filesystem/make live network calls.
+
+In comparison, integration tests test the _executables_ that actually coordinate and run the bits of logic, interfacing with the "real world" (i.e. I/O, external dependencies). This means that it can't really be tested in isolation, though we can feed it fixtures (different from mocks) to keep the test results consistent.
+
+This fundamental difference between testing isolated bits of logic vs. "executables" is why it's so useful to separate testing them - because, by their very nature, the integration tests are more likely to fail (due to the I/O involved) and in general will take longer (again, due to the I/O).
+
+To mark the tests, we rely on yet another "convention over configuration": any tests that don't have explicit markings will be marked as a unit test. Any test with `integration` in its test name (i.e. `test_integration_*`) will be marked as an integration test.
