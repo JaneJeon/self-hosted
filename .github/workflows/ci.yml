@@ -20,6 +20,8 @@ jobs:
           cache: poetry # caching poetry dependencies
       - name: Install Poetry
         run: pip install poetry
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
       - name: Install Dependencies
         run: poetry install
       - name: Lint
