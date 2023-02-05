@@ -2,7 +2,7 @@ version: '3'
 
 services:
   change-detection:
-    image: ghcr.io/dgtlmoon/changedetection.io:0.40.0
+    image: ghcr.io/dgtlmoon/changedetection.io:0.40.2
     container_name: change-detection
     restart: unless-stopped
     networks:
