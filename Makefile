@@ -11,10 +11,10 @@ SERVER=vultr
 
 ENV=. .env &&
 
-PATH=PYTHONPATH=. # we want everything to be relative to the workspace root
+PYTHON_PATH=PYTHONPATH=. # we want everything to be relative to the workspace root
 VENV=. .venv/bin/activate && # the commands might run in a different shell (CI/local/make), so we have to activate venv every time to be safe
-PYTHON=$(PATH) $(VENV) python
-PYTEST=$(PATH) $(VENV) pytest
+PYTHON=$(PYTHON_PATH) $(VENV) python
+PYTEST=$(PYTHON_PATH) $(VENV) pytest
 
 # |------------------------- Commands to be run within the server -------------------------|
 network-up:
