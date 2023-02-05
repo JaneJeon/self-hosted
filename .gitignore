@@ -74,8 +74,6 @@ typings/
 ## Yarn Integrity file
 .yarn-integrity
 
-package-lock.json
-
 **/.DS_Store
 
 # Byte-compiled / optimized / DLL files
@@ -240,4 +238,5 @@ cython_debug/
 #.idea/
 
 # Intentionally gitignoring template rendered files!
+# Be sure to include the entries here in .prettierignore as well (see .prettierignore for why) :/
 services/reverse-proxy/traefik.static.yml
