@@ -241,4 +241,3 @@ cython_debug/
 
 # Intentionally gitignoring template rendered files!
 services/reverse-proxy/traefik.static.yml
-services/reverse-proxy/traefik.dynamic.yml
