@@ -134,6 +134,8 @@ This allows us to run only unit tests and only integration tests (`make test-uni
 
 This is useful because unit tests, unlike integration tests, test only the specific bits of _logic_ in its purest form; and so, they are able to be tested in _complete_ isolation, with mocks provided to them so they don't hit the actual filesystem/make live network calls.
 
+> Note: you'll also note that in unit testing individual modules, I often mock out the actual I/O call that _would've_ been made: whether it's network calls via the `responses` library, or filesystem access via the `pyfakefs` library. Being able to fake I/O calls not only reduce the I/O latency in tests, but they also allow me to set up bespoke network/filesystem responses _for every test_ without having to setup a pre-canned response (e.g. as with the fixtures/ folder that I use for integration tests) that needs to be shared by every unit test.
+
 In comparison, integration tests test the _executables_ that actually coordinate and run the bits of logic, interfacing with the "real world" (i.e. I/O, external dependencies). This means that it can't really be tested in isolation, though we can feed it fixtures (different from mocks) to keep the test results consistent.
 
 This fundamental difference between testing isolated bits of logic vs. "executables" is why it's so useful to separate testing them - because, by their very nature, the integration tests are more likely to fail (due to the I/O involved) and in general will take longer (again, due to the I/O).
