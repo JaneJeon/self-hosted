@@ -96,6 +96,9 @@ check-config:
 git-check:
 	./scripts/check-git.sh
 
+git-pull: # gotta remember to add the option so that I don't end up having to check the submodules in again
+	git pull --recurse-submodules
+
 git-push: git-check
 	git push
 
