@@ -1,6 +1,6 @@
 import responses
 
-from fixtures.mocks.cloudflare_ips import mock_cloudflare_ips
+from mocks.cloudflare_ips import mock_cloudflare_ips
 from src.get_cloudflare_ips import get_cloudflare_ips
 
 
