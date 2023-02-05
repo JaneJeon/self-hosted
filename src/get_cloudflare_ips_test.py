@@ -1,7 +1,7 @@
 import responses
 
-from mocks.cloudflare_ips import mock_cloudflare_ips
 from src.get_cloudflare_ips import get_cloudflare_ips
+from src.get_cloudflare_ips_mock import mock_cloudflare_ips
 
 
 @responses.activate

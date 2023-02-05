@@ -4,8 +4,8 @@ import os
 import pytest
 import responses
 
-from mocks.cloudflare_ips import mock_cloudflare_ips
 from scripts.render_all import render_all
+from src.get_cloudflare_ips_mock import mock_cloudflare_ips
 
 
 @responses.activate
