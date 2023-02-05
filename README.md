@@ -139,3 +139,13 @@ In comparison, integration tests test the _executables_ that actually coordinate
 This fundamental difference between testing isolated bits of logic vs. "executables" is why it's so useful to separate testing them - because, by their very nature, the integration tests are more likely to fail (due to the I/O involved) and in general will take longer (again, due to the I/O).
 
 To mark the tests, we rely on yet another "convention over configuration": any tests that don't have explicit markings will be marked as a unit test. Any test with `integration` in its test name (i.e. `test_integration_*`) will be marked as an integration test.
+
+### Debugging Tests
+
+You can debug tests by running only one of them, or forcing pytest to let log/print statements through.
+
+You can pass any options to the `make test-*` commands by setting the OPTIONS object. For example:
+
+```sh
+make test OPTIONS='-s' # to print output
+```

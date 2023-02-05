@@ -119,7 +119,7 @@ ssh-command:
 test: test-unit test-integration
 
 test-unit:
-	$(PYTEST) -m unit
+	$(PYTEST) -m unit $(OPTIONS)
 
 test-integration:
-	$(PYTEST) -m integration
+	$(PYTEST) -m integration $(OPTIONS)
