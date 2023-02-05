@@ -100,7 +100,7 @@ git-push: git-check
 	git push
 
 push-files:
-	rsync -avzP --delete --exclude=.git --exclude=volumes --exclude=node_modules . $(SERVER):$(DIR)
+	rsync -avzP --delete --exclude=.git --exclude=volumes --exclude=node_modules --exclude=.venv --exclude=.vscode --exclude=**/__pycache__ --exclude=.pytest_cache . $(SERVER):$(DIR)
 	rsync -avzPO volumes $(SERVER):$(DIR) || true
 
 render:
