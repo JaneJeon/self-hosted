@@ -14,7 +14,7 @@ ENV=. .env &&
 PATH=PYTHONPATH=.
 VENV=. .venv/bin/activate &&
 PYTHON=$(PATH) $(VENV) python
-PYTEST=$(PATH) $(VENV) pytest
+PYTEST=$(PATH) $(VENV) python -m pytest
 
 # |------------------------- Commands to be run within the server -------------------------|
 network-up:
