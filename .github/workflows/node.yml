@@ -22,3 +22,5 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Scan Ghost Themes for Compatibility
+        run: npm run scan

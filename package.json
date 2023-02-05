@@ -6,7 +6,13 @@
     "lint:prettier": "prettier --check .",
     "lint-fix": "run-s lint-fix:*",
     "lint-fix:prettier": "prettier --write .",
+    "scan": "run-s scan:*",
+    "scan:journal": "gscan dependencies/journal-theme --v4",
+    "scan:london": "gscan dependencies/london-theme --v4",
     "prepare": "husky install"
+  },
+  "dependencies": {
+    "gscan": "^4.36.0"
   },
   "devDependencies": {
     "@janejeon/prettier-config": "^1.1.1",
