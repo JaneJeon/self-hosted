@@ -16,3 +16,10 @@ http:
           - Remote-Groups
           - Remote-Name
           - Remote-Email
+    cloudflare-whitelist:
+      ipWhiteList:
+        sourceRange: {{ cloudflare_ips | tojson }}
+        # Allow connections only from CloudFlare:
+        # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipstrategydepth
+        ipStrategy:
+          depth: 1
