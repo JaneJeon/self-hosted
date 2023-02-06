@@ -1,4 +1,5 @@
 [![Python CI](https://github.com/JaneJeon/self-hosted/actions/workflows/python.yml/badge.svg)](https://github.com/JaneJeon/self-hosted/actions/workflows/python.yml)
+[![Node CI](https://github.com/JaneJeon/self-hosted/actions/workflows/node.yml/badge.svg)](https://github.com/JaneJeon/self-hosted/actions/workflows/node.yml)
 
 ## Prerequisites
 
