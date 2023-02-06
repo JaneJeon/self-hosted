@@ -34,6 +34,7 @@ services:
       PRE_COMMANDS: |-
         wait-for redis:6379 --timeout=60 -- docker exec redis dump
         wait-for mysql:3306 --timeout=60 -- docker exec mysql dump
+        docker exec uptime-kuma sh -c 'rm -f data/*.db.bak*'
       POST_COMMANDS_SUCCESS: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup ran successfully!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
       POST_COMMANDS_FAILURE: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup failed!"}'' ${SLACK_ALERTS_ENDPOINT}'
 
