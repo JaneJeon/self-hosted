@@ -51,8 +51,8 @@ totp:
 ##
 ## The available providers are: `file`, `ldap`. You must use only one of these providers.
 authentication_backend:
-  ## Disable both the HTML element and the API for reset password functionality.
-  disable_reset_password: false
+  password_reset:
+    disable: false
 
   ## The amount of time to wait before we refresh data from the authentication backend. Uses duration notation.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
