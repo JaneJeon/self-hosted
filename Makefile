@@ -4,8 +4,7 @@
 M=make --no-print-directory
 D=docker
 DC=$(D) compose
-DC_BASE=-f docker-compose.base.yml
-DC_ALL=$(DC_BASE) $(shell ls services/*/docker-compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
+DC_ALL=--project-directory . $(shell ls services/*/compose.*.yml | sed 's/.*/-f &/' | tr '\n' ' ')
 DIR=~/self-hosted
 SERVER=vultr
 
