@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from src.get_cloudflare_ips import get_cloudflare_ips
 from src.set_logging_defaults import set_logging_defaults
@@ -41,4 +42,6 @@ def render_all(env_file: str = ".env", folder="services"):
 
 if __name__ == "__main__":
     # When calling it from CLI, just execute "as-is".
-    render_all()
+    folder = sys.argv[1] if len(sys.argv) > 1 else "services"
+
+    render_all(folder=folder)
