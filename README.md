@@ -1,5 +1,6 @@
 [![Python CI](https://github.com/JaneJeon/self-hosted/actions/workflows/python.yml/badge.svg)](https://github.com/JaneJeon/self-hosted/actions/workflows/python.yml)
 [![Node CI](https://github.com/JaneJeon/self-hosted/actions/workflows/node.yml/badge.svg)](https://github.com/JaneJeon/self-hosted/actions/workflows/node.yml)
+[![Secrets Scan](https://github.com/JaneJeon/self-hosted/actions/workflows/secrets.yml/badge.svg)](https://github.com/JaneJeon/self-hosted/actions/workflows/secrets.yml)
 
 ## Prerequisites
 
