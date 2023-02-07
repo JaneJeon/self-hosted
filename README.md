@@ -154,3 +154,15 @@ You can pass any options to the `make test-*` commands by setting the OPTIONS ob
 ```sh
 make test OPTIONS='-s' # to print output
 ```
+
+## Security
+
+### Scanning for Secrets
+
+We use Gitleaks for securing this repo, and you'll need to make sure you have it installed locally for scanning secrets on commit. You can install it by running `brew install gitleaks`.
+
+As for why Gitleaks... Trivy scanner doesn't match much of anything (see https://github.com/aquasecurity/trivy/blob/main/pkg/fanal/secret/builtin-rules.go), and while Trufflehog is awesome, it is not currently built out for "incremental" scans, such as scanning staged files.
+
+If Trufflehog ever supports scanning one file at a time (or just integrates scanning staged files outright like gitleaks), I will drop gitleaks in a heartbeat. Until then, integrating gitleaks into pre-commit is the only "fast enough" way to do local, incremental scanning.
+
+For CI, we do use the Trufflehog scanner because it scans all commits within a branch just fine.
