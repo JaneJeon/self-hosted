@@ -63,7 +63,7 @@ services:
     hostname: docker
     environment:
       RUN_ON_STARTUP: 'false'
-      CHECK_CRON: '0 15 5 * * *'
+      CHECK_CRON: '0 30 4 * * *'
       RESTIC_CHECK_ARGS: >-
         --read-data-subset=10%
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
