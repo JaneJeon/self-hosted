@@ -46,7 +46,7 @@ services:
       - private
     hostname: docker
     environment:
-      RUN_ON_STARTUP: 'true'
+      RUN_ON_STARTUP: 'false'
       PRUNE_CRON: '0 0 4 * * *'
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
