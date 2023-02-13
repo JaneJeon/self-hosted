@@ -1,5 +1,6 @@
 #!/bin/sh
 # This script is to be run from host, with the appropriate secrets.
+# Usage: ./restore-all.sh [snapshotId]
 
 set -e
 
@@ -7,9 +8,7 @@ set -e
 sudo rm -rf ./volumes/*
 
 # First, find the snapshot to restore to:
-make run SERVICE=backup COMMAND=snapshots
-
-read -p "Select backup ID: " BACKUP_ID
+BACKUP_ID="${1:-latest}"
 
 # Then, pass that snapshot id to restore volumes/ directory
 make run SERVICE=backup COMMAND="restore --target / $BACKUP_ID"

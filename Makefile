@@ -82,8 +82,11 @@ open-ports:
 backup:
 	@$(DC) $(DC_ALL) run --rm --entrypoint="" backup /usr/local/bin/backup
 
+list-snapshots:
+	@$(DC) $(DC_ALL) run --rm backup snapshots
+
 restore:
-	@./scripts/restore-all.sh
+	@./scripts/restore-all.sh $(SNAPSHOT)
 
 mem:
 	free -h

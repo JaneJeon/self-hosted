@@ -35,7 +35,41 @@ Use `~.ssh/config` to configure a specific host to connect to in the Makefile, n
 
 Then tell Makefile to use that server SSH configuration using the `SERVER` variable.
 
-## Managing Node Environment/Dependencies
+## Managing the Server
+
+### Backup/Restore
+
+The way state is handled in this stack is that all stateful applications have volumes mounted onto where they need to read/write, and then we "aggregate" said volumes (living in the host) to backup/restore them in one go (i.e. we backup the "top-level" volumes folder containing all of the volume mounts in one go, and we restore that same folder so that the volume mounts are all restored in one go).
+
+For databases, there's an additional layer of complexity in that what's on the filesystem may not necessarily reflect the "current state" of the application, as databases commonly "flush" to WAL, but doesn't necessarily update its own state files, trusting the WAL as the thing to restore from when recovering from a shutdown.
+
+Therefore, for the databases, we forcefully "flush" their _entire_ state into something we _can_ backup/restore from (we'll call them "dump files" for now), and make sure to run the "dump state"/"restore state from the dump" whenever we backup/restore (in particular, the "dump state" should be run _before_ we run the backup, so the dump files are included in the backup, and the "restore from the dump" should be run _after_ we restore the folder, so that we actually have the dump files to work off of).
+
+Currently, we are backing up the local `./volumes/` folder, but there are plans to migrate to using named Docker volumes instead and backup the `/var/lib/docker/volumes` folder [(which contains all Docker-managed volumes)](https://docs.docker.com/storage/#choose-the-right-type-of-mount) instead.
+
+The backup/restore process of that "top-level" volumes folder is handled by `restic`, which takes _incremental_ snapshots of that folder as a whole, letting you "time travel" back to past snapshots, with very minimal costs (in terms of the additional disk space).
+
+The actual backup is automatically done by the `restic-backup` container, which runs backup on startup (i.e. when you re-deploy that container, it will backup) and on schedule. The container already contains all of the scripts necessary for "dumping" databases.
+
+You can also run the `make backup` command, which uses that exact container to backup the same way it normally does during scheduled backups, with the only difference being that the command is a "one shot" (i.e. doesn't schedule further backups, and exits with a status code 0 upon a successful backup and a nonzero code + an alert to Slack upon failure).
+
+To restore, we first need to select the snapshot that we want to restore from (which will be especially relevant if you "fucked up" something and want to time travel to before you fucked up).
+
+You can either choose from the latest snapshot (`make restore`), or specify a snapshot to restore from. For the latter, you can figure out which snapshot you want to restore from by running `make list-snapshots` to list all of the snapshots you can choose from. Copy the ID of the snapshot you want, and pass it into `make restore SNAPSHOT=$id`.
+
+The restore script automatically handles "re-hydrating" from the database dump files.
+
+> Note: `restic` and all of its subcommands will need to secure an exclusive lock, and they do this by touching some files in your backup destination. However, sometimes it doesn't work (especially when you have multiple processes running at the same time), perhaps due to the "object storage" of choice being _eventually_ consistent. In that case, you need to break the lock (after making sure no other `restic` process is currently running) by running:
+>
+> ```
+> restic unlock
+> ```
+>
+> (this can be run inside any of the `restic` containers - backup/prune/check)
+
+## Local Development
+
+### Managing Node Environment/Dependencies
 
 To get the benefits of DX tooling (including git hooks), you need to install the node dependencies.
 
@@ -43,9 +77,9 @@ First, install [nvm](https://nvm.sh) and use the version of node specified in th
 
 Then, it's just a simple matter of running `npm install`, and all of the git hooks will be automatically installed.
 
-## Managing Python Environment/Dependencies
+### Managing Python Environment/Dependencies
 
-### pyenv
+#### pyenv
 
 First, install pyenv to control the version of python used (mainly for consistency and reproducibility): https://github.com/pyenv/pyenv#installation
 
@@ -63,7 +97,7 @@ Then, to use the version of python specified in the repository (automatically), 
 pyenv local # every time you open up this directory, pyenv will automatically switch to the repo's specified python version
 ```
 
-### poetry
+#### poetry
 
 Now that we have pyenv set up for consistent python versions, we can install poetry for that specific python version:
 
@@ -88,7 +122,7 @@ Hooray!
 > Note: by default, poetry installed via pyenv-provided python will install its dependencies inside the `.venv` folder, allowing your editor (like VS Code) to automatically pick up on the python dependencies when you use them in your code.
 > However, if it doesn't, you may have to set the `virtualenvs.in-project` option to configure poetry to install the dependencies locally: https://python-poetry.org/docs/configuration#virtualenvsin-project (and this requires destroying and recreating the poetry environment).
 
-### Running Commands
+#### Running Commands
 
 Because poetry controls the dependencies (and "regular" python can't see its virtualenv), you need to use poetry to run any python commands.
 
@@ -108,7 +142,7 @@ And either approach will let the pyenv-controlled python binary (which means it'
 
 Happy hacking!
 
-## Templating
+### Templating
 
 Passing down command line arguments and bespoke environment variables can only get you so far, and to really alleviate the "there's 5000 points I need to configure everywhere" problem, we're using templating as a solution (which will further help in cutting down bespoke command line/environment configuration to only where it's needed).
 
@@ -124,13 +158,13 @@ Since the rendered files 1. are auto-generated files (and thus don't belong in g
 
 You can manually render the templates by running `make render` (mainly to inspect the generated files to see if they look correct). For deployment, to make the process as seamless as possible, it will automatically be run as part of `make deploy`, so there's no need to manually render down the templates before deployment to make the generated files reflect the latest values.
 
-## Testing
+### Testing
 
 Right now, we're testing various pieces of "logic" (i.e. standalone functions that do not have external dependencies), but plan to expand the tests to cover more behaviours, such as e2e testing and integration testing (if I ever get to terraform modules), i.e. actually running the things and checking that the behaviour is what we expect.
 
 For now, simply run `make test` to run all the tests.
 
-### Unit vs. Integration Tests
+#### Unit vs. Integration Tests
 
 You'll note that _all_ tests are marked either with `@pytest.mark.unit` or `@pytest.mark.integration` - appropriately, for unit tests and integration tests respectively.
 
@@ -146,7 +180,7 @@ This fundamental difference between testing isolated bits of logic vs. "executab
 
 To mark the tests, we rely on yet another "convention over configuration": any tests that don't have explicit markings will be marked as a unit test. Any test with `integration` in its test name (i.e. `test_integration_*`) will be marked as an integration test.
 
-### Debugging Tests
+#### Debugging Tests
 
 You can debug tests by running only one of them, or forcing pytest to let log/print statements through.
 
