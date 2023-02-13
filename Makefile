@@ -76,6 +76,12 @@ open-ports:
 	sudo ufw-docker allow traefik 80/tcp
 	sudo ufw-docker allow traefik 443/tcp
 
+# Spin up the backup container, which already has all of the configuration/commands "baked in".
+# Note that we're explicitly bypassing the existing entrypoint (which actually does all of the heavy lifting),
+# as we need to run this as a "one shot" and not schedule cron (which means this command would never exit).
+backup:
+	@$(DC) $(DC_ALL) run --rm --entrypoint="" backup /usr/local/bin/backup
+
 restore:
 	@./scripts/restore-all.sh
 
