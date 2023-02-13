@@ -20,7 +20,7 @@ services:
       traefik.http.services.portainer.loadbalancer.server.port: 9000
       flame.type: application
       flame.name: Portainer
-      flame.url: portainer.janejeon.com
+      flame.url: https://portainer.janejeon.com/#!/1/docker/containers
       flame.icon: console
 
 networks:
