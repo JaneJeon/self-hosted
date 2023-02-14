@@ -5,6 +5,13 @@ services:
     image: redis:7.0.8-alpine
     container_name: redis
     restart: unless-stopped
+    healthcheck:
+      # https://stackoverflow.com/a/71504657
+      test: redis-cli ping | grep PONG || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - private
     volumes:
