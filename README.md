@@ -59,6 +59,8 @@ You can either choose from the latest snapshot (`make restore`), or specify a sn
 
 The restore script automatically handles "re-hydrating" from the database dump files.
 
+Once the restore is done, you can now start up the containers, given that the states are now restored and safe to be read.
+
 > Note: `restic` and all of its subcommands will need to secure an exclusive lock, and they do this by touching some files in your backup destination. However, sometimes it doesn't work (especially when you have multiple processes running at the same time), perhaps due to the "object storage" of choice being _eventually_ consistent. In that case, you need to break the lock (after making sure no other `restic` process is currently running) by running:
 >
 > ```
@@ -72,6 +74,16 @@ The restore script automatically handles "re-hydrating" from the database dump f
 We try to push as much of the stack onto Docker so that they are managed by it, and can have its lifecycle determined by it. For example, instead of creating the networks outside of the docker-compose stack and injecting them as "external: true", we let Docker itself create/destroy the networks as the stack is being created/deleted.
 
 This also serves as a way to "gc" the resources automatically.
+
+#### Networking
+
+Docker networks need special attention due to the way docker-compose works.
+
+Basically, when you ask Docker to create a network of name `foo`, it will create a docker network of name `foo`. Simple enough.
+
+However, when you ask docker _compose_ to create a network of name `foo` while you're in a folder named `folder_name`, it will create a docker network of name `folder_name_foo`, because a. docker compose defaults its `COMPOSE_PROJECT_NAME` to the folder name, and b. docker compose prefixes the networks it creates/manages with the `COMPOSE_PROJECT_NAME`.
+
+Thus, we manually set `COMPOSE_PROJECT_NAME` in our `.env` (to override docker-compose default), and tell Traefik to look at not the `public` network, but the `${COMPOSE_PROJECT_NAME}_public` network instead (as Traefik doesn't know anything about docker compose prefixing network names).
 
 ## Local Development
 

@@ -1,5 +1,6 @@
 #!/bin/sh
 # This script is to be run from host, with the appropriate secrets.
+# It assumes that no containers are running at the moment.
 # Usage: ./restore-all.sh [snapshotId]
 
 set -e
@@ -11,15 +12,20 @@ sudo rm -rf ./volumes/*
 BACKUP_ID="${1:-latest}"
 
 # Then, pass that snapshot id to restore volumes/ directory
+# NOTE: we restore to the "root" directory of the backup container, which *seems* wrong;
+# except that since restic backs up the /mnt/volumes directory,
+# the path at which the files will be restored at would be:
+# ${prefix}/mnt/volumes/${files}.
+# So, we need the prefix to be the root.
 echo 'Restoring from backup...'
 make run SERVICE=backup COMMAND="restore --target / $BACKUP_ID"
 
 # Finally, get the databases to ingest the restored WALs
 # Note: wait-for apparently doesn't work, 127.0.0.1/0.0.0.0/localhost/etc
 echo 'Restoring database states...'
-make up SERVICE=mysql # we need to stand up mysql before we can run commands on it
+make up SERVICE=mysql # we need to stand up mysql before we can tell it to read from the dump
 make run SERVICE=mysql COMMAND=restore
-make run SERVICE=redis COMMAND=restore
+make run SERVICE=redis COMMAND=restore # we do not need to stand up redis beforehand, as it simply reads from dump on startup
 
 # Chown this to prevent privilege problems with docker and rsync
 echo 'Restoring folder permissions...'
