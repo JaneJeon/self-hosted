@@ -10,6 +10,12 @@ services:
     container_name: dozzle
     image: amir20/dozzle:v4.7.4
     restart: unless-stopped
+    healthcheck:
+      test: /dozzle healthcheck
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - public
     environment:
