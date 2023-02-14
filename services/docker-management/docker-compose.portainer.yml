@@ -5,6 +5,13 @@ services:
     image: portainer/portainer-ce:2.17.0-alpine
     container_name: portainer
     restart: unless-stopped
+    healthcheck:
+      # https://github.com/portainer/portainer/issues/3572
+      test: wget --no-verbose --tries=1 --spider http://localhost:9000 || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - public
     volumes:
