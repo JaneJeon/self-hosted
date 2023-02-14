@@ -6,7 +6,16 @@ services:
     container_name: adguardhome
     restart: unless-stopped
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:3000
+        - '||'
+        - exit
+        - '1'
       interval: 15s
       timeout: 5s
       retries: 3
