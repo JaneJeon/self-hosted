@@ -5,6 +5,9 @@ services:
     image: ghost:5.33.8-alpine
     container_name: ghost-devblog
     restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
     healthcheck:
       # https://github.com/TryGhost/Ghost/issues/11181
       test: "wget --no-verbose --tries=1 --spider --header='X-Forwarded-Proto: https' http://localhost:2368/ghost/api/admin/site || exit 1"
@@ -12,21 +15,11 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    entrypoint:
-      - wait-for
-      - mysql:3306
-      - --timeout=60
-      - --
-      - docker-entrypoint.sh
-    command:
-      - node
-      - current/index.js
     networks:
       - public
       - private
     volumes:
       - ./volumes/ghost/janejeon.dev:/var/lib/ghost/content
-      - ./scripts/wait-for:/usr/local/bin/wait-for:ro
       - ./services/blog/themes/journal:/var/lib/ghost/content/themes/journal:ro
       - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
@@ -52,27 +45,20 @@ services:
     image: ghost:5.33.8-alpine
     container_name: ghost-portfolio
     restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider --header='X-Forwarded-Proto: https' http://localhost:2368/ghost/api/admin/site || exit 1"
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 30s
-    entrypoint:
-      - wait-for
-      - mysql:3306
-      - --timeout=60
-      - --
-      - docker-entrypoint.sh
-    command:
-      - node
-      - current/index.js
     networks:
       - public
       - private
     volumes:
       - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
-      - ./scripts/wait-for:/usr/local/bin/wait-for:ro
       - ./services/blog/themes/london:/var/lib/ghost/content/themes/london:ro
       - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
