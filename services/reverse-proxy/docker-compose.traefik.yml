@@ -6,7 +6,8 @@ services:
     container_name: traefik
     restart: unless-stopped
     healthcheck:
-      test: traefik healthcheck
+      # Not sure why I need to enable --ping here again
+      test: traefik healthcheck --ping
       interval: 15s
       timeout: 5s
       retries: 3
