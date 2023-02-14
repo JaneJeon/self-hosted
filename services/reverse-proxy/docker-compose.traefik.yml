@@ -5,6 +5,12 @@ services:
     image: traefik:v2.9.6
     container_name: traefik
     restart: unless-stopped
+    healthcheck:
+      test: traefik healthcheck
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     command:
       - --configFile=/etc/traefik/static.yml
     networks:
