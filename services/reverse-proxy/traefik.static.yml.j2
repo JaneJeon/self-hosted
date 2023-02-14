@@ -54,7 +54,8 @@ providers:
   docker:
     watch: true
     exposedByDefault: false
-    network: public
+    # Note: COMPOSE_PROJECT_NAME is set by .env
+    network: {{ env.COMPOSE_PROJECT_NAME }}_public
   file:
     watch: true
     filename: /etc/traefik/dynamic.yml
