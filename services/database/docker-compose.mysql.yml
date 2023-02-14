@@ -42,5 +42,4 @@ services:
       com.datadoghq.ad.logs: '[{"source": "mysql", "service": "mysql"}]'
 
 networks:
-  private:
-    external: true
+  private: {}

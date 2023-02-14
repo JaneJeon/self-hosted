@@ -20,5 +20,4 @@ services:
       flame.icon: mirror-rectangle
 
 networks:
-  public:
-    external: true
+  public: {}

@@ -16,5 +16,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
-  private:
-    external: true
+  private: {}

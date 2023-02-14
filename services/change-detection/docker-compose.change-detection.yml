@@ -24,5 +24,4 @@ services:
       flame.icon: vector-difference-ba
 
 networks:
-  public:
-    external: true
+  public: {}

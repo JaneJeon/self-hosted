@@ -23,7 +23,5 @@ services:
       flame.icon: swap-vertical
 
 networks:
-  public:
-    external: true
-  private:
-    external: true
+  public: {}
+  private: {}

@@ -40,5 +40,4 @@ services:
       flame.icon: routes
 
 networks:
-  public:
-    external: true
+  public: {}

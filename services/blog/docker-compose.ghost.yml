@@ -96,7 +96,5 @@ services:
       flame.icon: ghost-outline
 
 networks:
-  public:
-    external: true
-  private:
-    external: true
+  public: {}
+  private: {}

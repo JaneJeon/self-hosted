@@ -67,6 +67,12 @@ The restore script automatically handles "re-hydrating" from the database dump f
 >
 > (this can be run inside any of the `restic` containers - backup/prune/check)
 
+### Docker Resources
+
+We try to push as much of the stack onto Docker so that they are managed by it, and can have its lifecycle determined by it. For example, instead of creating the networks outside of the docker-compose stack and injecting them as "external: true", we let Docker itself create/destroy the networks as the stack is being created/deleted.
+
+This also serves as a way to "gc" the resources automatically.
+
 ## Local Development
 
 ### Managing Node Environment/Dependencies

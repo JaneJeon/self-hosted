@@ -25,5 +25,4 @@ services:
       com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
 
 networks:
-  private:
-    external: true
+  private: {}

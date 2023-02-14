@@ -35,5 +35,4 @@ services:
       flame.icon: docker
 
 networks:
-  public:
-    external: true
+  public: {}

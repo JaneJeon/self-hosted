@@ -26,5 +26,4 @@ services:
       flame.icon: badge-account-horizontal-outline
 
 networks:
-  public:
-    external: true
+  public: {}

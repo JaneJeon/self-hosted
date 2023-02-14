@@ -31,5 +31,4 @@ services:
       flame.icon: magnify
 
 networks:
-  public:
-    external: true
+  public: {}

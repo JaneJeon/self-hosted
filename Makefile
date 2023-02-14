@@ -16,15 +16,7 @@ PYTHON=$(PYTHON_PATH) $(VENV) python
 PYTEST=$(PYTHON_PATH) $(VENV) pytest
 
 # |------------------------- Commands to be run within the server -------------------------|
-network-up:
-	@$(D) network create public || true
-	@$(D) network create private || true
-
-network-down:
-	@$(D) network rm public || true
-	@$(D) network rm private || true
-
-up: network-up
+up:
 	@$(DC) $(DC_ALL) up -d --remove-orphans $(SERVICE)
 
 restart:
@@ -35,12 +27,10 @@ restart-hard:
 
 down:
 	@$(DC) $(DC_ALL) down --remove-orphans $(SERVICE)
-	@$(M) network-down
 
 down-everything:
 	@echo "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 	@$(DC) $(DC_ALL) down --remove-orphans -v
-	@$(M) network-down
 
 rm:
 	@$(DC) $(DC_ALL) rm --stop $(SERVICE)
@@ -54,13 +44,13 @@ prune:
 pull:
 	@$(DC) $(DC_ALL) pull $(SERVICE)
 
-exec: network-up
+exec:
 	@$(DC) $(DC_ALL) exec $(SERVICE) $(COMMAND)
 
-run: network-up
+run:
 	@$(DC) $(DC_ALL) run --rm $(SERVICE) $(COMMAND)
 
-sh: network-up
+sh:
 	@$(DC) $(DC_ALL) run --rm $(SERVICE) sh
 
 logs:

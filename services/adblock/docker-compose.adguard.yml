@@ -29,5 +29,4 @@ services:
       flame.icon: shield-link-variant-outline
 
 networks:
-  public:
-    external: true
+  public: {}

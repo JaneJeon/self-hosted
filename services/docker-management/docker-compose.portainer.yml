@@ -31,5 +31,4 @@ services:
       flame.icon: console
 
 networks:
-  public:
-    external: true
+  public: {}

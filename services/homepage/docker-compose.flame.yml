@@ -27,5 +27,4 @@ services:
       traefik.http.services.homepage.loadbalancer.server.port: 5005
 
 networks:
-  public:
-    external: true
+  public: {}

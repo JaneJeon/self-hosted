@@ -42,7 +42,5 @@ services:
       flame.icon: shield-account-variant-outline
 
 networks:
-  public:
-    external: true
-  private:
-    external: true
+  public: {}
+  private: {}
