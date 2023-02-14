@@ -5,6 +5,13 @@ services:
     image: mysql:8.0.32
     container_name: mysql
     restart: unless-stopped
+    healthcheck:
+      # https://stackoverflow.com/a/51641089
+      test: mysql --user=root --password=mysql-root-password --execute 'SHOW DATABASES;'
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - private
     volumes:
