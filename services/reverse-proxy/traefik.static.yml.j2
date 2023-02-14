@@ -15,9 +15,13 @@ api:
   dashboard: true
   insecure: true
 
-ping: {}
+ping:
+  entryPoint: ping
 
 entryPoints:
+  # Note that this will *always* be internal, due to port 8082 not being exposed.
+  ping:
+    address: :8082
   http:
     address: :80
     http:
