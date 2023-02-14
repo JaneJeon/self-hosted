@@ -6,7 +6,8 @@ services:
     container_name: ghost-devblog
     restart: unless-stopped
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:2368/ghost/api/admin/site || exit 1
+      # https://github.com/TryGhost/Ghost/issues/11181
+      test: "wget --no-verbose --tries=1 --spider --header='X-Forwarded-Proto: https' http://localhost:2368/ghost/api/admin/site || exit 1"
       interval: 15s
       timeout: 5s
       retries: 3
@@ -52,7 +53,7 @@ services:
     container_name: ghost-portfolio
     restart: unless-stopped
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:2368/ghost/api/admin/site || exit 1
+      test: "wget --no-verbose --tries=1 --spider --header='X-Forwarded-Proto: https' http://localhost:2368/ghost/api/admin/site || exit 1"
       interval: 15s
       timeout: 5s
       retries: 3
