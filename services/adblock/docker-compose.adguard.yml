@@ -14,10 +14,8 @@ services:
     networks:
       - public
     volumes:
-      - ./volumes/adguardhome/work:/opt/adguardhome/work
-      - ./volumes/adguardhome/conf:/opt/adguardhome/conf
-      - adguard-work:/foo/bar
-      - adguard-conf:/baz/qux
+      - adguard-work:/opt/adguardhome/work
+      - adguard-conf:/opt/adguardhome/conf
     labels:
       traefik.enable: 'true'
       traefik.http.routers.adguard.tls.certresolver: letsencrypt
