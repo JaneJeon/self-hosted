@@ -6,16 +6,16 @@
 set -e
 
 # Clear out anything in volumes folder; otherwise, we get conflicts
-sudo rm -rf ./volumes/*
+sudo rm -rf /var/lib/docker/volumes/*
 
 # First, find the snapshot to restore to:
 BACKUP_ID="${1:-latest}"
 
 # Then, pass that snapshot id to restore volumes/ directory
 # NOTE: we restore to the "root" directory of the backup container, which *seems* wrong;
-# except that since restic backs up the /mnt/volumes directory,
+# except that since restic backs up the /docker/volumes directory,
 # the path at which the files will be restored at would be:
-# ${prefix}/mnt/volumes/${files}.
+# ${prefix}/docker/volumes/${files}.
 # So, we need the prefix to be the root.
 echo 'Restoring from backup...'
 make run SERVICE=backup COMMAND="restore --target / $BACKUP_ID"
@@ -26,7 +26,3 @@ echo 'Restoring database states...'
 make up SERVICE=mysql # we need to stand up mysql before we can tell it to read from the dump
 make run SERVICE=mysql COMMAND=restore
 make run SERVICE=redis COMMAND=restore # we do not need to stand up redis beforehand, as it simply reads from dump on startup
-
-# Chown this to prevent privilege problems with docker and rsync
-echo 'Restoring folder permissions...'
-sudo chown -R $USER ./volumes

@@ -92,8 +92,6 @@ sudo ufw-docker allow traefik 443/tcp
 
 sudo apt install jq
 
-sudo chown -R $USER ./volumes/ # otherwise rsync won't work
-
 # Swap
 ## Create Swap
 sudo dd if=/dev/zero of=/swapfile bs=1024 count=1048576 # 1GB
