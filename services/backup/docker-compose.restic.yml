@@ -9,7 +9,7 @@ services:
       - private
     hostname: docker
     volumes:
-      - ./volumes:/mnt/volumes
+      - /var/lib/docker/volumes:/docker/volumes
       - ./scripts/wait-for:/usr/local/bin/wait-for:ro
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -17,7 +17,7 @@ services:
       BACKUP_CRON: '0 30 3 * * *'
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
-      RESTIC_BACKUP_SOURCES: /mnt/volumes
+      RESTIC_BACKUP_SOURCES: /docker/volumes
       RESTIC_BACKUP_ARGS: >-
         --tag docker-volumes
         --exclude='*.tmp'
