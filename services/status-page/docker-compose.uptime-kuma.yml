@@ -16,6 +16,7 @@ services:
       - private
     volumes:
       - uptime-kuma-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock # allow uptime kuma to monitor docker containers
     labels:
       traefik.enable: 'true'
       traefik.http.routers.uptime-kuma.tls.certresolver: letsencrypt
