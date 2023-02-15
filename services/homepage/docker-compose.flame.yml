@@ -14,6 +14,7 @@ services:
     networks:
       - public
     volumes:
+      - flame-appdata:/foo/bar
       - ./volumes/flame:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -28,3 +29,6 @@ services:
 
 networks:
   public: {}
+
+volumes:
+  flame-appdata: {}

@@ -19,6 +19,7 @@ services:
       - public
       - private
     volumes:
+      - ghost-devblog-content:/foo/bar
       - ./volumes/ghost/janejeon.dev:/var/lib/ghost/content
       - ./services/blog/themes/journal:/var/lib/ghost/content/themes/journal:ro
       - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
@@ -58,6 +59,7 @@ services:
       - public
       - private
     volumes:
+      - ghost-portfolio-content:/foo/bar
       - ./volumes/ghost/nariahn.com:/var/lib/ghost/content
       - ./services/blog/themes/london:/var/lib/ghost/content/themes/london:ro
       - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
@@ -84,3 +86,7 @@ services:
 networks:
   public: {}
   private: {}
+
+volumes:
+  ghost-devblog-content: {}
+  ghost-portfolio-content: {}

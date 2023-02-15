@@ -9,6 +9,7 @@ services:
       - public
       - private
     volumes:
+      - uptime-kuma-data:/foo/bar
       - ./volumes/uptime-kuma:/app/data
     labels:
       traefik.enable: 'true'
@@ -25,3 +26,6 @@ services:
 networks:
   public: {}
   private: {}
+
+volumes:
+  uptime-kuma-data: {}

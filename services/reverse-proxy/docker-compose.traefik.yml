@@ -20,6 +20,7 @@ services:
       - 80:80
       - 443:443
     volumes:
+      - traefik-data:/foo/bar
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/traefik:/mnt/traefik
       - ./services/reverse-proxy/traefik.static.yml:/etc/traefik/static.yml:ro
@@ -41,3 +42,6 @@ services:
 
 networks:
   public: {}
+
+volumes:
+  traefik-data: {}

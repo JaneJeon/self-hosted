@@ -14,6 +14,7 @@ services:
     networks:
       - public
     volumes:
+      - lldap-data:/foo/bar
       - ./volumes/lldap:/data
       - ./services/sso/config.toml:/data/lldap_config.toml:ro
     environment:
@@ -33,3 +34,6 @@ services:
 
 networks:
   public: {}
+
+volumes:
+  lldap-data: {}

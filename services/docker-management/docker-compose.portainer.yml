@@ -15,6 +15,7 @@ services:
     networks:
       - public
     volumes:
+      - portainer-data:/foo/bar
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ./volumes/portainer:/data
@@ -32,3 +33,6 @@ services:
 
 networks:
   public: {}
+
+volumes:
+  portainer-data: {}

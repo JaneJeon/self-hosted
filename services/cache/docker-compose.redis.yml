@@ -15,6 +15,7 @@ services:
     networks:
       - private
     volumes:
+      - redis-dump:/foo/bar
       - ./volumes/redis-dump:/data # default redis container dump location - check using "config get dir"
       - ./services/cache/dump.sh:/usr/local/bin/dump:ro
       - ./services/cache/restore.sh:/usr/local/bin/restore:ro
@@ -26,3 +27,6 @@ services:
 
 networks:
   private: {}
+
+volumes:
+  redis-dump: {}
