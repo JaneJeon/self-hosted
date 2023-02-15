@@ -5,6 +5,12 @@ services:
     image: louislam/uptime-kuma:1.20.1-alpine
     container_name: uptime-kuma
     restart: unless-stopped
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3001/status || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     networks:
       - public
       - private
