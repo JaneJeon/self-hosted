@@ -10,6 +10,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      lldap:
+        condition: service_healthy
     networks:
       - public
       - private
