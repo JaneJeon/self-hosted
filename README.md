@@ -59,6 +59,8 @@ You can either choose from the latest snapshot (`make restore`), or specify a sn
 
 The restore script automatically handles "re-hydrating" from the database dump files.
 
+> One thing of note is that the restore should be done on an "empty state", so for databases like mysql, where its "running state" (and _not_ the dump) is stored in its own volume, we explicitly exclude those docker volumes from backup, so that we restore from the dump on an "empty state" for such containers.
+
 Once the restore is done, you can now start up the containers, given that the states are now restored and safe to be read.
 
 > Note: `restic` and all of its subcommands will need to secure an exclusive lock, and they do this by touching some files in your backup destination. However, sometimes it doesn't work (especially when you have multiple processes running at the same time), perhaps due to the "object storage" of choice being _eventually_ consistent. In that case, you need to break the lock (after making sure no other `restic` process is currently running) by running:
@@ -84,6 +86,30 @@ Basically, when you ask Docker to create a network of name `foo`, it will create
 However, when you ask docker _compose_ to create a network of name `foo` while you're in a folder named `folder_name`, it will create a docker network of name `folder_name_foo`, because a. docker compose defaults its `COMPOSE_PROJECT_NAME` to the folder name, and b. docker compose prefixes the networks it creates/manages with the `COMPOSE_PROJECT_NAME`.
 
 Thus, we manually set `COMPOSE_PROJECT_NAME` in our `.env` (to override docker-compose default), and tell Traefik to look at not the `public` network, but the `${COMPOSE_PROJECT_NAME}_public` network instead (as Traefik doesn't know anything about docker compose prefixing network names).
+
+### Service Dependencies
+
+Just as we push all "resources" to Docker/Compose to be managed by it, we also try to push as much of the service lifecycle onto the orchestrator as possible to make our lives easier.
+
+One of the ways we do it is by 1. explicitly adding Docker healthchecks to as many containers as possible, and 2. setting service dependencies on each other.
+
+For example, for a service that uses mysql and redis, we might mark it with the following:
+
+```yml
+depends_on:
+  mysql:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+```
+
+Docker then uses this information to basically build a DAG of service dependencies, such that:
+
+- when starting everything from scratch (such is the case when you're restoring from a "blank slate"), the service won't be started until mysql and redis are up and running.
+- when shutting everything down, the service goes down first _before_ mysql and redis.
+- when restarting mysql or redis, the service, too, shuts down and waits mysql/redis is up and running before starting up the service.
+
+All of this ensures that no matter what we do to the stack (take it all up/down, selectively destroy or recreate containers, etc), the orchestrator will always ensure that service dependencies are met.
 
 ## Local Development
 
