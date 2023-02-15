@@ -9,8 +9,9 @@ services:
       - private
     hostname: docker
     volumes:
-      - /var/lib/docker/volumes:/docker/volumes
+      - ./services/backup/excludes.txt:/etc/restic/excludes.txt
       - ./scripts/wait-for:/usr/local/bin/wait-for:ro
+      - /var/lib/docker/volumes:/docker/volumes
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       RUN_ON_STARTUP: 'true'
@@ -20,7 +21,7 @@ services:
       RESTIC_BACKUP_SOURCES: /docker/volumes
       RESTIC_BACKUP_ARGS: >-
         --tag docker-volumes
-        --exclude='*.tmp'
+        --exclude-file=/etc/restic/excludes.txt
         --verbose
       RESTIC_FORGET_ARGS: >-
         --keep-last 10

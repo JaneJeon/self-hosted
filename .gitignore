@@ -241,3 +241,4 @@ cython_debug/
 # Be sure to include the entries here in .prettierignore as well (see .prettierignore for why) :/
 services/reverse-proxy/traefik.static.yml
 services/reverse-proxy/traefik.dynamic.yml
+services/backup/excludes.txt

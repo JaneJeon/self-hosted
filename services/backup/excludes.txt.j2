@@ -1,0 +1,5 @@
+# List of files that restic should ignore
+*.tmp
+
+# Ignore mysql data container; we want to restore from dump.
+/docker/volumes/{{ env.COMPOSE_PROJECT_NAME }}_mysql-data
