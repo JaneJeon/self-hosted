@@ -45,7 +45,7 @@ For databases, there's an additional layer of complexity in that what's on the f
 
 Therefore, for the databases, we forcefully "flush" their _entire_ state into something we _can_ backup/restore from (we'll call them "dump files" for now), and make sure to run the "dump state"/"restore state from the dump" whenever we backup/restore (in particular, the "dump state" should be run _before_ we run the backup, so the dump files are included in the backup, and the "restore from the dump" should be run _after_ we restore the folder, so that we actually have the dump files to work off of).
 
-Currently, we are backing up the local `./volumes/` folder, but there are plans to migrate to using named Docker volumes instead and backup the `/var/lib/docker/volumes` folder [(which contains all Docker-managed volumes)](https://docs.docker.com/storage/#choose-the-right-type-of-mount) instead.
+Currently, we are backing up the `/var/lib/docker/volumes` folder [(which contains all Docker-managed volumes)](https://docs.docker.com/storage/#choose-the-right-type-of-mount), as we mount all stateful applications onto named docker volumes.
 
 The backup/restore process of that "top-level" volumes folder is handled by `restic`, which takes _incremental_ snapshots of that folder as a whole, letting you "time travel" back to past snapshots, with very minimal costs (in terms of the additional disk space).
 
