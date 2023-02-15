@@ -15,10 +15,9 @@ services:
     networks:
       - public
     volumes:
-      - portainer-data:/foo/bar
+      - portainer-data:/data
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./volumes/portainer:/data
     labels:
       traefik.enable: 'true'
       traefik.http.routers.portainer.tls.certresolver: letsencrypt

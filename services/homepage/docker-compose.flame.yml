@@ -14,8 +14,7 @@ services:
     networks:
       - public
     volumes:
-      - flame-appdata:/foo/bar
-      - ./volumes/flame:/app/data
+      - flame-appdata:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       PASSWORD: ''

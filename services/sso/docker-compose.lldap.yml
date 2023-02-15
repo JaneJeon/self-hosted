@@ -14,8 +14,7 @@ services:
     networks:
       - public
     volumes:
-      - lldap-data:/foo/bar
-      - ./volumes/lldap:/data
+      - lldap-data:/data
       - ./services/sso/config.toml:/data/lldap_config.toml:ro
     environment:
       LLDAP_JWT_SECRET: ${LLDAP_JWT_SECRET}

@@ -8,8 +8,7 @@ services:
     networks:
       - public
     volumes:
-      - change-detection-datastore:/foo/bar
-      - ./volumes/change-detection:/datastore
+      - change-detection-datastore:/datastore
     environment:
       BASE_URL: https://change-detection.janejeon.com
     labels:

@@ -15,8 +15,7 @@ services:
     networks:
       - private
     volumes:
-      - mysql-dump:/foo/bar
-      - ./volumes/mysql-dump:/mnt/dump
+      - mysql-dump:/mnt/dump
       - ./services/database/init:/docker-entrypoint-initdb.d:ro
       - ./services/database/my.cnf:/etc/mysql/conf.d/my.cnf:ro
       - ./services/database/dump.sh:/usr/local/bin/dump:ro

@@ -9,8 +9,7 @@ services:
       - public
       - private
     volumes:
-      - uptime-kuma-data:/foo/bar
-      - ./volumes/uptime-kuma:/app/data
+      - uptime-kuma-data:/app/data
     labels:
       traefik.enable: 'true'
       traefik.http.routers.uptime-kuma.tls.certresolver: letsencrypt
