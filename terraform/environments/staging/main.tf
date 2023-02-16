@@ -32,3 +32,9 @@ module "project" {
   description = "Contains all of the self hosted stack"
   environment = "Staging"
 }
+
+module "ssh_key" {
+  source = "../../modules/ssh"
+
+  public_key = var.ssh_public_key
+}
