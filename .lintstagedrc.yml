@@ -4,3 +4,6 @@
 '*.py':
   - black --quiet
   - isort --quiet --profile black
+
+'*.tf':
+  - terraform fmt
