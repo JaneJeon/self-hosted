@@ -38,3 +38,15 @@ module "ssh_key" {
 
   public_key = var.ssh_public_key
 }
+
+module "tag_webserver" {
+  source = "../../modules/tag"
+
+  name = "webserver"
+}
+
+module "tag_managed_by_terraform" {
+  source = "../../modules/tag"
+
+  name = "managed_by_terraform"
+}
