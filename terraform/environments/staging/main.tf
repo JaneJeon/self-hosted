@@ -39,14 +39,10 @@ module "ssh_key" {
   public_key = var.ssh_public_key
 }
 
-module "tag_webserver" {
-  source = "../../modules/tag"
-
+resource "digitalocean_tag" "tag_webserver" {
   name = "webserver"
 }
 
-module "tag_managed_by_terraform" {
-  source = "../../modules/tag"
-
+resource "digitalocean_tag" "tag_managed_by_terraform" {
   name = "managed_by_terraform"
 }
