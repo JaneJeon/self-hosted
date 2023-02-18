@@ -34,11 +34,12 @@ entryPoints:
       middlewares:
         - gzip@file
         - no-www@file
-        - whitelist-cloudflare@file
     # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
     # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
     forwardedHeaders:
-      trustedIPs: {{ cloudflare_ips | tojson }}
+      # We can always trust the forwarded headers on an incoming HTTPS request,
+      # because only Cloudflare IPs will even be allowed to make the TCP connection to port 443 in the first place.
+      insecure: true
 
 certificatesResolvers:
   letsencrypt:

@@ -7,11 +7,6 @@ http:
         regex: ^https://(?:www\.)?(.+)
         replacement: https://${1}
         permanent: true
-    # Allow connections only from Cloudflare, so people can't just bypass it.
-    # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipwhitelist
-    whitelist-cloudflare:
-      ipWhiteList:
-        sourceRange: {{ cloudflare_ips | tojson }}
     sso-proxy:
       forwardAuth:
         address: http://authelia:9091/api/verify?rd=https://auth.janejeon.com
