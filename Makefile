@@ -115,6 +115,10 @@ ssh:
 ssh-command:
 	ssh $(SERVER) 'cd $(DIR) && $(COMMAND)'
 
+# Need to not print command when it runs, as we rely on the stdout of the make command itself.
+get-cloudflare-ips:
+	@$(PYTHON) src/get_cloudflare_ips.py
+
 lint: lint-js lint-py
 
 lint-js:

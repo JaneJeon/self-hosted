@@ -6,10 +6,17 @@ terraform {
       source  = "digitalocean/digitalocean"
       version = ">= 2.0.0, < 3.0.0"
     }
+
+    external = {
+      source  = "hashicorp/external"
+      version = ">= 2.0.0, < 3.0.0"
+    }
   }
 }
 
 provider "digitalocean" {}
+
+provider "external" {}
 
 resource "digitalocean_project" "project" {
   name        = "Self Hosted"
@@ -33,11 +40,16 @@ resource "digitalocean_ssh_key" "default" {
   public_key = var.ssh_public_key
 }
 
+data "external" "cloudflare_ips_query" {
+  program     = ["make", "get-cloudflare-ips"]
+  working_dir = local.project_root
+}
+
 locals {
-  all_ports = "1-65535"
-  all_ips   = ["0.0.0.0/0", "::/0"]
-  # See src/get_cloudflare_ips.py
-  cloudflare_ips = ["103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "104.16.0.0/13", "104.24.0.0/14", "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18", "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20", "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22", "198.41.128.0/17", "2400:cb00::/32", "2405:8100::/32", "2405:b500::/32", "2606:4700::/32", "2803:f800::/32", "2a06:98c0::/29", "2c0f:f248::/32"]
+  project_root   = "${path.root}/../../../"
+  all_ports      = "1-65535"
+  all_ips        = ["0.0.0.0/0", "::/0"]
+  cloudflare_ips = split(",", data.external.cloudflare_ips_query.result.ips)
 }
 
 # Same with firewalls; these can't be scoped to a project/environment "naturally" either.

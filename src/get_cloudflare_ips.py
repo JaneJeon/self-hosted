@@ -18,3 +18,19 @@ def get_cloudflare_ips() -> str:
     ipv6s = session.get(CLOUDFLARE_IPV6_LIST_URL).text.split("\n")
 
     return sorted(ipv4s + ipv6s)
+
+
+if __name__ == "__main__":
+    import json
+
+    # Terraform can only accept string values (not just string keys),
+    # so we need to do this stupid thing where we serialize the value into a string,
+    # and then parse it back into an array inside Terraform itself.
+    ips = ",".join(get_cloudflare_ips())
+
+    # We have to put the result into a string key, because terraform's external data source
+    # can't deserialize arrays, even though they are valid JSON...
+    result = {"ips": ips}
+
+    # Need to print exactly in this manner to get terraform to pick up the result
+    print(json.dumps(result))

@@ -1,3 +1,4 @@
+## Metrics
 output "managed_by_terraform_total_resources_count" {
   value       = digitalocean_tag.managed_by_terraform.total_resource_count
   description = "Total count of resources that are managed by terraform."
@@ -26,4 +27,15 @@ output "webserver_droplets_count" {
 output "webserver_volumes_count" {
   value       = digitalocean_tag.webserver.volumes_count
   description = "Total count of webserver volumes."
+}
+
+## For Debugging
+output "project_root" {
+  value       = local.project_root
+  description = "The detected project root"
+}
+
+output "cloudflare_ips" {
+  value       = local.cloudflare_ips
+  description = "List of Cloudflare IPs"
 }
