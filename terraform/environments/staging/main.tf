@@ -35,6 +35,7 @@ resource "digitalocean_ssh_key" "default" {
 
 locals {
   all_ports = "1-65535"
+  all_ips   = ["0.0.0.0/0", "::/0"]
 }
 
 # Same with firewalls; these can't be scoped to a project/environment "naturally" either.
@@ -46,8 +47,9 @@ resource "digitalocean_firewall" "webserver" {
 
   # Port 22: Allow SSH
   inbound_rule {
-    protocol   = "tcp"
-    port_range = "22"
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = local.all_ips
   }
 
   # Port 80: Allow HTTP (only from Cloudflare)
@@ -66,14 +68,16 @@ resource "digitalocean_firewall" "webserver" {
 
   # TCP: Allow all outbound connections
   outbound_rule {
-    protocol   = "tcp"
-    port_range = local.all_ports
+    protocol              = "tcp"
+    port_range            = local.all_ports
+    destination_addresses = local.all_ips
   }
 
   # UDP: Allow all outbound connections
   outbound_rule {
-    protocol   = "udp"
-    port_range = local.all_ports
+    protocol              = "udp"
+    port_range            = local.all_ports
+    destination_addresses = local.all_ips
   }
 }
 
