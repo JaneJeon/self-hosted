@@ -76,3 +76,10 @@ resource "digitalocean_firewall" "webserver" {
     port_range = local.all_ports
   }
 }
+
+# Again, same deal here - artifically create different VPCs based on environment.
+resource "digitalocean_vpc" "default" {
+  name        = "staging-default-vpc"
+  region      = var.region
+  description = "Default VPC connecting self-hosted services for the staging environment"
+}
