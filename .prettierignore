@@ -9,4 +9,3 @@ dependencies/
 .pytest_cache
 .venv
 services/reverse-proxy/traefik.static.yml
-services/reverse-proxy/traefik.dynamic.yml
