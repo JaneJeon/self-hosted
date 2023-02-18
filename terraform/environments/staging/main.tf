@@ -6,43 +6,26 @@ terraform {
       source  = "digitalocean/digitalocean"
       version = ">= 2.0.0, < 3.0.0"
     }
-
-    b2 = {
-      source  = "Backblaze/b2"
-      version = ">= 0.8.1, < 1.0.0"
-    }
-
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = ">= 3.0.0, < 4.0.0"
-    }
   }
 }
 
 provider "digitalocean" {}
 
-provider "b2" {}
-
-provider "cloudflare" {}
-
-module "project" {
-  source = "../../modules/project"
-
+resource "digitalocean_project" "project" {
   name        = "Self Hosted"
-  description = "Contains all of the self hosted stack"
+  description = "Project containing all of the self hosted stack"
   environment = "Staging"
 }
 
-module "ssh_key" {
-  source = "../../modules/ssh"
-
-  public_key = var.ssh_public_key
-}
-
 resource "digitalocean_tag" "tag_webserver" {
-  name = "webserver"
+  name = "staging-webserver"
 }
 
 resource "digitalocean_tag" "tag_managed_by_terraform" {
-  name = "managed_by_terraform"
+  name = "staging-terraform"
+}
+
+resource "digitalocean_ssh_key" "ssh_key" {
+  name       = "Self-Hosted (Staging) Default SSH Key"
+  public_key = var.ssh_public_key
 }
