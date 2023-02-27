@@ -2,7 +2,7 @@ version: '3'
 
 services:
   backup:
-    image: mazzolino/restic:1.6.0
+    image: mazzolino/restic:1.7.0
     container_name: restic-backup
     restart: unless-stopped
     networks:
@@ -40,7 +40,7 @@ services:
       POST_COMMANDS_FAILURE: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup failed!"}'' ${SLACK_ALERTS_ENDPOINT}'
 
   prune:
-    image: mazzolino/restic:1.6.0
+    image: mazzolino/restic:1.7.0
     container_name: restic-prune
     restart: unless-stopped
     networks:
@@ -56,7 +56,7 @@ services:
       TZ: ${TIMEZONE}
 
   check:
-    image: mazzolino/restic:1.6.0
+    image: mazzolino/restic:1.7.0
     container_name: restic-check
     restart: unless-stopped
     networks:
