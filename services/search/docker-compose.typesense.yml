@@ -11,6 +11,7 @@ services:
       - typesense-data:/data
       - typesense-backup:/backup
       - ./services/search/config.ini:/etc/typesense/typesense-server.ini:ro
+      - ./services/search/restore.sh:/usr/local/bin/restore:ro # we have to run the restore script from this container!
     environment:
       TYPESENSE_API_KEY: ${TYPESENSE_ADMIN_API_KEY}
     labels:
@@ -23,7 +24,9 @@ services:
       traefik.http.services.typesense.loadbalancer.server.port: 8108
       # TODO: flame link?
   # We need a separate container, as the typesense image itself doesn't have tools like curl/wget,
-  # which is needed to perform backup/restore.
+  # which is needed to perform backup (not restore - see above; in fact, we can't even run restore
+  # from this container *even if we wanted to*, because this container doesn't have the correct permissions
+  # to run `cp`).
   # Therefore, we use this (ephemeral) container to run commands on behalf of typesense,
   # and keep the dead container around during normal operations.
   typesense-helper:
@@ -39,7 +42,6 @@ services:
       - typesense-data:/data
       - typesense-backup:/backup
       - ./services/search/dump.sh:/usr/local/bin/dump:ro
-      - ./services/search/restore.sh:/usr/local/bin/restore:ro
     environment:
       TYPESENSE_API_KEY: ${TYPESENSE_ADMIN_API_KEY}
     labels:
