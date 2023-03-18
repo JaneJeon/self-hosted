@@ -11,7 +11,7 @@ services:
       - 30days
       - --dangling-volumes
       - --exclude-container-label
-      - dcgc.keep-container=true
+      - com.docker.keep-container=true
     networks:
       - private
     volumes:

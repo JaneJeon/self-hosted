@@ -39,7 +39,7 @@ rm-hard:
 	@$(DC) $(DC_ALL) rm --stop -v $(SERVICE)
 
 prune:
-	@$(D) system prune -f
+	@$(D) system prune -f --filter "label!=com.docker.keep-container=true"
 
 pull:
 	@$(DC) $(DC_ALL) pull $(SERVICE)
