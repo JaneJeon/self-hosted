@@ -10,6 +10,8 @@ services:
       - --max-image-age
       - 30days
       - --dangling-volumes
+      - --exclude-container-label
+      - dcgc.keep-container=true
     networks:
       - private
     volumes:
