@@ -30,8 +30,8 @@ services:
     image: curlimages/curl:7.88.1
     container_name: typesense-helper
     # keep this alive indefinitely, so we can refer to this by the container name from the backup script
-    entrypoint: tail
-    command: -f /dev/null
+    entrypoint: sh -c
+    command: tail -f /dev/null
     init: true
     networks:
       - private
