@@ -29,7 +29,7 @@ services:
   typesense-helper:
     image: curlimages/curl:7.88.1
     container_name: typesense-helper
-    restart: no # this should be one-off to run commands
+    restart: 'no' # this should be one-off to run commands
     command: --version
     networks:
       - private
