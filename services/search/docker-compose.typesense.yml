@@ -27,11 +27,12 @@ services:
   # which is needed to perform backup (not restore - see above; in fact, we can't even run restore
   # from this container *even if we wanted to*, because this container doesn't have the correct permissions
   # to run `cp`).
-  # Therefore, we use this (ephemeral) container to run commands on behalf of typesense,
+  # Therefore, we use this (persistent) container to run commands on behalf of typesense,
   # and keep the dead container around during normal operations.
   typesense-helper:
     image: curlimages/curl:7.88.1
     container_name: typesense-helper
+    restart: on-failure
     # keep this alive indefinitely, so we can refer to this by the container name from the backup script
     entrypoint: tail
     command: -f /dev/null
@@ -44,8 +45,6 @@ services:
       - ./services/search/dump.sh:/usr/local/bin/dump:ro
     environment:
       TYPESENSE_API_KEY: ${TYPESENSE_ADMIN_API_KEY}
-    labels:
-      com.docker.keep-container: 'true'
 
 networks:
   public: {}
