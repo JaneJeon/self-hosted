@@ -26,4 +26,4 @@ echo 'Restoring database states...'
 make up SERVICE=mysql # we need to stand up mysql before we can tell it to read from the dump
 make run SERVICE=mysql COMMAND=restore
 make run SERVICE=redis COMMAND=restore # we do not need to stand up redis beforehand, as it simply reads from dump on startup
-make run SERVICE=typesense-helper COMMAND=restore
+make run SERVICE=typesense-helper COMMAND=/usr/local/bin/restore # have to refer it by script because the $PATH is fucked up on the curl container
