@@ -32,9 +32,13 @@ services:
       B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
       TZ: ${TIMEZONE}
       # global context, can run anywhere within docker network
+      # TODO: instead of using "healthchecks at home", just bake in the healthchecks as commands
+      # within the respective docker containers, and call them.
+      # e.g. timeout 1 bash -c 'while :; do echo check; sleep 0.1; done ' && echo "Do stuff" || echo 'Boo'
       PRE_COMMANDS: |-
         wait-for redis:6379 --timeout=60 -- docker exec redis dump
         wait-for mysql:3306 --timeout=60 -- docker exec mysql dump
+        wait-for typesense:8108 --timeout=60 -- docker exec typesense-helper dump
         docker exec uptime-kuma sh -c 'rm -f data/*.db.bak*'
       POST_COMMANDS_SUCCESS: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup ran successfully!"}'' ${SLACK_NOTIFICATIONS_ENDPOINT}'
       POST_COMMANDS_FAILURE: 'curl -X POST -H ''Content-type: application/json'' --data ''{"text": "Backup failed!"}'' ${SLACK_ALERTS_ENDPOINT}'
@@ -43,8 +47,6 @@ services:
     image: mazzolino/restic:1.7.0
     container_name: restic-prune
     restart: unless-stopped
-    networks:
-      - private
     hostname: docker
     environment:
       RUN_ON_STARTUP: 'false'
@@ -59,8 +61,6 @@ services:
     image: mazzolino/restic:1.7.0
     container_name: restic-check
     restart: unless-stopped
-    networks:
-      - private
     hostname: docker
     environment:
       RUN_ON_STARTUP: 'false'

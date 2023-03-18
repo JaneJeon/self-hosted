@@ -3,3 +3,6 @@
 
 # Ignore mysql data container; we want to restore from dump.
 /docker/volumes/{{ env.COMPOSE_PROJECT_NAME }}_mysql-data
+
+# The same with typesense; we want to re-create the data directory from the dump.
+/docker/volumes/{{ env.COMPOSE_PROJECT_NAME }}_typesense-data
