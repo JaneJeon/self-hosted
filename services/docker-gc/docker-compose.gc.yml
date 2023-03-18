@@ -16,6 +16,8 @@ services:
       - private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      com.docker.keep-container: 'true'
 
 networks:
   private: {}
