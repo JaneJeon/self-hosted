@@ -1,0 +1,31 @@
+services:
+  typesense:
+    image: typesense/typesense:0.24.0
+    container_name: typesense
+    restart: on-failure
+    # TODO: healthcheck http://localhost:8108/health
+    command: '--config=/etc/typesense/typesense-server.ini'
+    networks:
+      - public
+    volumes:
+      - typesense-data:/data
+      - typesense-backup:/backup
+      - ./services/search/config.ini:/etc/typesense/typesense-server.ini:ro
+    environment:
+      TYPESENSE_API_KEY: ${TYPESENSE_ADMIN_API_KEY}
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.typesense.tls.certresolver: letsencrypt
+      traefik.http.routers.typesense.rule: Host(`search.janejeon.com`)
+      traefik.http.routers.typesense.entrypoints: https
+      # no sso-proxy middleware; the search instance is supposed to be public
+      # TODO: rate limit
+      traefik.http.services.typesense.loadbalancer.server.port: 8108
+      # TODO: flame link?
+
+networks:
+  public: {}
+
+volumes:
+  typesense-data: {}
+  typesense-backup: {}
