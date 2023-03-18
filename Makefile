@@ -48,7 +48,7 @@ exec:
 	@$(DC) $(DC_ALL) exec $(SERVICE) $(COMMAND)
 
 run:
-	@$(DC) $(DC_ALL) run --rm $(SERVICE) $(COMMAND)
+	@$(DC) $(DC_ALL) run --rm $(DC_RUN_OPTIONS) $(SERVICE) $(COMMAND)
 
 sh:
 	@$(DC) $(DC_ALL) run --rm $(SERVICE) sh
