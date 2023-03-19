@@ -12,6 +12,22 @@ http:
     whitelist-cloudflare:
       ipWhiteList:
         sourceRange: {{ cloudflare_ips | tojson }}
+    # A rate limiter with a shorter window to prevent extreme bursts (e.g. spamming)
+    ratelimit-burst:
+      rateLimit:
+        average: 5
+        burst: 5
+        period: 1
+        sourceCriterion: &ipStrategy
+          ipStrategy:
+            depth: 1 # since we can always trust XFF (non-CF traffic is blocked), we can trust the rightmost entry in the XFF
+    # A rate limiter with a longer window to protect against resource abuse
+    ratelimit-window:
+      rateLimit:
+        average: 20
+        burst: 10
+        period: 1m
+        sourceCriterion: *ipStrategy
     sso-proxy:
       forwardAuth:
         address: http://authelia:9091/api/verify?rd=https://auth.janejeon.com
