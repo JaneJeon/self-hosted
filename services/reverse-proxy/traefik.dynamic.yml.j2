@@ -24,8 +24,8 @@ http:
     # A rate limiter with a longer window to protect against resource abuse
     ratelimit-window:
       rateLimit:
-        average: 20
-        burst: 10
+        average: 120
+        burst: 60
         period: 1m
         sourceCriterion: *ipStrategy
     sso-proxy:
