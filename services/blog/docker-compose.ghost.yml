@@ -35,6 +35,7 @@ services:
       traefik.http.routers.devblog.tls.certresolver: letsencrypt
       traefik.http.routers.devblog.rule: Host(`janejeon.dev`)
       traefik.http.routers.devblog.entrypoints: https
+      traefik.http.routers.devblog.middlewares: ratelimit-burst@file,ratelimit-window@file
       traefik.http.services.devblog.loadbalancer.server.port: 2368
       flame.type: application
       flame.name: Ghost - Blog
@@ -75,6 +76,7 @@ services:
       traefik.http.routers.portfolio.tls.certresolver: letsencrypt
       traefik.http.routers.portfolio.rule: Host(`nariahn.com`)
       traefik.http.routers.portfolio.entrypoints: https
+      traefik.http.routers.portfolio.middlewares: ratelimit-burst@file,ratelimit-window@file
       traefik.http.services.portfolio.loadbalancer.server.port: 2368
       flame.type: application
       flame.name: Ghost - Portfolio
