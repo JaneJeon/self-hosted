@@ -30,7 +30,7 @@ services:
   # Therefore, we use this (persistent) container to run commands on behalf of typesense,
   # and keep the dead container around during normal operations.
   typesense-helper:
-    image: curlimages/curl:7.88.1
+    image: curlimages/curl:8.00.1
     container_name: typesense-helper
     restart: on-failure
     # keep this alive indefinitely, so we can refer to this by the container name from the backup script
