@@ -20,6 +20,8 @@ services:
       traefik.http.routers.typesense.rule: Host(`search.janejeon.com`)
       traefik.http.routers.typesense.entrypoints: https
       # no sso-proxy middleware; the search instance is supposed to be public
+      # TODO: tighten ratelimit once the dashboard is installed as a web
+      # (so the traffic flows within the docker network and doesn't hit traefik)
       traefik.http.routers.typesense.middlewares: ratelimit-burst@file,ratelimit-window@file
       traefik.http.services.typesense.loadbalancer.server.port: 8108
       # TODO: flame link?

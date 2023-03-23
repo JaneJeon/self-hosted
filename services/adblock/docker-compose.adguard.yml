@@ -21,7 +21,7 @@ services:
       traefik.http.routers.adguard.tls.certresolver: letsencrypt
       traefik.http.routers.adguard.rule: Host(`adguard.janejeon.com`)
       traefik.http.routers.adguard.entrypoints: https
-      traefik.http.routers.adguard.middlewares: sso-proxy@file,ratelimit-burst@file,ratelimit-window@file
+      traefik.http.routers.adguard.middlewares: sso-proxy@file
       traefik.http.services.adguard.loadbalancer.server.port: 3000
       flame.type: application
       flame.name: AdguardHome
