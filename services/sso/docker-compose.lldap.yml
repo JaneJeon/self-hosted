@@ -2,7 +2,7 @@ version: '3'
 
 services:
   lldap:
-    image: nitnelave/lldap:v0.4.1
+    image: nitnelave/lldap:v0.4.2
     container_name: lldap
     restart: unless-stopped
     healthcheck:
