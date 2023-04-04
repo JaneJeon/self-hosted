@@ -1,6 +1,6 @@
 services:
   typesense:
-    image: typesense/typesense:0.24.0
+    image: typesense/typesense:0.24.1
     container_name: typesense
     restart: on-failure
     command: '--config=/etc/typesense/typesense-server.ini'
