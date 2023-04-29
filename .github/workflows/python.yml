@@ -14,16 +14,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Install Poetry
+        run: pipx install poetry
       - name: Setup Python
         uses: actions/setup-python@v4 # it will resolve from the .python-version file
         with:
           cache: poetry # it will automatically detect poetry config and cache .venv
       # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#caching-packages
-      - name: Install Poetry and Dependencies
-        run: |
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install
+      - run: poetry install
       - name: Lint
         run: make lint-py
       - name: Test
