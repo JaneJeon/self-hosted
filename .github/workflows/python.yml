@@ -16,18 +16,14 @@ jobs:
       - uses: actions/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4 # it will resolve from the .python-version file
-      - name: Cache Virtualenv
-        id: cache-venv
-        uses: actions/cache@v3
         with:
-          path: .venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          cache: poetry # it will automatically detect poetry config and cache .venv
+      # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#caching-packages
       - name: Install Poetry and Dependencies
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
           poetry install
-        if: steps.cache-venv.outputs.cache-hit != 'true'
       - name: Lint
         run: make lint-py
       - name: Test
