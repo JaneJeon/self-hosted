@@ -15,7 +15,7 @@
     "gscan": "^4.36.0"
   },
   "devDependencies": {
-    "@janejeon/prettier-config": "^1.1.1",
+    "@janejeon/prettier-config": "^1.1.2",
     "got": "^12.1.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.0.0",
