@@ -2,7 +2,7 @@ version: '3'
 
 services:
   adguardhome:
-    image: adguard/adguardhome:v0.107.33
+    image: adguard/adguardhome:v0.107.34
     container_name: adguardhome
     restart: unless-stopped
     healthcheck:
