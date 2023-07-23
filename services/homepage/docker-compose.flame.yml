@@ -2,7 +2,7 @@ version: '3'
 
 services:
   flame:
-    image: pawelmalak/flame:2.3.0
+    image: pawelmalak/flame:2.3.1
     container_name: flame
     restart: unless-stopped
     healthcheck:
