@@ -12,7 +12,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "gscan": "^4.36.0"
+    "gscan": "^4.39.4"
   },
   "devDependencies": {
     "@janejeon/prettier-config": "^2.0.0",
