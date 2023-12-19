@@ -14,7 +14,8 @@ def get_cloudflare_ips() -> str:
     """
     session = get_session()
 
-    ipv4s = session.get(CLOUDFLARE_IPV4_LIST_URL).text.split("\n")
-    ipv6s = session.get(CLOUDFLARE_IPV6_LIST_URL).text.split("\n")
+    # with the requests upgrade, urllib3 broke and I need to specify super short timeout for requests to actually work?
+    ipv4s = session.get(CLOUDFLARE_IPV4_LIST_URL, timeout=1).text.split("\n")
+    ipv6s = session.get(CLOUDFLARE_IPV6_LIST_URL, timeout=1).text.split("\n")
 
     return sorted(ipv4s + ipv6s)
