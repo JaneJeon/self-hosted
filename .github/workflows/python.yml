@@ -17,7 +17,7 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
       - name: Setup Python
-        uses: actions/setup-python@v4 # it will resolve from the .python-version file
+        uses: actions/setup-python@v5 # it will resolve from the .python-version file
         with:
           cache: poetry # it will automatically detect poetry config and cache .venv
       # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#caching-packages
