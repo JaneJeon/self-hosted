@@ -7,7 +7,6 @@
     "lint-fix": "run-s lint-fix:*",
     "lint-fix:prettier": "prettier --write .",
     "scan": "run-s scan:*",
-    "scan:journal": "gscan dependencies/journal-theme --v5",
     "scan:london": "gscan dependencies/london-theme --v5",
     "prepare": "husky install"
   },
