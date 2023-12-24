@@ -20,7 +20,6 @@ services:
       - private
     volumes:
       - ghost-devblog-content:/var/lib/ghost/content
-      - ./services/blog/themes/journal:/var/lib/ghost/content/themes/journal:ro
       - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
       url: https://janejeon.dev
