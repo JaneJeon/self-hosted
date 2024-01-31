@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@janejeon/prettier-config": "^2.0.0",
-    "got": "^13.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.0",
     "npm-run-all2": "^6.0.0",
