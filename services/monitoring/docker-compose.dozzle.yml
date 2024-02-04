@@ -8,7 +8,7 @@ services:
   # so for now, it will live alongside portainer.
   dozzle:
     container_name: dozzle
-    image: amir20/dozzle:v6.1.1
+    image: amir20/dozzle:v6.2.1
     restart: unless-stopped
     healthcheck:
       test: ['CMD', '/dozzle', 'healthcheck']
