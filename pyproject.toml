@@ -16,7 +16,7 @@ fake-useragent = "^1.4.0"
 black = "^24.0.0"
 isort = "^5.12.0"
 pytest = "^8.0.0"
-responses = "^0.24.0"
+responses = "^0.25.0"
 pyfakefs = "^5.1.0"
 
 [build-system]
