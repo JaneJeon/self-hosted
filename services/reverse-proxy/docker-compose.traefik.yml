@@ -2,7 +2,7 @@ version: '3'
 
 services:
   traefik:
-    image: traefik:v2.11.1
+    image: traefik:2.11.2
     container_name: traefik
     restart: unless-stopped
     healthcheck:
