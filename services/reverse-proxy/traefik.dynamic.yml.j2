@@ -10,7 +10,7 @@ http:
     # Allow connections only from Cloudflare, so people can't just bypass it.
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipwhitelist
     whitelist-cloudflare:
-      ipWhiteList:
+      ipAllowList:
         sourceRange: {{ cloudflare_ips | tojson }}
     # A rate limiter with a shorter window to prevent extreme bursts (e.g. spamming)
     ratelimit-burst:
