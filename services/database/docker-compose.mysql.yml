@@ -25,22 +25,6 @@ services:
       MYSQL_ROOT_PASSWORD: mysql-root-password
     cap_add:
       - SYS_NICE # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
-    labels:
-      com.datadoghq.ad.check_names: '["mysql"]'
-      com.datadoghq.ad.init_configs: '[{}]'
-      com.datadoghq.ad.instances: >
-        [{
-          "server": "mysql",
-          "user": "datadog",
-          "pass": "datadog-password",
-          "options": {
-            "extra_status_metrics": true,
-            "extra_innodb_metrics": true,
-            "extra_performance_metrics": true,
-            "schema_size_metrics": true
-          }
-        }]
-      com.datadoghq.ad.logs: '[{"source": "mysql", "service": "mysql"}]'
 
 networks:
   private: {}
