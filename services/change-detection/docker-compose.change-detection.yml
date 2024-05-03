@@ -15,7 +15,6 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.change-detection.tls.certresolver: letsencrypt
       traefik.http.routers.change-detection.rule: Host(`change-detection.janejeon.com`)
-      traefik.http.routers.change-detection.entrypoints: https
       traefik.http.routers.change-detection.middlewares: sso-proxy@file
       traefik.http.services.change-detection.loadbalancer.server.port: 5000
       flame.type: application

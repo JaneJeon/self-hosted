@@ -30,7 +30,6 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.authelia.tls.certresolver: letsencrypt
       traefik.http.routers.authelia.rule: Host(`auth.janejeon.com`)
-      traefik.http.routers.authelia.entrypoints: https
       traefik.http.routers.authelia.middlewares: sso-proxy@file
       traefik.http.services.authelia.loadbalancer.server.port: 9091
       flame.type: application
