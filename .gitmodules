@@ -1,6 +1,3 @@
 [submodule "dependencies/wait-for"]
 	path = dependencies/wait-for
 	url = https://github.com/eficode/wait-for.git
-[submodule "dependencies/london-theme"]
-	path = dependencies/london-theme
-	url = https://github.com/TryGhost/London.git
