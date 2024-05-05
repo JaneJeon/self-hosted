@@ -25,7 +25,7 @@ services:
       # A separate endpoint for DNS-over-HTTPS that doesn't have to go through Authelia (which is prone to rejecting requests)
       traefik.http.routers.adguard-doh.tls.certresolver: letsencrypt
       traefik.http.routers.adguard-doh.rule: Host(`dns.${BASE_HOST}`) && PathPrefix(`/dns-query`)
-      traefik.http.services.adguard-doh.loadbalancer.server.port: 3000
+      traefik.http.routers.adguard-doh.service: adguard
       flame.type: application
       flame.name: AdguardHome
       flame.url: adguard.${BASE_HOST}
