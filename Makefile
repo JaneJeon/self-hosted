@@ -62,10 +62,6 @@ volumes:
 ports:
 	sudo netstat -tulpn | grep LISTEN
 
-open-ports:
-	sudo ufw-docker allow traefik 80/tcp
-	sudo ufw-docker allow traefik 443/tcp
-
 # Spin up the backup container, which already has all of the configuration/commands "baked in".
 # Note that we're explicitly bypassing the existing entrypoint (which actually does all of the heavy lifting),
 # as we need to run this as a "one shot" and not schedule cron (which means this command would never exit).
@@ -107,7 +103,7 @@ render:
 	$(PYTHON) ./scripts/render_all.py
 
 deploy: check-config git-push render push-files
-	$(M) ssh-command COMMAND='$(M) up prune open-ports'
+	$(M) ssh-command COMMAND='$(M) up prune'
 
 ssh:
 	ssh $(SERVER)
