@@ -19,12 +19,16 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.adguard.tls.certresolver: letsencrypt
-      traefik.http.routers.adguard.rule: Host(`dns.${BASE_HOST}`)
+      traefik.http.routers.adguard.rule: Host(`adguard.${BASE_HOST}`)
       traefik.http.routers.adguard.middlewares: sso-proxy@file
       traefik.http.services.adguard.loadbalancer.server.port: 3000
+      # A separate endpoint for DNS-over-HTTPS that doesn't have to go through Authelia (which is prone to rejecting requests)
+      traefik.http.routers.adguard-doh.tls.certresolver: letsencrypt
+      traefik.http.routers.adguard-doh.rule: Host(`dns.${BASE_HOST}`) && PathPrefix(`/dns-query`)
+      traefik.http.services.adguard-doh.loadbalancer.server.port: 3000
       flame.type: application
       flame.name: AdguardHome
-      flame.url: dns.${BASE_HOST}
+      flame.url: adguard.${BASE_HOST}
       flame.icon: shield-link-variant-outline
 
 networks:

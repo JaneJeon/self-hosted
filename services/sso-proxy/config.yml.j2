@@ -220,11 +220,6 @@ access_control:
       policy: two_factor
       subject: group:infra_admin
 
-    # Bypass for DoH queries!
-    - domain: dns.{{ env.BASE_HOST }}
-      policy: bypass
-      resources: ^/dns-query([/?].*)?$
-
     - domain: auth.{{ env.BASE_HOST }}
       policy: bypass
 
