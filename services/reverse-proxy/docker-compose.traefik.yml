@@ -30,12 +30,12 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.traefik.tls.certresolver: letsencrypt
-      traefik.http.routers.traefik.rule: Host(`traefik.janejeon.com`)
+      traefik.http.routers.traefik.rule: Host(`traefik.${BASE_HOST}`)
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
       flame.type: application
       flame.name: Traefik
-      flame.url: traefik.janejeon.com
+      flame.url: traefik.${BASE_HOST}
       flame.icon: routes
 
 networks:

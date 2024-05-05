@@ -21,7 +21,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.homepage.tls.certresolver: letsencrypt
-      traefik.http.routers.homepage.rule: Host(`home.janejeon.com`)
+      traefik.http.routers.homepage.rule: Host(`home.${BASE_HOST}`)
       traefik.http.routers.homepage.middlewares: sso-proxy@file
       traefik.http.services.homepage.loadbalancer.server.port: 5005
 

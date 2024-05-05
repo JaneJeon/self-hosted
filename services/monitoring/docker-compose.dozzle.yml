@@ -25,12 +25,12 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.dozzle.tls.certresolver: letsencrypt
-      traefik.http.routers.dozzle.rule: Host(`dozzle.janejeon.com`)
+      traefik.http.routers.dozzle.rule: Host(`dozzle.${BASE_HOST}`)
       traefik.http.routers.dozzle.middlewares: sso-proxy@file
       traefik.http.services.dozzle.loadbalancer.server.port: 8080
       flame.type: application
       flame.name: Dozzle
-      flame.url: dozzle.janejeon.com
+      flame.url: dozzle.${BASE_HOST}
       flame.icon: docker
 
 networks:

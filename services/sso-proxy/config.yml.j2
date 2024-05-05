@@ -10,7 +10,7 @@
 ## The theme to display: light, dark, grey, auto.
 theme: auto
 
-default_redirection_url: https://home.janejeon.com
+default_redirection_url: https://home.{{ env.BASE_HOST }}
 
 ##
 ## Log Configuration
@@ -35,7 +35,7 @@ log:
 totp:
   ## The issuer name displayed in the Authenticator application of your choice
   ## See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
-  issuer: auth.janejeon.com
+  issuer: auth.{{ env.BASE_HOST }}
   ## The period in seconds a one-time password is current for. Changing this will require all users to register
   ## their TOTP applications again. Warning: before changing period read the docs link below.
   period: 30
@@ -214,22 +214,22 @@ access_control:
   rules:
     # Infra Access
     - domain:
-        - portainer.janejeon.com
-        - ldap.janejeon.com
-        - dozzle.janejeon.com
+        - portainer.{{ env.BASE_HOST }}
+        - ldap.{{ env.BASE_HOST }}
+        - dozzle.{{ env.BASE_HOST }}
       policy: two_factor
       subject: group:infra_admin
 
     # Bypass for DoH queries!
-    - domain: adguard.janejeon.com
+    - domain: adguard.{{ env.BASE_HOST }}
       policy: bypass
       resources: ^/dns-query([/?].*)?$
 
-    - domain: auth.janejeon.com
+    - domain: auth.{{ env.BASE_HOST }}
       policy: bypass
 
     # Applications/Default Policy
-    - domain: '*.janejeon.com'
+    - domain: '*.{{ env.BASE_HOST }}'
       policy: two_factor
 
 ##
@@ -244,7 +244,7 @@ session:
   ## The domain to protect.
   ## Note: the authenticator must also be in that domain.
   ## If empty, the cookie is restricted to the subdomain of the issuer.
-  domain: janejeon.com
+  domain: {{ env.BASE_HOST }}
 
   ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
   ## Please read https://www.authelia.com/docs/configuration/session/#same_site

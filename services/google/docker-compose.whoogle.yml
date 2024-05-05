@@ -17,16 +17,16 @@ services:
       WHOOGLE_CONFIG_THEME: system
       WHOOGLE_CONFIG_VIEW_IMAGE: 1
       WHOOGLE_CONFIG_GET_ONLY: 1
-      WHOOGLE_CONFIG_URL: whoogle.janejeon.com
+      WHOOGLE_CONFIG_URL: whoogle.${BASE_HOST}
     labels:
       traefik.enable: 'true'
       traefik.http.routers.whoogle.tls.certresolver: letsencrypt
-      traefik.http.routers.whoogle.rule: Host(`google.janejeon.com`)
+      traefik.http.routers.whoogle.rule: Host(`google.${BASE_HOST}`)
       traefik.http.routers.whoogle.middlewares: sso-proxy@file
       traefik.http.services.whoogle.loadbalancer.server.port: 5000
       flame.type: application
       flame.name: Whoogle
-      flame.url: google.janejeon.com
+      flame.url: google.${BASE_HOST}
       flame.icon: magnify
 
 networks:

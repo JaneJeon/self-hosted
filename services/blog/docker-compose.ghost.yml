@@ -22,7 +22,7 @@ services:
       - ghost-devblog-content:/var/lib/ghost/content
       - ./services/blog/config.json:/var/lib/ghost/config.production.json:ro
     environment:
-      url: https://janejeon.dev
+      url: https://${BLOG_HOST}
       database__connection__user: ghost-devblog
       database__connection__password: ghost-devblog-password
       database__connection__database: devblog
@@ -32,12 +32,12 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.devblog.tls.certresolver: letsencrypt
-      traefik.http.routers.devblog.rule: Host(`janejeon.dev`)
+      traefik.http.routers.devblog.rule: Host(`${BLOG_HOST}`)
       traefik.http.routers.devblog.middlewares: ratelimit-burst@file,ratelimit-window@file
       traefik.http.services.devblog.loadbalancer.server.port: 2368
       flame.type: application
       flame.name: Ghost - Blog
-      flame.url: janejeon.dev
+      flame.url: ${BLOG_HOST}
       flame.icon: ghost-outline
 
 networks:

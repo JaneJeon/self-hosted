@@ -30,7 +30,7 @@ http:
         sourceCriterion: *ipStrategy
     sso-proxy:
       forwardAuth:
-        address: http://authelia:9091/api/verify?rd=https://auth.janejeon.com
+        address: http://authelia:9091/api/verify?rd=https://auth.{{ env.BASE_HOST }}
         trustForwardHeader: true
         authResponseHeaders:
           - Remote-User
