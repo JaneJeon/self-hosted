@@ -19,12 +19,12 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.adguard.tls.certresolver: letsencrypt
-      traefik.http.routers.adguard.rule: Host(`adguard.${BASE_HOST}`)
+      traefik.http.routers.adguard.rule: Host(`dns.${BASE_HOST}`)
       traefik.http.routers.adguard.middlewares: sso-proxy@file
       traefik.http.services.adguard.loadbalancer.server.port: 3000
       flame.type: application
       flame.name: AdguardHome
-      flame.url: adguard.${BASE_HOST}
+      flame.url: dns.${BASE_HOST}
       flame.icon: shield-link-variant-outline
 
 networks:

@@ -221,7 +221,7 @@ access_control:
       subject: group:infra_admin
 
     # Bypass for DoH queries!
-    - domain: adguard.{{ env.BASE_HOST }}
+    - domain: dns.{{ env.BASE_HOST }}
       policy: bypass
       resources: ^/dns-query([/?].*)?$
 
