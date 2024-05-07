@@ -28,8 +28,8 @@ services:
         --keep-daily 7
         --keep-weekly 5
         --keep-monthly 12
-      B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
-      B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
+      B2_ACCOUNT_ID: ${B2_APPLICATION_KEY_ID}
+      B2_ACCOUNT_KEY: ${B2_APPLICATION_KEY}
       TZ: ${TIMEZONE}
       # global context, can run anywhere within docker network
       # TODO: instead of using "healthchecks at home", just bake in the healthchecks as commands
@@ -52,8 +52,8 @@ services:
       PRUNE_CRON: '0 0 4 * * *'
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
-      B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
-      B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
+      B2_ACCOUNT_ID: ${B2_APPLICATION_KEY_ID}
+      B2_ACCOUNT_KEY: ${B2_APPLICATION_KEY}
       TZ: ${TIMEZONE}
 
   check:
@@ -68,8 +68,8 @@ services:
         --read-data-subset=10%
       RESTIC_REPOSITORY: b2:${B2_BUCKET}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
-      B2_ACCOUNT_ID: ${B2_ACCOUNT_ID}
-      B2_ACCOUNT_KEY: ${B2_ACCOUNT_KEY}
+      B2_ACCOUNT_ID: ${B2_APPLICATION_KEY_ID}
+      B2_ACCOUNT_KEY: ${B2_APPLICATION_KEY}
       TZ: ${TIMEZONE}
 
 networks:
