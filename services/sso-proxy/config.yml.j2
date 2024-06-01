@@ -10,8 +10,6 @@
 ## The theme to display: light, dark, grey, auto.
 theme: auto
 
-default_redirection_url: https://home.{{ env.BASE_HOST }}
-
 identity_validation:
   reset_password:
     jwt_secret: {{ env.AUTHELIA_JWT_SECRET }}
@@ -267,6 +265,7 @@ session:
   cookies:
     - domain: {{ env.BASE_HOST }}
       authelia_url: https://auth.{{ env.BASE_HOST }}
+      default_redirection_url: https://home.{{ env.BASE_HOST }}
 
   ##
   ## Redis Provider
