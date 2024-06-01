@@ -12,6 +12,10 @@ theme: auto
 
 default_redirection_url: https://home.{{ env.BASE_HOST }}
 
+identity_validation:
+  reset_password:
+    jwt_secret: {{ env.AUTHELIA_JWT_SECRET }}
+
 ##
 ## Log Configuration
 ##
@@ -83,7 +87,7 @@ authentication_backend:
 
     ## The url to the ldap server. Format: <scheme>://<address>[:<port>].
     ## Scheme can be ldap or ldaps in the format (port optional).
-    url: ldap://lldap:3890
+    address: ldap://lldap:3890
 
     ## The dial timeout for LDAP.
     timeout: 5s
@@ -107,15 +111,26 @@ authentication_backend:
     ## See also: additional_users_dn, additional_groups_dn.
     base_dn: dc=janejeon,dc=com
 
-    ## The attribute holding the username of the user. This attribute is used to populate the username in the session
-    ## information. It was introduced due to #561 to handle case insensitive search queries. For you information,
-    ## Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually uses 'uid'. Beware that this
-    ## attribute holds the unique identifiers for the users binding the user and the configuration stored in database.
-    ## Therefore only single value attributes are allowed and the value must never be changed once attributed to a user
-    ## otherwise it would break the configuration for that user. Technically, non-unique attributes like 'mail' can also
-    ## be used but we don't recommend using them, we instead advise to use the attributes mentioned above
-    ## (sAMAccountName and uid) to follow https://www.ietf.org/rfc/rfc2307.txt.
-    username_attribute: uid
+    attributes:
+      ## The attribute holding the username of the user. This attribute is used to populate the username in the session
+      ## information. It was introduced due to #561 to handle case insensitive search queries. For you information,
+      ## Microsoft Active Directory usually uses 'sAMAccountName' and OpenLDAP usually uses 'uid'. Beware that this
+      ## attribute holds the unique identifiers for the users binding the user and the configuration stored in database.
+      ## Therefore only single value attributes are allowed and the value must never be changed once attributed to a user
+      ## otherwise it would break the configuration for that user. Technically, non-unique attributes like 'mail' can also
+      ## be used but we don't recommend using them, we instead advise to use the attributes mentioned above
+      ## (sAMAccountName and uid) to follow https://www.ietf.org/rfc/rfc2307.txt.
+      username: uid
+
+      ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the
+      ## first one returned by the LDAP server is used.
+      mail: mail
+
+      ## The attribute holding the name of the group.
+      group_name: cn
+
+      ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
+      display_name: displayName
 
     ## The additional_users_dn is prefixed to base_dn and delimited by a comma when searching for users.
     ## i.e. with this set to OU=Users and base_dn set to DC=a,DC=com; OU=Users,DC=a,DC=com is searched for users.
@@ -147,21 +162,11 @@ authentication_backend:
     ##    (&(uniqueMember={dn})(objectClass=groupOfUniqueNames))
     groups_filter: (member={dn})
 
-    ## The attribute holding the name of the group.
-    group_name_attribute: cn
-
-    ## The attribute holding the mail address of the user. If multiple email addresses are defined for a user, only the
-    ## first one returned by the LDAP server is used.
-    mail_attribute: mail
-
-    ## The attribute holding the display name of the user. This will be used to greet an authenticated user.
-    display_name_attribute: displayName
-
     ## The username and password of the admin user.
     user: cn=admin,ou=people,dc=janejeon,dc=com
 
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    # password: password
+    password: {{ env.LLDAP_LDAP_USER_PASS }}
 
   ##
   ## File (Authentication Provider)
@@ -236,10 +241,7 @@ session:
   ## The name of the session cookie.
   name: authelia_session
 
-  ## The domain to protect.
-  ## Note: the authenticator must also be in that domain.
-  ## If empty, the cookie is restricted to the subdomain of the issuer.
-  domain: {{ env.BASE_HOST }}
+  secret: {{ env.AUTHELIA_SESSION_SECRET }}
 
   ## Sets the Cookie SameSite value. Possible options are none, lax, or strict.
   ## Please read https://www.authelia.com/docs/configuration/session/#same_site
@@ -260,7 +262,11 @@ session:
 
   ## The time before the cookie expires and the session is destroyed if remember me IS selected.
   ## Value of 0 disables remember me.
-  remember_me_duration: 1M
+  remember_me: 1M
+
+  cookies:
+    - domain: {{ env.BASE_HOST }}
+      authelia_url: https://auth.{{ env.BASE_HOST }}
 
   ##
   ## Redis Provider
@@ -351,6 +357,8 @@ regulation:
 ##
 ## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
 storage:
+  encryption_key: {{ env.AUTHELIA_STORAGE_ENCRYPTION_KEY }}
+
   ##
   ## Local (Storage Provider)
   ##
@@ -366,8 +374,7 @@ storage:
   ## MySQL / MariaDB (Storage Provider)
   ##
   mysql:
-    host: mysql
-    port: 3306
+    address: mysql:3306
     database: auth_db
     username: authelia
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -402,24 +409,20 @@ notifier:
   ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
   ##     (configure in tls section)
   smtp:
-    ## The SMTP host to connect to.
-    host: smtp.fastmail.com
-
-    ## The port to connect to the SMTP host on.
-    port: 465
+    address: smtp.fastmail.com:465
 
     ## The connection timeout.
     timeout: 5s
 
     ## The username used for SMTP authentication.
-    # username: username
+    username: {{ env.SMTP_USER }}
 
     ## The password used for SMTP authentication.
     ## Can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
-    # password: password
+    password: {{ env.SMTP_PASS }}
 
     ## The address to send the email FROM.
-    # sender: hello@example.com
+    sender: {{ env.SMTP_SENDER }}
 
     ## HELO/EHLO Identifier. Some SMTP Servers may reject the default of localhost.
     # identifier: localhost
