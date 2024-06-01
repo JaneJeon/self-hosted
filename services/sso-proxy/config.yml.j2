@@ -373,7 +373,7 @@ storage:
   ## MySQL / MariaDB (Storage Provider)
   ##
   mysql:
-    address: mysql:3306
+    address: tcp://mysql:3306
     database: auth_db
     username: authelia
     ## Password can also be set using a secret: https://www.authelia.com/docs/configuration/secrets.html
@@ -408,7 +408,7 @@ notifier:
   ##   - validate the SMTP server x509 certificate during the TLS handshake against the hosts trusted certificates
   ##     (configure in tls section)
   smtp:
-    address: smtp.fastmail.com:465
+    address: smtp://smtp.fastmail.com:465
 
     ## The connection timeout.
     timeout: 5s
