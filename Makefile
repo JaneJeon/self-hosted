@@ -20,7 +20,7 @@ up:
 	@$(DC) $(DC_ALL) up -d --remove-orphans $(SERVICE)
 
 restart:
-	@$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate $(SERVICE)
+	@$(DC) $(DC_ALL) restart $(SERVICE)
 
 restart-hard:
 	@$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate --renew-anon-volumes $(SERVICE)
