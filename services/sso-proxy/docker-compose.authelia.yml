@@ -2,7 +2,7 @@ version: '3'
 
 services:
   authelia:
-    image: authelia/authelia:4.38.13
+    image: authelia/authelia:4.38.14
     container_name: authelia
     restart: unless-stopped
     depends_on:
