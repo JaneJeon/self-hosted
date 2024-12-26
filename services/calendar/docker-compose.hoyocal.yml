@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  hoyocal-server:
+    image: ghcr.io/janejeon/hoyocal:d48bf9a22dd7a11492deece752d8c4fa282c99d2
+    container_name: hoyocal-server
+    command: ['node', './dist/server/index.js']
+    restart: unless-stopped
+    networks:
+      - public
+      - private
+    environment: &env
+      REDIS_URL: redis://redis:6379
+      APPRISE_URL: http://apprise:8000
+      NTFY_URL: ${NTFY_URL}
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.hoyocal-public.tls.certresolver: letsencrypt
+      traefik.http.routers.hoyocal-public.rule: Host(`cal.${HOYO_HOST}`)
+      traefik.http.services.hoyocal-public.loadbalancer.server.port: 3000
+  hoyocal-worker:
+    image: ghcr.io/janejeon/hoyocal:d48bf9a22dd7a11492deece752d8c4fa282c99d2
+    container_name: hoyocal-worker
+    command: ['node', './dist/worker/index.js']
+    restart: unless-stopped
+    networks:
+      - private
+    environment: *env
+
+networks:
+  public: {}
+  private: {}

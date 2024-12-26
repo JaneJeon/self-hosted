@@ -56,6 +56,9 @@ sudo usermod -aG docker jane
 newgrp docker
 sudo service docker restart
 
+# Logging in
+echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+
 # Installing docker-compose
 # See: https://docs.docker.com/engine/install/debian/#install-using-the-repository
 sudo apt-get install \
