@@ -24,10 +24,6 @@ services:
       traefik.http.routers.portainer.rule: Host(`portainer.${BASE_HOST}`)
       traefik.http.routers.portainer.middlewares: sso-proxy@file
       traefik.http.services.portainer.loadbalancer.server.port: 9000
-      flame.type: application
-      flame.name: Portainer
-      flame.url: https://portainer.${BASE_HOST}/#!/1/docker/containers
-      flame.icon: console
 
 networks:
   public: {}

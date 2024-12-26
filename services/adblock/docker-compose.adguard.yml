@@ -26,10 +26,6 @@ services:
       traefik.http.routers.adguard-doh.tls.certresolver: letsencrypt
       traefik.http.routers.adguard-doh.rule: Host(`dns.${BASE_HOST}`) && PathPrefix(`/dns-query`)
       traefik.http.routers.adguard-doh.service: adguard
-      flame.type: application
-      flame.name: AdguardHome
-      flame.url: adguard.${BASE_HOST}
-      flame.icon: shield-link-variant-outline
 
 networks:
   public: {}

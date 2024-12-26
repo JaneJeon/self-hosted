@@ -17,10 +17,6 @@ services:
       traefik.http.routers.change-detection.rule: Host(`change-detection.${BASE_HOST}`)
       traefik.http.routers.change-detection.middlewares: sso-proxy@file
       traefik.http.services.change-detection.loadbalancer.server.port: 5000
-      flame.type: application
-      flame.name: ChangeDetection
-      flame.url: change-detection.${BASE_HOST}
-      flame.icon: vector-difference-ba
 
 networks:
   public: {}

@@ -25,10 +25,6 @@ services:
       traefik.http.routers.lldap.rule: Host(`ldap.${BASE_HOST}`)
       traefik.http.routers.lldap.middlewares: sso-proxy@file # if anything, for the forced 2FA
       traefik.http.services.lldap.loadbalancer.server.port: 17170
-      flame.type: application
-      flame.name: LLDAP
-      flame.url: ldap.${BASE_HOST}
-      flame.icon: badge-account-horizontal-outline
 
 networks:
   public: {}

@@ -28,10 +28,6 @@ services:
       traefik.http.routers.dozzle.rule: Host(`dozzle.${BASE_HOST}`)
       traefik.http.routers.dozzle.middlewares: sso-proxy@file
       traefik.http.services.dozzle.loadbalancer.server.port: 8080
-      flame.type: application
-      flame.name: Dozzle
-      flame.url: dozzle.${BASE_HOST}
-      flame.icon: docker
 
 networks:
   public: {}

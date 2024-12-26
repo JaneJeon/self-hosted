@@ -35,10 +35,6 @@ services:
       traefik.http.routers.devblog.rule: Host(`${BLOG_HOST}`)
       traefik.http.routers.devblog.middlewares: ratelimit-burst@file,ratelimit-window@file
       traefik.http.services.devblog.loadbalancer.server.port: 2368
-      flame.type: application
-      flame.name: Ghost - Blog
-      flame.url: ${BLOG_HOST}
-      flame.icon: ghost-outline
 
 networks:
   public: {}

@@ -25,10 +25,6 @@ services:
       traefik.http.routers.authelia.rule: Host(`auth.${BASE_HOST}`)
       traefik.http.routers.authelia.middlewares: sso-proxy@file
       traefik.http.services.authelia.loadbalancer.server.port: 9091
-      flame.type: application
-      flame.name: Authelia
-      flame.url: auth.${BASE_HOST}
-      flame.icon: shield-account-variant-outline
 
 networks:
   public: {}

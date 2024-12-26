@@ -13,10 +13,6 @@ services:
       traefik.http.routers.whoami.rule: Host(`whoami.${BASE_HOST}`)
       # traefik.http.routers.whoami.middlewares: sso-proxy@file
       traefik.http.services.whoami.loadbalancer.server.port: 80
-      flame.type: application
-      flame.name: Whoami
-      flame.url: whoami.${BASE_HOST}
-      flame.icon: mirror-rectangle
 
 networks:
   public: {}

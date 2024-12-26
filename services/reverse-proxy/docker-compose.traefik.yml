@@ -33,10 +33,6 @@ services:
       traefik.http.routers.traefik.rule: Host(`traefik.${BASE_HOST}`)
       traefik.http.routers.traefik.middlewares: sso-proxy@file
       traefik.http.services.api@internal.loadbalancer.server.port: 8080
-      flame.type: application
-      flame.name: Traefik
-      flame.url: traefik.${BASE_HOST}
-      flame.icon: routes
 
 networks:
   public: {}

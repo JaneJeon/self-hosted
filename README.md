@@ -20,7 +20,6 @@ Checklist for web-facing services:
 
 - [ ] Traefik labels (incl. entrypoint)
 - [ ] Authelia middleware label
-- [ ] Flame label
 - [ ] Restart policy
 - [ ] Networks
 
