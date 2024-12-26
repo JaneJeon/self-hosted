@@ -1,0 +1,25 @@
+services:
+  apprise:
+    image: caronc/apprise:1.1
+    container_name: apprise
+    restart: unless-stopped
+    healthcheck:
+      test: curl -f http://localhost:8000 || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - public
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.apprise.tls.certresolver: letsencrypt
+      traefik.http.routers.apprise.rule: Host(`apprise.${BASE_HOST}`)
+      traefik.http.routers.apprise.middlewares: sso-proxy@file
+      traefik.http.services.apprise.loadbalancer.server.port: 8000
+    environment:
+      APPRISE_WORKER_COUNT: 1
+      APPRISE_STATEFUL_MODE: disabled
+
+networks:
+  public: {}
