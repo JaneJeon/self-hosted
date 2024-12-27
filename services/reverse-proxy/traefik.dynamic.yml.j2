@@ -6,7 +6,6 @@ http:
       redirectRegex:
         regex: ^https://www\.(.+)
         replacement: https://${1}
-        permanent: true
     # Allow connections only from Cloudflare, so people can't just bypass it.
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipwhitelist
     whitelist-cloudflare:
