@@ -13,6 +13,7 @@ services:
       start_period: 30s
     networks:
       - public
+      - private
     labels:
       traefik.enable: 'true'
       traefik.http.routers.apprise.tls.certresolver: letsencrypt
@@ -25,3 +26,4 @@ services:
 
 networks:
   public: {}
+  private: {}
