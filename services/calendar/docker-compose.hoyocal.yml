@@ -2,7 +2,7 @@ version: '3'
 
 services:
   hoyocalServer:
-    image: ghcr.io/janejeon/hoyocal:fd680f761ba12c6bc4052abda92c8010e8dee0b3
+    image: ghcr.io/janejeon/hoyocal:latest
     container_name: hoyocal-server
     command: ['node', './dist/server/index.js']
     restart: unless-stopped
@@ -25,7 +25,7 @@ services:
       traefik.http.routers.hoyocal-public.rule: Host(`cal.${HOYO_HOST}`) && PathPrefix(`/games`)
       traefik.http.services.hoyocal-public.loadbalancer.server.port: 3000
   hoyocalWorker:
-    image: ghcr.io/janejeon/hoyocal:fd680f761ba12c6bc4052abda92c8010e8dee0b3
+    image: ghcr.io/janejeon/hoyocal:latest
     container_name: hoyocal-worker
     command: ['node', './dist/worker/index.js']
     restart: unless-stopped
