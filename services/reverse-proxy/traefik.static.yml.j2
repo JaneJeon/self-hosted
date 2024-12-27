@@ -34,7 +34,6 @@ entryPoints:
     http:
       middlewares:
         - gzip@file
-        - no-www@file
         - whitelist-cloudflare@file
     # Trust headers forwarded from Cloudflare to get accurate X-Forwarded-* information:
     # https://doc.traefik.io/traefik/routing/entrypoints/#forwarded-headers
