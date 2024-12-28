@@ -21,6 +21,7 @@ services:
       NTFY_URL: ${NTFY_URL}
       HOYOCAL_PUBLIC_HOST: cal.${HOYO_HOST}
       HOYOCAL_PRIVATE_HOST: hoyocal.${BASE_HOST}
+      SENTRY_DSN: ${SENTRY_DSN_HOYOCAL}
     labels:
       traefik.enable: 'true'
       traefik.http.routers.hoyocal-public.tls.certresolver: letsencrypt
