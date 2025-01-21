@@ -6,6 +6,6 @@ services:
     container_name: hoyolab-auto
     restart: unless-stopped
     volumes:
-      - ./services/hoyolab-auto/config.json5:/app/config.json5:ro
+      - ./services/checkin/config.json5:/app/config.json5:ro
     environment:
       TZ: Europe/London
