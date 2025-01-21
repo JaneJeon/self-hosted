@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  hoyolab-auto:
+    image: ghcr.io/janejeon/hoyolab-auto:20250121
+    container_name: hoyolab-auto
+    restart: unless-stopped
+    volumes:
+      - ./services/hoyolab-auto/config.json5:/app/config.json5:ro
+    environment:
+      TZ: Europe/London

@@ -278,3 +278,4 @@ services/reverse-proxy/traefik.static.yml
 services/reverse-proxy/traefik.dynamic.yml
 services/backup/excludes.txt
 services/sso-proxy/config.yml
+services/checkin/config.json5
