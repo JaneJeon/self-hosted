@@ -279,3 +279,5 @@ services/reverse-proxy/traefik.dynamic.yml
 services/backup/excludes.txt
 services/sso-proxy/config.yml
 services/checkin/config.json5
+services/notification/alerts.cfg
+services/notification/notifications.cfg
