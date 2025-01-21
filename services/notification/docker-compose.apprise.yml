@@ -14,6 +14,8 @@ services:
     networks:
       - public
       - private
+    volumes:
+      - apprise-config:/config
     labels:
       traefik.enable: 'true'
       traefik.http.routers.apprise.tls.certresolver: letsencrypt
@@ -22,8 +24,11 @@ services:
       traefik.http.services.apprise.loadbalancer.server.port: 8000
     environment:
       APPRISE_WORKER_COUNT: 1
-      APPRISE_STATEFUL_MODE: disabled
+      APPRISE_STATEFUL_MODE: simple
 
 networks:
   public: {}
   private: {}
+
+volumes:
+  apprise-config: {}
