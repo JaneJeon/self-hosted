@@ -39,7 +39,7 @@ services:
         wait-for redis:6379 --timeout=60 -- docker exec redis dump
         wait-for mysql:3306 --timeout=60 -- docker exec mysql dump
         docker exec uptime-kuma sh -c 'rm -f data/*.db.bak*'
-      POST_COMMANDS_SUCCESS: 'curl -X POST https://up.${BASE_HOST}/api/push/vdP9McS4Pm?status=up&msg=OK&ping='
+      POST_COMMANDS_SUCCESS: 'curl https://up.${BASE_HOST}/api/push/vdP9McS4Pm?status=up&msg=OK&ping='
       POST_COMMANDS_FAILURE: 'curl -X POST -d "text=backup failed" http://apprise:8000/notify/alerts'
 
   prune:
