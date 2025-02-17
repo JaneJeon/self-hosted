@@ -3,7 +3,6 @@ version: '3'
 services:
   hoyocal:
     image: ghcr.io/janejeon/hoyocal:latest
-    container_name: hoyocal-server
     restart: unless-stopped
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:3000/healthz || exit 1
