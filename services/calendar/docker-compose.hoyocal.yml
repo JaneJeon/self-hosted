@@ -1,10 +1,9 @@
 version: '3'
 
 services:
-  hoyocalServer:
+  hoyocal:
     image: ghcr.io/janejeon/hoyocal:latest
     container_name: hoyocal-server
-    command: ['node', './dist/server/index.js']
     restart: unless-stopped
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:3000/healthz || exit 1
@@ -15,31 +14,15 @@ services:
     networks:
       - public
       - private
-    environment: &env
+    environment:
       REDIS_URL: redis://redis:6379
-      APPRISE_URL: http://apprise:8000
-      NTFY_URL: ${NTFY_URL}
-      HOYOCAL_PUBLIC_HOST: cal.${HOYO_HOST}
-      HOYOCAL_PRIVATE_HOST: hoyocal.${BASE_HOST}
+      HOST: cal.${HOYO_HOST}
       SENTRY_DSN: ${SENTRY_DSN_HOYOCAL}
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.hoyocal-public.tls.certresolver: letsencrypt
-      traefik.http.routers.hoyocal-public.rule: Host(`cal.${HOYO_HOST}`)
-      # The private endpoint should be protected
-      traefik.http.routers.hoyocal-private.tls.certresolver: letsencrypt
-      traefik.http.routers.hoyocal-private.rule: Host(`hoyocal.${BASE_HOST}`)
-      traefik.http.routers.hoyocal-private.middlewares: sso-proxy@file
-      # Both the routers share the same underlying service
+      traefik.http.routers.hoyocal.tls.certresolver: letsencrypt
+      traefik.http.routers.hoyocal.rule: Host(`cal.${HOYO_HOST}`)
       traefik.http.services.hoyocal.loadbalancer.server.port: 3000
-  hoyocalWorker:
-    image: ghcr.io/janejeon/hoyocal:latest
-    container_name: hoyocal-worker
-    command: ['node', './dist/worker/index.js']
-    restart: unless-stopped
-    networks:
-      - private
-    environment: *env
 
 networks:
   public: {}
