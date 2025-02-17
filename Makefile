@@ -26,7 +26,7 @@ restart-hard:
 	@$(DC) $(DC_ALL) up -d --remove-orphans --force-recreate --renew-anon-volumes $(SERVICE)
 
 down:
-	@$(DC) $(DC_ALL) down --remove-orphans $(SERVICE)
+	@$(DC) $(DC_ALL) rm -sf $(SERVICE)
 
 down-everything:
 	@echo "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
