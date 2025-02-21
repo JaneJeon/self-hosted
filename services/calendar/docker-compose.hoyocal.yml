@@ -21,7 +21,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.hoyocal.tls.certresolver: letsencrypt
-      traefik.http.routers.hoyocal.rule: Host(`cal.${HOYO_HOST}`)
+      traefik.http.routers.hoyocal.rule: Host(`cal.${HOYO_HOST}`) && !Path(`/healthz`)
       traefik.http.services.hoyocal.loadbalancer.server.port: 3000
 
 networks:
