@@ -17,7 +17,7 @@
     "@janejeon/prettier-config": "^2.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.0",
-    "npm-run-all2": "^6.0.0",
+    "npm-run-all2": "^7.0.0",
     "prettier": "^3.0.0"
   }
 }
