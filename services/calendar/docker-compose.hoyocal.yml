@@ -16,7 +16,7 @@ services:
       - private
     environment:
       REDIS_URL: redis://redis:6379
-      FRONTEND_HOST: www.${HOYO_HOST}
+      FRONTEND_HOST: https://www.${HOYO_HOST}
       SENTRY_DSN: ${SENTRY_DSN_HOYOCAL}
     labels:
       traefik.enable: 'true'
