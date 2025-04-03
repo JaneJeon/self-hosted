@@ -18,7 +18,7 @@ services:
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: false
       TS_OUTBOUND_HTTP_PROXY_LISTEN: :3456
-      TS_EXTRA_ARGS: --accept-route
+      TS_EXTRA_ARGS: --accept-routes
 
 networks:
   subnet: {}
