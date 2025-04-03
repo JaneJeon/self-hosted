@@ -102,8 +102,9 @@ push-files:
 render:
 	$(PYTHON) ./scripts/render_all.py
 
+# Need to run `make restart` manually on config file changes
 deploy: check-config git-push render push-files
-	$(M) ssh-command COMMAND='$(M) restart prune'
+	$(M) ssh-command COMMAND='$(M) up prune'
 
 ssh:
 	ssh $(SERVER)
