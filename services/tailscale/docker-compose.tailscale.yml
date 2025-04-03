@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  tailscale:
+    image: tailscale/tailscale:v1.80.3
+    container_name: tailscale
+    restart: unless-stopped
+    networks:
+      - subnet
+    volumes:
+      - tailscale-data:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: false
+
+networks:
+  subnet: {}
+
+volumes:
+  tailscale-data: {}

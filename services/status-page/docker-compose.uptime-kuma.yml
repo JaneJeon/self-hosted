@@ -11,9 +11,12 @@ services:
       timeout: 5s
       retries: 3
       start_period: 60s
+    depends_on:
+      - tailscale
     networks:
       - public
       - private
+      - subnet
     volumes:
       - uptime-kuma-data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock # allow uptime kuma to monitor docker containers
@@ -27,6 +30,7 @@ services:
 networks:
   public: {}
   private: {}
+  subnet: {}
 
 volumes:
   uptime-kuma-data: {}
