@@ -17,6 +17,7 @@ services:
       TS_AUTHKEY: ${TS_AUTHKEY}
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: false
+      TS_OUTBOUND_HTTP_PROXY_LISTEN: 3456
 
 networks:
   subnet: {}
