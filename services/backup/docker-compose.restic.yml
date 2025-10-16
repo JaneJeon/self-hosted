@@ -41,7 +41,6 @@ services:
         docker exec uptime-kuma sh -c 'rm -f data/*.db.bak*'
       POST_COMMANDS_SUCCESS: |-
         curl -sS 'http://uptime-kuma:3001/api/push/vdP9McS4Pm?status=up&msg=OK&ping='
-      POST_COMMANDS_FAILURE: 'curl -X POST -d "text=backup failed" http://apprise:8000/notify/alerts'
 
   prune:
     image: mazzolino/restic:1.7.2

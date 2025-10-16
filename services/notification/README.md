@@ -1,1 +1,0 @@
-Apprise notification provider
