@@ -29,12 +29,12 @@
         blacklist: [], // You can blacklist some crons if you don't want to run them
         // You can use this site to generate cron expression: https://crontab.guru/
         checkIn: '0 20 * * *',
-        codeRedeem: '*/15 * * * *',
-        expedition: '0 */30 * * * *',
+        codeRedeem: '*/1 * * * *',
+        expedition: '0 */1 * * * *',
         missedCheckIn: '0 0 23 * * *',
         realmCurrency: '0 */1 * * *',
         shopStatus: '0 */1 * * *',
-        stamina: '0 */30 * * * *'
+        stamina: '0 */1 * * * *'
     },
     accounts: [
         {
@@ -107,13 +107,13 @@
                 // Account #1
                 {
                     cookie: '{{ env.HOYOLAB_COOKIE }}',
-                    redeemCode: false,
-                    dailiesCheck: false,
-                    weekliesCheck: false,
+                    redeemCode: true,
+                    dailiesCheck: true,
+                    weekliesCheck: true,
                     stamina: {
                         check: true,
-                        threshold: 230,
-                        persistent: true,
+                        threshold: 260,
+                        persistent: false,
                     },
                     expedition: {
                         check: true,
@@ -136,13 +136,13 @@
             data: [
                 {
                     cookie: '{{ env.HOYOLAB_COOKIE }}',
-                    redeemCode: false,
+                    redeemCode: true,
                     shopStatus: true, // This will check if your shop has finished selling videos
-                    dailiesCheck: false,
+                    dailiesCheck: true,
                     stamina: {
                         check: true,
                         threshold: 200,
-                        persistent: true,
+                        persistent: false,
                     },
                     discord: {
                         // Your Discord user ID to ping you when to do your dailies/weeklies
