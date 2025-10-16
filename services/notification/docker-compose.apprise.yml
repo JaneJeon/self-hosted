@@ -2,7 +2,7 @@ version: '3'
 
 services:
   apprise:
-    image: caronc/apprise:1.1
+    image: caronc/apprise:1.2
     container_name: apprise
     restart: unless-stopped
     healthcheck:
