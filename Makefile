@@ -11,7 +11,7 @@ SERVER=vultr
 ENV=. .env &&
 
 PYTHON_PATH=PYTHONPATH=. # we want everything to be relative to the workspace root
-VENV=poetry run # the commands might run in a different shell (CI/local/make), so we have to activate venv every time to be safe
+VENV=uv run # the commands might run in a different shell (CI/local/make), so we have to activate venv every time to be safe
 PYTHON=$(PYTHON_PATH) $(VENV) python
 PYTEST=$(PYTHON_PATH) $(VENV) pytest
 
