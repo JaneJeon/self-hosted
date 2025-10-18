@@ -2,7 +2,7 @@ version: '3'
 
 services:
   redis:
-    image: redis:7.4.1-alpine
+    image: redis:7.4.6-alpine
     container_name: redis
     restart: unless-stopped
     healthcheck:
