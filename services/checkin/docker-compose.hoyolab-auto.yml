@@ -2,7 +2,7 @@ version: '3'
 
 services:
   hoyolab-auto:
-    image: ghcr.io/janejeon/hoyolab-auto:20250121
+    image: ghcr.io/torikushiii/hoyolab-auto:latest
     container_name: hoyolab-auto
     restart: unless-stopped
     volumes:
