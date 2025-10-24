@@ -2,7 +2,7 @@ version: '3'
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1.23.16-alpine
+    image: louislam/uptime-kuma:1.23.17-alpine
     container_name: uptime-kuma
     restart: unless-stopped
     healthcheck:
