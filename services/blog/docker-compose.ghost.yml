@@ -2,7 +2,7 @@ version: '3'
 
 services:
   devblog:
-    image: ghost:5.105.0-alpine
+    image: ghost:5.130.5-alpine
     container_name: ghost-devblog
     restart: unless-stopped
     depends_on:
