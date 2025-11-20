@@ -2,7 +2,7 @@ version: '3'
 
 services:
   backup:
-    image: mazzolino/restic:1.7.2
+    image: mazzolino/restic:1.8.0
     container_name: restic-backup
     restart: unless-stopped
     networks:
@@ -43,7 +43,7 @@ services:
         curl -sS 'http://uptime-kuma:3001/api/push/vdP9McS4Pm?status=up&msg=OK&ping='
 
   prune:
-    image: mazzolino/restic:1.7.2
+    image: mazzolino/restic:1.8.0
     container_name: restic-prune
     restart: unless-stopped
     hostname: docker
@@ -57,7 +57,7 @@ services:
       TZ: ${TIMEZONE}
 
   check:
-    image: mazzolino/restic:1.7.2
+    image: mazzolino/restic:1.8.0
     container_name: restic-check
     restart: unless-stopped
     hostname: docker
