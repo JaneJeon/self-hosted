@@ -1,18 +1,42 @@
-#!/bin/sh
-set -e
+#!/bin/bash
+set -euo pipefail
 
-# Configure rclone for B2 via env vars (no config file needed)
-export RCLONE_CONFIG_B2_TYPE=b2
-export RCLONE_CONFIG_B2_ACCOUNT="${B2_APPLICATION_KEY_ID}"
-export RCLONE_CONFIG_B2_KEY="${B2_APPLICATION_KEY}"
+log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
 
-# Dump all databases (--skip-ssl: Railway internal network, no TLS needed)
-mysqldump --skip-ssl -h "${MYSQL_HOST}" -u root -p"${MYSQL_ROOT_PASSWORD}" --opt --all-databases > /tmp/dump.sql
+log "=== MySQL backup starting ==="
 
-# Upload to B2
-rclone copy /tmp/dump.sql "b2:${B2_BUCKET}/mysql-backups/$(date +%Y-%m-%d_%H%M%S).sql"
+: "${MYSQL_HOST:?}"
+: "${MYSQL_ROOT_PASSWORD:?}"
+: "${RESTIC_REPOSITORY:?}"
+: "${RESTIC_PASSWORD:?}"
+: "${B2_ACCOUNT_ID:?}"
+: "${B2_ACCOUNT_KEY:?}"
 
-rm /tmp/dump.sql
+log "Checking restic repository..."
+restic snapshots &>/dev/null || {
+  log "Repository not found — initializing..."
+  restic init
+}
 
-# Send heartbeat on success
-curl -fsS "${HEARTBEAT_URL}" > /dev/null || true
+log "Dumping all databases and streaming to restic..."
+restic backup \
+  --stdin-from-command \
+  --stdin-filename all-databases.sql \
+  --tag mysql \
+  -- mysqldump \
+       --skip-ssl \
+       --single-transaction \
+       --lock-tables=false \
+       -h "${MYSQL_HOST}" \
+       -u root \
+       -p"${MYSQL_ROOT_PASSWORD}" \
+       --all-databases
+
+log "Applying retention policy (keep-last 10, daily 7, weekly 5, monthly 12)..."
+restic forget --keep-last 10 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --prune
+
+log "=== Backup complete ==="
+if [[ -n "${HEARTBEAT_URL:-}" ]]; then
+  curl -fsS "${HEARTBEAT_URL}" > /dev/null
+  log "Heartbeat sent"
+fi
