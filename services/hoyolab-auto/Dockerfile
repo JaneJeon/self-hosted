@@ -9,4 +9,4 @@ COPY --chown=hoyolab:hoyolab config.json5.envsubst /app/config.json5.template
 
 # Fix volume mount ownership (volume dirs are created as root), render config,
 # then drop to unprivileged user to run the app
-CMD ["sh", "-c", "chown hoyolab:hoyolab /app/data && su-exec hoyolab sh -c 'envsubst \"$TELEGRAM_CHAT_ID $TELEGRAM_NOTIFICATIONS_BOT_TOKEN $HOYOLAB_COOKIE\" < /app/config.json5.template > /app/config.json5 && exec npm start'"]
+CMD ["sh", "-c", "chown hoyolab:hoyolab /app/data && envsubst '$TELEGRAM_CHAT_ID $TELEGRAM_NOTIFICATIONS_BOT_TOKEN $HOYOLAB_COOKIE' < /app/config.json5.template > /app/config.json5 && exec su-exec hoyolab npm start"]
