@@ -24,7 +24,7 @@ restic backup \
   --stdin-filename all-databases.sql \
   --tag mysql \
   -- mysqldump \
-       --skip-ssl \
+       --ssl-mode=DISABLED \
        --single-transaction \
        --lock-tables=false \
        -h "${MYSQL_HOST}" \
