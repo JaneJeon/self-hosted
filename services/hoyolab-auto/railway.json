@@ -6,6 +6,8 @@
   },
   "deploy": {
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
+    "restartPolicyMaxRetries": 3,
+    "overlapSeconds": 0,
+    "drainingSeconds": 0
   }
 }

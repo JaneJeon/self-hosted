@@ -1,3 +1,0 @@
-- logging: dozzle (for now)
-- monitoring: promstack
-- tracing: jaeger
