@@ -25,6 +25,7 @@ restic backup \
   --tag mysql \
   -- mysqldump \
        --ssl-mode=DISABLED \
+       --get-server-public-key \
        --single-transaction \
        --lock-tables=false \
        -h "${MYSQL_HOST}" \
