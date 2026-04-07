@@ -1,6 +1,7 @@
 FROM restic/restic:0.18.1 AS restic-source
 
 FROM mysql:8.4
+
 # restic is a static Go binary (CGO_ENABLED=0) — works on any Linux regardless of libc
 COPY --from=restic-source /usr/bin/restic /usr/local/bin/restic
 RUN microdnf install -y curl && microdnf clean all
