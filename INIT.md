@@ -95,6 +95,11 @@ sudo ufw-docker allow traefik 443/tcp
 
 sudo apt install jq
 
+# Installing hcloud CLI
+curl -fsSL https://github.com/hetznercloud/cli/releases/latest/download/hcloud-linux-amd64.tar.gz -o /tmp/hcloud.tar.gz
+tar -xzf /tmp/hcloud.tar.gz -C /tmp
+sudo mv /tmp/hcloud /usr/local/bin/hcloud
+
 # Swap
 ## Create Swap
 sudo dd if=/dev/zero of=/swapfile bs=1024 count=1048576 # 1GB
