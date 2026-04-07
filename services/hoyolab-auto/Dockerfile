@@ -1,5 +1,8 @@
 FROM ghcr.io/torikushiii/hoyolab-auto:latest
 
+ARG TZ=America/Los_Angeles
+ENV TZ=$TZ
+
 # Image runs as non-root 'hoyolab'; stay as root to install packages and run entrypoint
 USER root
 RUN apk add --no-cache gettext su-exec
