@@ -1,4 +1,4 @@
-FROM alpine:3.21 AS init-renderer
+FROM alpine:3.23 AS init-renderer
 RUN apk add --no-cache gettext
 
 ARG GHOST_MYSQL_DATABASE
