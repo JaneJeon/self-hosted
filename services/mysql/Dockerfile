@@ -15,6 +15,6 @@ RUN mkdir /rendered && \
         < "$f" > "/rendered/$(basename "${f%.envsubst}")"; \
     done
 
-FROM mysql:8.4.6
+FROM mysql:8.4.8
 COPY my.cnf /etc/mysql/conf.d/my.cnf
 COPY --from=init-renderer /rendered/ /docker-entrypoint-initdb.d/
