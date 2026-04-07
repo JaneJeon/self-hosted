@@ -1,4 +1,4 @@
-FROM tailscale/tailscale:v1.82.5
+FROM tailscale/tailscale:v1.94.2
 
 ARG TS_LOCAL_ADDR_PORT
 ENV TS_LOCAL_ADDR_PORT=$TS_LOCAL_ADDR_PORT
