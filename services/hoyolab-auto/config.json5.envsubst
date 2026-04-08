@@ -122,7 +122,7 @@
                         persistent: false,
                     },
                     expedition: {
-                        check: true,
+                        check: false,
                         persistent: false,
                     },
                     mimo: {
