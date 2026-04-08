@@ -1,4 +1,4 @@
-FROM ghcr.io/torikushiii/hoyolab-auto:latest
+FROM ghcr.io/janejeon/hoyolab-auto:sha-13c5d3f
 
 ARG TZ=America/Los_Angeles
 ENV TZ=$TZ
