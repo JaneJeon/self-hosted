@@ -33,12 +33,14 @@
         blacklist: [], // You can blacklist some crons if you don't want to run them
         // You can use this site to generate cron expression: https://crontab.guru/
         checkIn: '0 0 * * *',
+        codeRedeem: '*/15 * * * *',
+        expedition: '*/30 * * * *',
+        mimo: '0 */6 * * *',
+        mimoJitter: 19, // Random delay in seconds before running Mimo (0-N). Helps avoid rate limits at reset time.
         missedCheckIn: '0 23 * * *',
-        codeRedeem: '2 */1 * * *',
-        expedition: '4 */1 * * *',
-        realmCurrency: '6 */1 * * *',
-        stamina: '15 */1 * * * *',
-        shopStatus: '0 */6 * * *'
+        realmCurrency: '0 */1 * * *',
+        shopStatus: '0 */1 * * *',
+        stamina: '*/2 * * * *',
     },
     accounts: [
         {
@@ -123,6 +125,13 @@
                         check: true,
                         persistent: false,
                     },
+                    mimo: {
+                        check: true,
+                        redeem: true,
+                        lottery: true,
+                        reservePoints: 0,
+                        redeemDraw: true,
+                    },
                     discord: {
                         // Your Discord user ID to ping you when to do your dailies/weeklies
                         // or when your stamina is above the threshold and your expedition is done
@@ -143,6 +152,13 @@
                     redeemCode: true,
                     shopStatus: true, // This will check if your shop has finished selling videos
                     dailiesCheck: true,
+                    mimo: {
+                        check: true,
+                        redeem: true,
+                        lottery: true,
+                        reservePoints: 0,
+                        redeemDraw: true,
+                    },
                     stamina: {
                         check: true,
                         threshold: 200,
