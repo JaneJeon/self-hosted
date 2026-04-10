@@ -17,7 +17,7 @@ graph LR
     subgraph RW["Railway"]
         TS_RW["Subnet Router\n(--accept-routes)\n100.y.y.y"]
         APP["App A\n(NOT on tailnet)"]
-        TS_RW ---|"railway internal"| APP
+        TS_RW ---|"railway internal\nIPv6 only (fd12::)"| APP
     end
 
     TS_HA <-->|"tailnet"| TS_RW
@@ -30,77 +30,98 @@ graph LR
 
 ## What Works
 
-**My computer → HA stuff:** Works. My computer is a full tailnet
-node. The Tailscale daemon adds routes for HA's advertised subnet
-and handles DNS. Traffic goes through the tailnet to the HA
-Tailscale add-on, which forwards it across the Docker bridge to
-Uptime Kuma.
+**My computer → HA stuff:** Works. Full Tailscale client handles
+routing and DNS automatically.
 
-**My computer → Railway stuff:** Works. Same mechanism. Tailscale
-daemon routes traffic to Railway's subnet router, which forwards
-to sibling containers. Split DNS resolves `*.railway.internal`.
+**My computer → Railway stuff:** Works. Same mechanism. Split DNS
+resolves `*.railway.internal`.
 
 ## What Doesn't Work
 
-**HA Uptime Kuma → Railway (or any tailnet IP):** Broken.
-Uptime Kuma is a separate container. It has no route to
-`100.64.0.0/10`. Its default gateway is HA's regular network
-stack (home router), which doesn't know tailnet IPs. DNS also
-fails: it uses HA's resolver, not MagicDNS.
+**HA Uptime Kuma → Railway:** Broken.
+**Railway App → HA:** Broken.
 
-**Railway App → HA (or any tailnet IP):** Broken. Same problem,
-other direction. Railway containers route through Railway's
-default gateway and use Railway's DNS.
+Neither direction works because containers behind subnet routers
+are not on the tailnet — they're merely reachable FROM the tailnet.
 
 ## Why It's Broken
 
-A **subnet router** does two things:
+A **subnet router** lets tailnet nodes reach in to a local network.
+It does NOT let sibling containers reach out to the tailnet.
 
-1. Advertises a local subnet to the tailnet (lets tailnet nodes reach in)
-2. Optionally accepts other nodes' routes (`--accept-routes`)
-
-It does **NOT**:
-
-- Act as a gateway for sibling containers' outbound traffic
-- Inject routes or DNS config into sibling containers
-
-My computer works because the Tailscale daemon running on it
-automatically:
+My computer works because the Tailscale daemon automatically:
 
 1. Adds OS-level routes: "send `100.64.0.0/10` through `tailscale0`"
-2. Intercepts DNS: resolves MagicDNS names and split DNS domains
+2. Intercepts DNS: resolves MagicDNS and split DNS domains
 
-The containers behind each subnet router have neither. They are
-not on the tailnet. They are merely _reachable from_ the tailnet.
+Containers behind subnet routers have neither.
 
-**Subnet routers are inbound-only gateways by default.**
+**Subnet routers are inbound-only gateways.**
 
-## What Would Fix It
+## What We Tried (April 2026)
 
-### Option A: Make the subnet router a real gateway
+### `userspace_networking: false` on HA Tailscale add-on
 
-Tell sibling containers to route `100.64.0.0/10` through the
-subnet router's local IP, and use it for tailnet DNS. Requires
-control over container networking, which Railway and HA Green
-don't expose.
+**Result: Partial success, ultimately a dead end.**
 
-### Option B: Run Tailscale in the containers that need it
+- Setting `userspace_networking: false` DID allow pinging the
+  Railway subnet router's Tailscale IP (`100.76.68.37`) from the
+  HA terminal. So IPv4 Tailscale IP routing worked.
+- BUT: Railway's internal network is **IPv6-only** (`fd12::`).
+  Pinging any `fd12::` address returned "Network unreachable".
+  The accepted IPv6 subnet routes were never installed in the
+  host routing table.
+- HA Green lacks kernel WireGuard support — even with the setting
+  off, logs showed "configuring userspace WireGuard config".
+  Userspace WireGuard handles Tailscale IPs internally but does
+  not install IPv6 subnet routes into the host.
+- Additionally, this setting caused a **DNS loop**: the
+  `homeassistant` split DNS entry pointed to HA's own Tailscale IP
+  (`100.116.3.8`), causing DNS queries to loop to itself and
+  saturate at 150 concurrent queries. Removing the `homeassistant`
+  split DNS entry from the Tailscale admin console would fix the
+  loop, but the IPv6 routing issue remains.
+- **Reverted to `userspace_networking: true`.**
 
-Install the Tailscale client directly in the containers that
-need cross-site access. Makes them full tailnet nodes. Works
-but breaks the clean subnet router pattern.
+### Why this is a dead end for HA Green + Railway specifically
 
-### Option C: `userspace_networking: false` (HA side only)
+The combination of:
 
-The community HA Tailscale add-on has a `userspace_networking`
-option. When set to `false`, it creates a `tailscale0` interface
-on the host and enables bidirectional communication, MagicDNS
-proxies, and network forwarding — potentially allowing other
-add-ons to route through it. Only solves the HA side.
+1. HA Green lacking kernel WireGuard (no real `tailscale0` routes)
+2. Railway using IPv6-only internal networking (`fd12::`)
+3. No host-level shell access on HA Green to manually add routes
+
+...means the HA Tailscale add-on cannot route IPv6 accepted subnet
+traffic for other add-on containers. Even if IPv4 worked, there's
+no IPv4 path into Railway's internal network.
+
+## What Would Actually Fix It
+
+### Option A: Run Tailscale in the containers that need it
+
+Install the Tailscale client directly in the Railway Uptime Kuma
+container and/or the HA Uptime Kuma add-on. Makes them full tailnet
+nodes. Works but breaks the clean subnet router pattern and adds
+operational complexity.
+
+### Option B: Use an external monitoring approach
+
+Instead of having the two Uptime Kuma instances monitor each other
+directly, use a third monitoring point (e.g., my computer, or a
+VPS with Tailscale) that can reach both sides, since it's a full
+tailnet node.
+
+### Option C: Wait for improvements
+
+The HA Tailscale add-on or Tailscale itself may eventually support
+proper gateway mode for containerized environments, or Railway may
+add IPv4 internal networking.
 
 ## TL;DR
 
 Subnet routers let the tailnet reach **in**. They don't let
 sibling containers reach **out**. My computer can reach both
 sides because it runs a full Tailscale client. The containers
-don't, so they can't.
+don't, so they can't. On HA Green specifically, even
+`userspace_networking: false` can't fix IPv6 subnet routing
+because there's no kernel WireGuard support.
