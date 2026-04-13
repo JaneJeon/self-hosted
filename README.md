@@ -9,15 +9,14 @@ All services run on Railway in a single project. Each service has its own direct
 
 ### Services
 
-| Service                    | Image Base                         | Purpose                               | Schedule        |
-| -------------------------- | ---------------------------------- | ------------------------------------- | --------------- |
-| **mysql**                  | `mysql:8.4`                        | Shared MySQL database                 | Persistent      |
-| **ghost**                  | `ghost`                            | Blog (janejeon.blog)                  | Persistent      |
-| **uptime-kuma**            | `louislam/uptime-kuma:2-slim`      | Monitoring & status page              | Persistent      |
-| **hoyolab-auto**           | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in                | Persistent      |
-| **mysql-backup**           | `mysql:8.4` + restic               | Incremental MySQL backups to B2       | Cron (3 AM UTC) |
-| **Tailscale**              | `tailscale`                        | VPN subnet router                     | Persistent      |
-| **grafana-image-renderer** | `grafana/grafana-image-renderer`   | Server-side panel/dashboard rendering | Persistent      |
+| Service          | Image Base                         | Purpose                         | Schedule        |
+| ---------------- | ---------------------------------- | ------------------------------- | --------------- |
+| **mysql**        | `mysql:8.4`                        | Shared MySQL database           | Persistent      |
+| **ghost**        | `ghost`                            | Blog (janejeon.blog)            | Persistent      |
+| **uptime-kuma**  | `louislam/uptime-kuma:2-slim`      | Monitoring & status page        | Persistent      |
+| **hoyolab-auto** | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in          | Persistent      |
+| **mysql-backup** | `mysql:8.4` + restic               | Incremental MySQL backups to B2 | Cron (3 AM UTC) |
+| **Tailscale**    | `tailscale`                        | VPN subnet router               | Persistent      |
 
 ### How services connect
 
