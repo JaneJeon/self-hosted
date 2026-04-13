@@ -1,6 +1,6 @@
 # Agent Operations Guide
 
-Operational knowledge for AI agents working on this repo. For project docs, see [README.md](README.md).
+Operational knowledge for AI agents working on this repo. For project docs, see [README.md](README.md). For service-specific details, read the `README.md` in each service's directory under `services/`.
 
 ## Golden rules
 
