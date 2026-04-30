@@ -33,6 +33,31 @@ railway link -e production -s <name> && railway volume add --mount-path <path>
 - View build logs (dashboard only)
 - Trigger a cron job manually (dashboard only)
 
+### Railway link scope
+
+**Always run `railway service link` from within the service directory (`services/<name>/`), never from the repo root.** The repo root has no linked service — each service manages its own Railway context inside its own directory.
+
+To add a volume to a service:
+
+```bash
+cd services/<name>
+railway service link <service-name>
+railway volume add --mount-path <path>
+```
+
+### Secrets management (swarp + 1Password)
+
+Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. Each service directory has an `.envrc` that auto-loads `.env` via direnv.
+
+To inject secrets into Railway without exposing values:
+
+```bash
+cd services/<name>
+swarp secrets refresh      # populates .env from 1Password
+set -a && source .env && set +a
+railway variable set "KEY=$KEY" ... --service <service-name>
+```
+
 ### Multi-workspace gotcha
 
 If `railway link` fails with `--workspace required in non-interactive mode`, pass the workspace ID explicitly. Get it from `railway whoami --json`.
