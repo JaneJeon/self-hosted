@@ -15,12 +15,12 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 
 ### Environment variables
 
-| Variable               | Required | Purpose                                     |
-| ---------------------- | -------- | ------------------------------------------- |
-| `HOME_ADDRESS`         | Yes      | URL-encoded street address (Xfinity format) |
-| `TELEGRAM_BOT_TOKEN`   | Yes      | Telegram Bot API token                      |
-| `TELEGRAM_CHAT_ID`     | Yes      | Telegram chat ID for notifications          |
-| `UPTIME_KUMA_PUSH_URL` | No       | Uptime Kuma push monitor URL                |
+| Variable             | Required | Purpose                                     |
+| -------------------- | -------- | ------------------------------------------- |
+| `HOME_ADDRESS`       | Yes      | URL-encoded street address (Xfinity format) |
+| `TELEGRAM_BOT_TOKEN` | Yes      | Telegram Bot API token                      |
+| `TELEGRAM_CHAT_ID`   | Yes      | Telegram chat ID for notifications          |
+| `HEARTBEAT_URL`      | No       | Uptime Kuma push monitor URL                |
 
 ### Volume
 
