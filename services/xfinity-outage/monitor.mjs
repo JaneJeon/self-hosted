@@ -1,4 +1,13 @@
-import { readFileSync, writeFileSync, renameSync, existsSync } from 'node:fs'
+import {
+  readFileSync,
+  writeFileSync,
+  renameSync,
+  existsSync,
+  mkdirSync,
+  accessSync,
+  constants
+} from 'node:fs'
+import { dirname } from 'node:path'
 
 const STATE_PATH = '/data/last_state.json'
 const XFINITY_ORIGIN = 'https://www.xfinity.com'
@@ -21,6 +30,7 @@ function createFileStore(path) {
       }
     },
     save(state) {
+      mkdirSync(dirname(path), { recursive: true })
       const tmp = path + '.tmp'
       writeFileSync(tmp, JSON.stringify(state, null, 2), 'utf8')
       renameSync(tmp, path) // atomic on unix
@@ -235,6 +245,29 @@ async function sendTelegram(token, chatId, text) {
 
 async function main() {
   log('=== Xfinity outage check starting ===')
+  log(`Node ${process.version} on ${process.platform}/${process.arch}`)
+
+  const envKeys = [
+    'HOME_ADDRESS',
+    'TELEGRAM_BOT_TOKEN',
+    'TELEGRAM_CHAT_ID',
+    'UPTIME_KUMA_PUSH_URL'
+  ]
+  for (const k of envKeys)
+    log(`env ${k}: ${process.env[k] ? 'set' : 'MISSING'}`)
+
+  const dataDir = dirname(STATE_PATH)
+  const dataDirExists = existsSync(dataDir)
+  let dataDirWritable = false
+  if (dataDirExists) {
+    try {
+      accessSync(dataDir, constants.W_OK)
+      dataDirWritable = true
+    } catch {}
+  }
+  log(
+    `state dir ${dataDir}: exists=${dataDirExists} writable=${dataDirWritable}`
+  )
 
   const address = requireEnv('HOME_ADDRESS')
   const tgToken = requireEnv('TELEGRAM_BOT_TOKEN')
