@@ -8,6 +8,9 @@ import {
   constants
 } from 'node:fs'
 import { dirname } from 'node:path'
+import pino from 'pino'
+
+const logger = pino()
 
 const STATE_PATH = '/data/last_state.json'
 const XFINITY_ORIGIN = 'https://www.xfinity.com'
@@ -23,8 +26,9 @@ function createFileStore(path) {
       try {
         return JSON.parse(readFileSync(path, 'utf8'))
       } catch (e) {
-        log(
-          `Warning: could not parse state file, treating as first run (${e.message})`
+        logger.warn(
+          { err: e },
+          'could not parse state file, treating as first run'
         )
         return null
       }
@@ -36,10 +40,6 @@ function createFileStore(path) {
       renameSync(tmp, path) // atomic on unix
     }
   }
-}
-
-function log(msg) {
-  console.log(`[${new Date().toISOString()}] ${msg}`)
 }
 
 function requireEnv(name) {
@@ -244,47 +244,52 @@ async function sendTelegram(token, chatId, text) {
 }
 
 async function main() {
-  log('=== Xfinity outage check starting ===')
-  log(`Node ${process.version} on ${process.platform}/${process.arch}`)
-
-  const envKeys = [
-    'HOME_ADDRESS',
-    'TELEGRAM_BOT_TOKEN',
-    'TELEGRAM_CHAT_ID',
-    'UPTIME_KUMA_PUSH_URL'
-  ]
-  for (const k of envKeys)
-    log(`env ${k}: ${process.env[k] ? 'set' : 'MISSING'}`)
+  logger.info('starting')
 
   const dataDir = dirname(STATE_PATH)
   const dataDirExists = existsSync(dataDir)
-  let dataDirWritable = false
-  if (dataDirExists) {
-    try {
-      accessSync(dataDir, constants.W_OK)
-      dataDirWritable = true
-    } catch {}
-  }
-  log(
-    `state dir ${dataDir}: exists=${dataDirExists} writable=${dataDirWritable}`
+  logger.info(
+    {
+      node: process.version,
+      platform: process.platform,
+      arch: process.arch,
+      stateDir: dataDir,
+      stateDirExists: dataDirExists,
+      stateDirWritable: dataDirExists
+        ? (() => {
+            try {
+              accessSync(dataDir, constants.W_OK)
+              return true
+            } catch {
+              return false
+            }
+          })()
+        : false,
+      env: {
+        HOME_ADDRESS: !!process.env.HOME_ADDRESS,
+        TELEGRAM_BOT_TOKEN: !!process.env.TELEGRAM_BOT_TOKEN,
+        TELEGRAM_CHAT_ID: !!process.env.TELEGRAM_CHAT_ID,
+        HEARTBEAT_URL: !!process.env.HEARTBEAT_URL
+      }
+    },
+    'diagnostics'
   )
 
   const address = requireEnv('HOME_ADDRESS')
   const tgToken = requireEnv('TELEGRAM_BOT_TOKEN')
   const tgChatId = requireEnv('TELEGRAM_CHAT_ID')
-  const heartbeatUrl = process.env.UPTIME_KUMA_PUSH_URL
+  const heartbeatUrl = process.env.HEARTBEAT_URL
 
   const store = createFileStore(STATE_PATH)
 
   const token = await getSessionToken()
-  log('Session token obtained')
+  logger.info('session token obtained')
 
   const data = await fetchOutageStatus(token, address)
   const newState = extractState(data)
-  log(
-    `Outage status: ${
-      newState.hasOutage ? `YES — ${newState.outageType}` : 'none'
-    }`
+  logger.info(
+    { hasOutage: newState.hasOutage, outageType: newState.outageType },
+    'outage status'
   )
 
   const oldState = store.load()
@@ -293,9 +298,9 @@ async function main() {
   if (changes.length > 0) {
     const msg = buildMessage(changes, newState)
     await sendTelegram(tgToken, tgChatId, msg)
-    log(`Notification sent: ${changes.map(c => c.type).join(', ')}`)
+    logger.info({ changes: changes.map(c => c.type) }, 'notification sent')
   } else {
-    log('No change detected')
+    logger.info('no change detected')
   }
 
   store.save(newState)
@@ -303,13 +308,13 @@ async function main() {
   if (heartbeatUrl) {
     const resp = await fetch(heartbeatUrl)
     if (!resp.ok) throw new Error(`Heartbeat returned HTTP ${resp.status}`)
-    log('Heartbeat sent')
+    logger.info('heartbeat sent')
   }
 
-  log('=== Xfinity outage check complete ===')
+  logger.info('done')
 }
 
 main().catch(err => {
-  console.error(`[${new Date().toISOString()}] FATAL: ${err.message}`)
+  logger.fatal({ err }, 'unhandled error')
   process.exit(1)
 })

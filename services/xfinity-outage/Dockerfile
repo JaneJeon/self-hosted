@@ -1,3 +1,6 @@
 FROM node:22-alpine
-COPY monitor.mjs /usr/local/bin/monitor.mjs
-CMD ["node", "/usr/local/bin/monitor.mjs"]
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY monitor.mjs ./
+CMD ["node", "monitor.mjs"]
