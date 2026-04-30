@@ -9,6 +9,7 @@ Operational knowledge for AI agents working on this repo. For project docs, see 
 3. **Never use `--no-verify`** when committing.
 4. **Don't expose secrets** — use `direnv` (`.envrc`) for local env vars, Railway CLI for remote. Never hardcode credentials or print them in plaintext.
 5. **Test before you push** — for any service with a Dockerfile, build and run it locally before pushing. Use Docker to replicate the Railway runtime exactly. Validate early, validate often, and question every assumption about what will happen in production.
+6. **One logical change per commit** — no mega-commits. Each commit should be one coherent unit: a rename, a dependency addition, a config change. Makes history readable and reverts surgical.
 
 ## Railway CLI patterns
 
@@ -36,7 +37,7 @@ railway link -e production -s <name> && railway volume add --mount-path <path>
 
 ### Railway link scope
 
-**Always run `railway service link` from within the service directory (`services/<name>/`), never from the repo root.** The repo root has no linked service — each service manages its own Railway context inside its own directory.
+**Always `cd services/<name>` and run `railway service link <service-name>` before doing any Railway CLI work on a service.** The repo root has no linked service — each service manages its own Railway context inside its own directory. This is ergonomic for you AND makes it clear to the user which service you're operating on.
 
 To add a volume to a service:
 
@@ -45,6 +46,10 @@ cd services/<name>
 railway service link <service-name>
 railway volume add --mount-path <path>
 ```
+
+### Variable changes trigger immediate redeployment
+
+**Setting, renaming, or deleting a Railway variable triggers an immediate rebuild and deploy.** Make sure code changes are committed and pushed (or the service is otherwise ready) BEFORE touching variables. Never change variables as a standalone step mid-implementation.
 
 ### Secrets management (swarp + 1Password)
 
