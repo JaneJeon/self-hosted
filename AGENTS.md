@@ -166,6 +166,55 @@ restic unlock                             # break stale locks
 - The `2-slim` image has no embedded database; it requires external MySQL
 - Push monitors (`/api/push/<token>?status=up&msg=OK&ping=`) are used for cron health monitoring — the cron pings ONLY on success, so a missed ping triggers an alert
 
+## Shell patterns
+
+### Reading files with spaces in their paths
+
+The `Read` tool fails on paths containing spaces. Copy to a safe path first:
+
+```bash
+find "/path/with spaces/to/dir" -name "filename*" -exec cp {} /tmp/safe_name \;
+# then read /tmp/safe_name
+```
+
+### curl
+
+Always specify the HTTP method explicitly and never use `-s` (silent mode):
+
+```bash
+curl -X GET "https://..."
+curl -X POST "https://..." -H "Content-Type: application/json" -d '{...}'
+```
+
+`-s` suppresses output, which breaks prefix-based auto-approval in Claude Code. Pass this rule to any subagent that makes HTTP requests.
+
+### git
+
+**Always run git commands from the repo root** (`/Users/janejeon/Projects/janejeon/self-hosted`). Running git from a service subdirectory causes commands to hang indefinitely.
+
+```bash
+# correct
+git -C /path/to/repo status
+git add services/mysql/my.cnf
+git commit -m "..."
+
+# wrong — hangs
+cd services/mysql && git status
+```
+
+### Railway deploy wait loop
+
+`status` is a read-only variable in zsh. Use a different name:
+
+```bash
+for i in $(seq 1 20); do
+  sleep 10
+  deploy_status=$(railway service status --json 2>/dev/null | jq -r '.status')
+  echo "$(date +%H:%M:%S) $deploy_status"
+  [ "$deploy_status" = "SUCCESS" ] && break
+done
+```
+
 ## Common mistakes to avoid
 
 - Using `--skip-ssl` with real MySQL client (MariaDB-only flag)
