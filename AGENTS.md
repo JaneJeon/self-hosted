@@ -193,13 +193,16 @@ curl -X POST "https://..." -H "Content-Type: application/json" -d '{...}'
 **Always run git commands from the repo root** (`/Users/janejeon/Projects/janejeon/self-hosted`). Running git from a service subdirectory causes commands to hang indefinitely.
 
 ```bash
-# correct
-git -C /path/to/repo status
+# correct — run from repo root, action first
+git status
 git add services/mysql/my.cnf
 git commit -m "..."
 
 # wrong — hangs
 cd services/mysql && git status
+
+# wrong — path before action; hard to read in approval prompts
+git -C /path/to/repo status
 ```
 
 ### Railway deploy wait loop
