@@ -6,6 +6,19 @@ Uses `caching_sha2_password` authentication by default. This is incompatible wit
 
 Init scripts use `envsubst` at build time (multi-stage Dockerfile) and only run on a fresh empty data directory.
 
+## Memory
+
+`performance_schema` is disabled. When enabled, it pre-allocates ~226 MB in fixed-size tables
+(statement digests, error summaries, wait histories, etc.), pushing total RSS from ~200 MB to ~400 MB.
+The InnoDB footprint itself is only ~74 MB (`ut0link_buf` 24 MB + buffer pool 20 MB + log buffer 8 MB +
+sync structures ~7 MB + misc).
+
+The ~3–4 MB/day RSS growth observed over weeks is **glibc malloc fragmentation**, not a data leak.
+Evidence: `Com_insert ≈ Com_delete` (Uptime Kuma heartbeat churn keeps the dataset near steady-state),
+so MySQL's tracked allocations stay flat while the OS RSS creeps up — freed memory is held by the
+allocator rather than returned to the OS. The only fixes are switching to jemalloc (requires a custom
+image) or accepting periodic restarts.
+
 ## Volume
 
 Mounts at `/var/lib/mysql`.
