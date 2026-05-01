@@ -16,5 +16,12 @@ RUN mkdir /rendered && \
     done
 
 FROM mysql:8.4.8
+
+# jemalloc eliminates ~3-4 MB/day RSS growth from glibc malloc fragmentation (see README § Memory)
+RUN microdnf install -y oracle-epel-release-el9 \
+    && microdnf install -y jemalloc \
+    && microdnf clean all
+ENV LD_PRELOAD=/usr/lib64/libjemalloc.so.2
+
 COPY my.cnf /etc/mysql/conf.d/my.cnf
 COPY --from=init-renderer /rendered/ /docker-entrypoint-initdb.d/

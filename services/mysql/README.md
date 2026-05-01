@@ -16,8 +16,11 @@ sync structures ~7 MB + misc).
 The ~3–4 MB/day RSS growth observed over weeks is **glibc malloc fragmentation**, not a data leak.
 Evidence: `Com_insert ≈ Com_delete` (Uptime Kuma heartbeat churn keeps the dataset near steady-state),
 so MySQL's tracked allocations stay flat while the OS RSS creeps up — freed memory is held by the
-allocator rather than returned to the OS. The only fixes are switching to jemalloc (requires a custom
-image) or accepting periodic restarts.
+allocator rather than returned to the OS.
+
+**Fix:** The Dockerfile installs jemalloc from Oracle EPEL and sets `LD_PRELOAD=/usr/lib64/libjemalloc.so.2`.
+jemalloc's size-class allocator returns memory to the OS promptly, eliminating the RSS drift. This is the
+same approach Percona Server uses internally.
 
 ## Volume
 
