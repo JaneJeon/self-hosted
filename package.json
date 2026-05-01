@@ -9,6 +9,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@aetherball/swarp": "^0.4.0",
     "@janejeon/prettier-config": "^2.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^16.0.0",
