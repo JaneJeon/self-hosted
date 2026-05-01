@@ -22,3 +22,13 @@ image) or accepting periodic restarts.
 ## Volume
 
 Mounts at `/var/lib/mysql`.
+
+## Binary logging
+
+Binary logging is disabled via `skip-log-bin`. There is no replication and no point-in-time recovery configured, so binlogs were accumulating ~3.4 MB/day on the volume with no consumer.
+
+If replication or PITR is ever set up, remove `skip-log-bin` and add a retention policy (`binlog_expire_logs_seconds`).
+
+## InnoDB redo log
+
+`innodb_redo_log_capacity` is set to 64M. The MySQL 8.0.30+ default is 100M; we previously used 10M to save disk space, but that caused excessive checkpoint pressure — InnoDB was forced to flush dirty pages far too aggressively to keep the log from filling. 64M eliminates the churn while staying well under the default.
