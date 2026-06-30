@@ -1,4 +1,4 @@
-FROM restic/restic:0.18.1 AS restic-source
+FROM restic/restic:0.19.0 AS restic-source
 
 FROM mysql:8.4
 
