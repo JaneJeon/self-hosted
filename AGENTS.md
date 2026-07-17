@@ -168,43 +168,6 @@ restic unlock                             # break stale locks
 
 ## Shell patterns
 
-### Reading files with spaces in their paths
-
-The `Read` tool fails on paths containing spaces. Copy to a safe path first:
-
-```bash
-find "/path/with spaces/to/dir" -name "filename*" -exec cp {} /tmp/safe_name \;
-# then read /tmp/safe_name
-```
-
-### curl
-
-Always specify the HTTP method explicitly and never use `-s` (silent mode):
-
-```bash
-curl -X GET "https://..."
-curl -X POST "https://..." -H "Content-Type: application/json" -d '{...}'
-```
-
-`-s` suppresses output, which breaks prefix-based auto-approval in Claude Code. Pass this rule to any subagent that makes HTTP requests.
-
-### git
-
-**Always run git commands from the repo root** (`/Users/janejeon/Projects/janejeon/self-hosted`). Running git from a service subdirectory causes commands to hang indefinitely.
-
-```bash
-# correct — run from repo root, action first
-git status
-git add services/mysql/my.cnf
-git commit -m "..."
-
-# wrong — hangs
-cd services/mysql && git status
-
-# wrong — path before action; hard to read in approval prompts
-git -C /path/to/repo status
-```
-
 ### Railway deploy wait loop
 
 `status` is a read-only variable in zsh. Use a different name:
