@@ -2,6 +2,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "pino": "^9"
+    "pino": "^10.0.0"
   }
 }
