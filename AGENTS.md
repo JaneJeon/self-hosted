@@ -53,7 +53,9 @@ railway volume add --mount-path <path>
 
 ### Secrets management (swarp + 1Password)
 
-Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. Each service directory has an `.envrc` that auto-loads `.env` via direnv.
+Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. The root `.env.template` holds only `RAILWAY_TOKEN` (Railway CLI). Service-specific secrets (e.g. B2/restic for `mysql-backup`) live in that service's `.env.template`.
+
+Each service directory has an `.envrc` that calls `source_up` to inherit the root env (Railway token). Services with their own secrets add `dotenv .env` after `source_up`.
 
 To inject secrets into Railway without exposing values:
 
@@ -75,7 +77,7 @@ If `railway link` fails with `--workspace required in non-interactive mode`, pas
    - Empty logs on a cron service is normal between runs
 3. **Check env vars**: `railway variable list --service <name> --json | jq 'keys'`
 4. **SSH in**: `railway ssh --service <name> -- "<command>"`
-5. **Check B2 backups**: use `direnv exec . rclone` or `restic snapshots` with env vars from `.envrc`
+5. **Check B2 backups**: `cd services/mysql-backup && swarp secrets refresh`, then `direnv exec . restic snapshots`
 
 ## MySQL 8.4 compatibility
 
