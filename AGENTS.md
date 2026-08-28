@@ -140,20 +140,23 @@ railway volume add --mount-path <path>
 
 **Setting, renaming, or deleting a Railway variable triggers an immediate rebuild and deploy.** Make sure code changes are committed and pushed (or the service is otherwise ready) BEFORE touching variables. Never change variables as a standalone step mid-implementation.
 
-### A variable change alone may not reach the container
+### Debugging "the variable is right but the service acts wrong"
 
-Setting a variable triggers a redeploy, but a redeploy that reuses a cached
-build can start the container with a **stale environment snapshot**. Observed
-2026-08-28: `HOYOLAB_COOKIE` was updated and `railway variable list` returned
-the new value, yet two successive redeploys produced containers still parsing
-the old one.
+`railway variable list` and `railway environment config -e <env> --json` are
+different views: `environment config` shows the **committed configuration that
+deployments actually use**, per service, including the exact bytes of every
+variable. When a service behaves as if it has a different value than the
+dashboard shows, diff the two before inventing theories about caching.
 
-Railway also dedupes on value, so re-setting the same value is a no-op and
-triggers nothing. To force the new value in, make a real code change matching
-the service's `watchPatterns` and push — which is the GitOps path anyway.
+Also: Railway dedupes on value — re-setting a variable to its current value is
+a no-op (the triggered deploy shows as SKIPPED) and will not restart anything.
 
-Symptom to watch for: the service logs behaviour consistent with the previous
-secret while the dashboard shows the new one.
+The 2026-08-28 hoyolab incident that motivated this section: the "wrong" value
+was never stale — the stored cookie began with a **leading space**, so the
+app's non-trimming `split("; ")` parser read the first cookie's key as
+`" account_mid_v2"` and disabled redemption. The bytes in `environment config`
+settled in minutes what hours of redeploy theories could not. Check the actual
+bytes (leading/trailing whitespace especially) before anything else.
 
 ### Secrets management (swarp + 1Password)
 
