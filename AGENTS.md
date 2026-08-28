@@ -46,12 +46,22 @@ cause, or only the symptom?
 it. Verify from the service's own behaviour — its logs — not from control-plane
 state. See [A variable change alone may not reach the container](#a-variable-change-alone-may-not-reach-the-container).
 
-### Prefer primary evidence over deduction
+### Reality first: read the failing thing before theorizing about it
 
-The cookie root cause was pinned by reading `#parseCookie` and the bot's own log
-lines, not by reasoning about what "should" happen. When a deduction and a log
-disagree, the log wins. If retention has aged out the evidence, say so rather
-than reconstructing a plausible story.
+When a system misbehaves, the FIRST action is to read its actual state at the
+finest grain available — the exact bytes of its config, its own logs, the
+surface closest to the failing code. Not the dashboard, not a view, not your
+memory of what was set. The 2026-08-28 cookie incident burned hours on four
+successive theories (stale env, build cache, staged changes, needs-rebuild)
+while `railway environment config -e production --json` would have shown the
+answer — a leading space in the value — in one command, at any point.
+
+A theory is only worth holding after naming the observation that would falsify
+it; if that observation costs one command, run the command instead. Your second
+theory about the same symptom is the signal that you are avoiding a read. When
+a deduction and a log disagree, the log wins. If retention has aged out the
+evidence, say "I could not verify" rather than reconstructing a plausible
+story.
 
 ### Match the conventions of the file you are editing
 
@@ -185,6 +195,9 @@ If `railway link` fails with `--workspace required in non-interactive mode`, pas
 
 ## Debugging workflow
 
+0. **Read the failing component's actual state first** — exact bytes, own logs
+   (see "Reality first" above). For variables: `railway environment config -e production --json`,
+   and check leading/trailing whitespace before anything else.
 1. **Check status**: `railway service status --all --json`
 2. **Check logs**: `railway logs --service <name> --lines 100`
    - Empty logs on a cron service is normal between runs
