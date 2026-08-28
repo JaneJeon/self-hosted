@@ -1,0 +1,44 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Golden rule 5 (AGENTS.md), attached to the action: every service whose files
+# this push changes must have its Docker image build locally before the push
+# is allowed. A missing file in a COPY list survives npm test and crashes only
+# in production (see Library/Incidents 2026-08-28, PD #122) — the build is the
+# only check that catches packaging.
+#
+# Stdin lines per githooks(5): <local-ref> <local-oid> <remote-ref> <remote-oid>
+
+zero=0000000000000000000000000000000000000000
+services=""
+
+while read -r local_ref local_oid remote_ref remote_oid; do
+  [ "$local_ref" = "(delete)" ] && continue
+  [ "$local_oid" = "$zero" ] && continue
+  if [ "$remote_oid" = "$zero" ]; then
+    base=$(git merge-base origin/master "$local_oid" 2>/dev/null) || base="${local_oid}~1"
+  else
+    base=$remote_oid
+  fi
+  changed=$(git diff --name-only "$base" "$local_oid" -- 'services/' 2>/dev/null)
+  for svc in $(printf '%s\n' "$changed" | awk -F/ '/^services\//{print $2}' | sort -u); do
+    [ -f "services/$svc/Dockerfile" ] || continue
+    case " $services " in *" $svc "*) ;; *) services="$services $svc" ;; esac
+  done
+done
+
+[ -z "$services" ] && exit 0
+
+if ! docker info >/dev/null 2>&1; then
+  echo "pre-push: this push changes$services but the Docker daemon is unreachable." >&2
+  echo "pre-push: start Docker Desktop and push again. Do not use --no-verify." >&2
+  exit 1
+fi
+
+for svc in $services; do
+  echo "pre-push: docker build services/$svc"
+  docker build -q "services/$svc" >/dev/null || {
+    echo "pre-push: docker build FAILED for services/$svc — fix before pushing." >&2
+    exit 1
+  }
+done

@@ -8,7 +8,7 @@ Operational knowledge for AI agents working on this repo. For project docs, see 
 2. **Verify assumptions** — check docs, check logs, check live state. Don't guess.
 3. **Never use `--no-verify`** when committing.
 4. **Don't expose secrets** — use `direnv` (`.envrc`) for local env vars, Railway CLI for remote. Never hardcode credentials or print them in plaintext.
-5. **Test before you push** — for any service with a Dockerfile, build and run it locally before pushing. Use Docker to replicate the Railway runtime exactly. Validate early, validate often, and question every assumption about what will happen in production.
+5. **Test before you push** — for any service with a Dockerfile, build and run it locally before pushing. Use Docker to replicate the Railway runtime exactly. Validate early, validate often, and question every assumption about what will happen in production. Enforced: the `.husky/pre-push` hook builds the image of every service the push changes and blocks the push on failure (or when the Docker daemon is down).
 6. **One logical change per commit** — no mega-commits. Each commit should be one coherent unit: a rename, a dependency addition, a config change. Makes history readable and reverts surgical.
 
 ## Working rules for agents (learned the hard way)
