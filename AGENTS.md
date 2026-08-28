@@ -11,6 +11,73 @@ Operational knowledge for AI agents working on this repo. For project docs, see 
 5. **Test before you push** — for any service with a Dockerfile, build and run it locally before pushing. Use Docker to replicate the Railway runtime exactly. Validate early, validate often, and question every assumption about what will happen in production.
 6. **One logical change per commit** — no mega-commits. Each commit should be one coherent unit: a rename, a dependency addition, a config change. Makes history readable and reverts surgical.
 
+## Working rules for agents (learned the hard way)
+
+Every rule below is here because it was violated during the 2026-08-28 hoyolab
+cookie / xfinity outage investigation and cost real time or produced wrong work.
+
+### Never commit something you know or suspect is broken
+
+`services/mysql-backup/.env.template` was committed while _already knowing_ it
+referenced 1Password items that did not exist, with the problem noted in the PR
+description instead. Flagging a defect is not a substitute for not shipping it.
+If you have verified something is broken, exclude it and say why.
+
+### Do not write a claim into code, comments, or docs that you have not verified
+
+A commit landed asserting that a 404 from the Uptime Kuma push URL "means the
+push monitor no longer exists". That was a guess. The real cause was Kuma
+restarting the monitor after a `stat_hourly` duplicate-key error, so the 404 was
+transient — which inverted the correct retry behaviour. A plausible mechanism
+written in an authoritative voice is worse than an admitted unknown, because the
+next reader treats it as established.
+
+Say "I could not verify X" instead. It is always an acceptable answer.
+
+### Fixing the handling is not the same as finding the cause
+
+The heartbeat crash was "fixed" (stop crashing on a failed ping) before anyone
+asked _why the ping failed_. Both are needed. Ask explicitly: do I know the
+cause, or only the symptom?
+
+### The dashboard is not evidence of what is running
+
+`railway variable list` returning the new value does not mean the container has
+it. Verify from the service's own behaviour — its logs — not from control-plane
+state. See [A variable change alone may not reach the container](#a-variable-change-alone-may-not-reach-the-container).
+
+### Prefer primary evidence over deduction
+
+The cookie root cause was pinned by reading `#parseCookie` and the bot's own log
+lines, not by reasoning about what "should" happen. When a deduction and a log
+disagree, the log wins. If retention has aged out the evidence, say so rather
+than reconstructing a plausible story.
+
+### Match the conventions of the file you are editing
+
+A test was appended using a `silentLogger` helper that did not exist, because
+the file's existing `fakeLogger()`/`opts()` helpers were never read. Read the
+surrounding code first, even for a small addition.
+
+### The shell resets its working directory between commands
+
+Each Bash invocation starts in the repo root regardless of a previous `cd`. Use
+absolute paths, or `cd` as the first clause of the same command. Several files
+were wrongly concluded to be "missing" or "permission-blocked" when the command
+was simply running from the wrong directory.
+
+### Use direnv, not ad-hoc secret reads
+
+Once `swarp secrets refresh` has run, use `direnv exec . <command>`. Do not
+shell out to `op read` per command — it is slower, prompts for auth, and risks
+putting secret values into command lines.
+
+### Write the lesson down before the session ends
+
+Corrections given in conversation are lost when the session is. If a correction
+changes how work should be done here, it belongs in this file (or the relevant
+service README) as part of the same change — not in a summary message.
+
 ## Railway CLI patterns
 
 ### Read state
@@ -29,6 +96,26 @@ railway variable set "KEY=value" --service <name>
 railway link -e production -s <name> && railway volume add --mount-path <path>
 ```
 
+### Token scopes matter
+
+There are two kinds of Railway token and they are not interchangeable:
+
+| Token                   | Env var             | Works for                                      | Fails on                      |
+| ----------------------- | ------------------- | ---------------------------------------------- | ----------------------------- |
+| Project token           | `RAILWAY_TOKEN`     | `logs`, `variable list/set`, `deployment list` | `link`, `service link`, `ssh` |
+| Account/workspace token | `RAILWAY_API_TOKEN` | all of the above, plus `whoami`                | —                             |
+
+A project token is scoped to one project+environment, so account-level
+operations return a bare `Unauthorized`. If `railway link` or `railway ssh`
+fails that way, the token type is the cause — not the token's validity. Pass
+`--service <name>` explicitly instead of linking.
+
+`railway ssh` additionally needs a registered SSH key (`railway ssh keys add`).
+
+Note that an invalid `RAILWAY_TOKEN` in the environment **overrides** a working
+interactive login, so a stale `.env` can break a CLI that would otherwise work.
+Use `env -u RAILWAY_TOKEN railway ...` to test that.
+
 ### Things the CLI cannot do
 
 - Connect a service to a GitHub repo source (must use Railway dashboard)
@@ -37,7 +124,9 @@ railway link -e production -s <name> && railway volume add --mount-path <path>
 
 ### Railway link scope
 
-**Always `cd services/<name>` and run `railway service link <service-name>` before doing any Railway CLI work on a service.** The repo root has no linked service — each service manages its own Railway context inside its own directory. This is ergonomic for you AND makes it clear to the user which service you're operating on.
+**Prefer `cd services/<name>` and `railway service link <service-name>` before doing Railway CLI work on a service.** The repo root has no linked service — each service manages its own Railway context inside its own directory. This is ergonomic for you AND makes it clear to the user which service you're operating on.
+
+This requires an account token (see [Token scopes matter](#token-scopes-matter)). With a project token, `link` fails with a bare `Unauthorized` — pass `--service <name>` to each command instead.
 
 To add a volume to a service:
 
@@ -51,9 +140,32 @@ railway volume add --mount-path <path>
 
 **Setting, renaming, or deleting a Railway variable triggers an immediate rebuild and deploy.** Make sure code changes are committed and pushed (or the service is otherwise ready) BEFORE touching variables. Never change variables as a standalone step mid-implementation.
 
+### A variable change alone may not reach the container
+
+Setting a variable triggers a redeploy, but a redeploy that reuses a cached
+build can start the container with a **stale environment snapshot**. Observed
+2026-08-28: `HOYOLAB_COOKIE` was updated and `railway variable list` returned
+the new value, yet two successive redeploys produced containers still parsing
+the old one.
+
+Railway also dedupes on value, so re-setting the same value is a no-op and
+triggers nothing. To force the new value in, make a real code change matching
+the service's `watchPatterns` and push — which is the GitOps path anyway.
+
+Symptom to watch for: the service logs behaviour consistent with the previous
+secret while the dashboard shows the new one.
+
 ### Secrets management (swarp + 1Password)
 
-Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. Each service directory has an `.envrc` that auto-loads `.env` via direnv.
+Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. The root `.env.template` holds only `RAILWAY_API_TOKEN` (Railway CLI). Service-specific secrets (e.g. B2/restic for `mysql-backup`) live in that service's `.env.template`.
+
+Each service directory has an `.envrc` that calls `source_up` to inherit the root env (Railway token). Services with their own secrets add `dotenv .env` after `source_up`.
+
+`swarp secrets refresh` is all-or-nothing: if any `.env.template` references a
+1Password item that does not exist, the whole run aborts and **no** service's
+`.env` is written — including the root `RAILWAY_API_TOKEN`. A missing item in one
+service therefore breaks the Railway CLI everywhere. Verify with
+`op item list --vault "Self Hosting" --format json | jq -r '.[].title'`.
 
 To inject secrets into Railway without exposing values:
 
@@ -75,7 +187,7 @@ If `railway link` fails with `--workspace required in non-interactive mode`, pas
    - Empty logs on a cron service is normal between runs
 3. **Check env vars**: `railway variable list --service <name> --json | jq 'keys'`
 4. **SSH in**: `railway ssh --service <name> -- "<command>"`
-5. **Check B2 backups**: use `direnv exec . rclone` or `restic snapshots` with env vars from `.envrc`
+5. **Check B2 backups**: `cd services/mysql-backup && swarp secrets refresh`, then `direnv exec . restic snapshots`
 
 ## MySQL 8.4 compatibility
 
@@ -102,13 +214,25 @@ Uses `microdnf` as package manager, not `apt-get` or `apk`.
 
 ## Docker patterns in this repo
 
-### Build-time envsubst (mysql, hoyolab-auto)
+### Build-time envsubst (mysql)
 
 When secrets need to be baked into config files at build time:
 
 1. Alpine stage: `apk add gettext`, runs `envsubst` on `.envsubst` templates
 2. Final stage: `COPY --from=` the rendered files
 3. Railway passes service variables as Docker `ARG`s during build
+
+### Runtime envsubst (hoyolab-auto)
+
+`hoyolab-auto` renders its config at **container start**, not build time: the
+`CMD` runs `envsubst` over `config.json5.template` into `/app/config.json5`
+before exec'ing the app. Only the variables named in the `envsubst` shell-format
+argument are substituted — adding a new one to the template requires adding it
+there too, or it is silently left as a literal `$VAR`.
+
+Because the render happens at start-up, the value comes from the container's
+runtime environment — which is exactly why a stale env snapshot on a cached
+redeploy produces a correct-looking variable and a wrong-looking app.
 
 ### Runtime ENV (ghost, uptime-kuma, mysql-backup)
 
@@ -167,43 +291,6 @@ restic unlock                             # break stale locks
 - Push monitors (`/api/push/<token>?status=up&msg=OK&ping=`) are used for cron health monitoring — the cron pings ONLY on success, so a missed ping triggers an alert
 
 ## Shell patterns
-
-### Reading files with spaces in their paths
-
-The `Read` tool fails on paths containing spaces. Copy to a safe path first:
-
-```bash
-find "/path/with spaces/to/dir" -name "filename*" -exec cp {} /tmp/safe_name \;
-# then read /tmp/safe_name
-```
-
-### curl
-
-Always specify the HTTP method explicitly and never use `-s` (silent mode):
-
-```bash
-curl -X GET "https://..."
-curl -X POST "https://..." -H "Content-Type: application/json" -d '{...}'
-```
-
-`-s` suppresses output, which breaks prefix-based auto-approval in Claude Code. Pass this rule to any subagent that makes HTTP requests.
-
-### git
-
-**Always run git commands from the repo root** (`/Users/janejeon/Projects/janejeon/self-hosted`). Running git from a service subdirectory causes commands to hang indefinitely.
-
-```bash
-# correct — run from repo root, action first
-git status
-git add services/mysql/my.cnf
-git commit -m "..."
-
-# wrong — hangs
-cd services/mysql && git status
-
-# wrong — path before action; hard to read in approval prompts
-git -C /path/to/repo status
-```
 
 ### Railway deploy wait loop
 

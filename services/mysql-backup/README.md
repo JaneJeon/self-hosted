@@ -9,7 +9,9 @@ On success, it pings Uptime Kuma's push monitor. If the backup fails silently, t
 ## Restore
 
 ```bash
-# Set RESTIC_REPOSITORY, RESTIC_PASSWORD, B2_ACCOUNT_ID, B2_ACCOUNT_KEY
+cd services/mysql-backup
+swarp secrets refresh
+direnv allow
 restic snapshots                                              # list available snapshots
 restic dump <snapshot-id> /all-databases.sql | mysql -h <host> -u root -p  # restore
 ```

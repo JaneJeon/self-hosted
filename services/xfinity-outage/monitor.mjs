@@ -9,6 +9,7 @@ import {
 } from 'node:fs'
 import { dirname } from 'node:path'
 import pino from 'pino'
+import { httpError, withRetry } from './retry.mjs'
 
 const logger = pino()
 
@@ -16,6 +17,11 @@ const STATE_PATH = '/data/last_state.json'
 const XFINITY_ORIGIN = 'https://www.xfinity.com'
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+
+// The Xfinity API intermittently fails with HTTP 500 "Error contacting backend".
+// Those failures hang ~11-20s while healthy calls return in ~2s, so cap each
+// attempt to keep a slow upstream from stalling the run. Retry policy: retry.mjs.
+const HTTP_TIMEOUT_MS = 15_000
 
 // Store interface: { load(): State|null, save(State): void }
 // Swap this out for a MySQLStore or similar when needed.
@@ -56,10 +62,11 @@ async function getSessionToken() {
       Origin: XFINITY_ORIGIN,
       Referer: XFINITY_ORIGIN + '/',
       'User-Agent': UA
-    }
+    },
+    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
   })
   if (resp.status !== 201)
-    throw new Error(`Session API returned HTTP ${resp.status}`)
+    throw httpError(`Session API returned HTTP ${resp.status}`, resp.status)
   const token = resp.headers.get('X-OutageDataService-Token')
   if (!token) throw new Error('No token in session response headers')
   return token
@@ -75,9 +82,11 @@ async function fetchOutageStatus(token, address) {
       Origin: XFINITY_ORIGIN,
       Referer: XFINITY_ORIGIN + '/',
       'User-Agent': UA
-    }
+    },
+    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
   })
-  if (!resp.ok) throw new Error(`Outage API returned HTTP ${resp.status}`)
+  if (!resp.ok)
+    throw httpError(`Outage API returned HTTP ${resp.status}`, resp.status)
   return resp.json()
 }
 
@@ -282,10 +291,13 @@ async function main() {
 
   const store = createFileStore(STATE_PATH)
 
-  const token = await getSessionToken()
+  const token = await withRetry(getSessionToken, { label: 'session', logger })
   logger.info('session token obtained')
 
-  const data = await fetchOutageStatus(token, address)
+  const data = await withRetry(() => fetchOutageStatus(token, address), {
+    label: 'outage status',
+    logger
+  })
   const newState = extractState(data)
   logger.info(
     { hasOutage: newState.hasOutage, outageType: newState.outageType },
@@ -305,10 +317,37 @@ async function main() {
 
   store.save(newState)
 
+  // The outage check is done and the state is saved by this point, so a failed
+  // heartbeat is a monitoring fault, not a failed run. Reporting it as an
+  // unhandled error made a broken HEARTBEAT_URL look identical to a broken
+  // outage check. Retry, then record it and keep the exit code non-zero so
+  // Railway still surfaces it.
   if (heartbeatUrl) {
-    const resp = await fetch(heartbeatUrl)
-    if (!resp.ok) throw new Error(`Heartbeat returned HTTP ${resp.status}`)
-    logger.info('heartbeat sent')
+    try {
+      await withRetry(
+        async () => {
+          const resp = await fetch(heartbeatUrl, {
+            signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
+          })
+          if (!resp.ok)
+            throw httpError(
+              `Heartbeat returned HTTP ${resp.status}`,
+              resp.status
+            )
+        },
+        // Everything is retried here, 4xx included. Uptime Kuma returns 404
+        // while it is restarting a monitor, so a 404 is not proof the monitor
+        // is gone. A wasted retry on a fire-and-forget ping costs nothing.
+        { label: 'heartbeat', logger, transient: () => true }
+      )
+      logger.info('heartbeat sent')
+    } catch (err) {
+      logger.error(
+        { err },
+        'heartbeat failed - watchdog is blind, check HEARTBEAT_URL'
+      )
+      process.exitCode = 1
+    }
   }
 
   logger.info('done')
