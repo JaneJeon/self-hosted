@@ -57,7 +57,9 @@ Use `env -u RAILWAY_TOKEN railway ...` to test that.
 
 ### Railway link scope
 
-**Always `cd services/<name>` and run `railway service link <service-name>` before doing any Railway CLI work on a service.** The repo root has no linked service — each service manages its own Railway context inside its own directory. This is ergonomic for you AND makes it clear to the user which service you're operating on.
+**Prefer `cd services/<name>` and `railway service link <service-name>` before doing Railway CLI work on a service.** The repo root has no linked service — each service manages its own Railway context inside its own directory. This is ergonomic for you AND makes it clear to the user which service you're operating on.
+
+This requires an account token (see [Token scopes matter](#token-scopes-matter)). With a project token, `link` fails with a bare `Unauthorized` — pass `--service <name>` to each command instead.
 
 To add a volume to a service:
 
@@ -145,13 +147,25 @@ Uses `microdnf` as package manager, not `apt-get` or `apk`.
 
 ## Docker patterns in this repo
 
-### Build-time envsubst (mysql, hoyolab-auto)
+### Build-time envsubst (mysql)
 
 When secrets need to be baked into config files at build time:
 
 1. Alpine stage: `apk add gettext`, runs `envsubst` on `.envsubst` templates
 2. Final stage: `COPY --from=` the rendered files
 3. Railway passes service variables as Docker `ARG`s during build
+
+### Runtime envsubst (hoyolab-auto)
+
+`hoyolab-auto` renders its config at **container start**, not build time: the
+`CMD` runs `envsubst` over `config.json5.template` into `/app/config.json5`
+before exec'ing the app. Only the variables named in the `envsubst` shell-format
+argument are substituted — adding a new one to the template requires adding it
+there too, or it is silently left as a literal `$VAR`.
+
+Because the render happens at start-up, the value comes from the container's
+runtime environment — which is exactly why a stale env snapshot on a cached
+redeploy produces a correct-looking variable and a wrong-looking app.
 
 ### Runtime ENV (ghost, uptime-kuma, mysql-backup)
 
