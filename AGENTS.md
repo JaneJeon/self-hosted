@@ -11,6 +11,73 @@ Operational knowledge for AI agents working on this repo. For project docs, see 
 5. **Test before you push** — for any service with a Dockerfile, build and run it locally before pushing. Use Docker to replicate the Railway runtime exactly. Validate early, validate often, and question every assumption about what will happen in production.
 6. **One logical change per commit** — no mega-commits. Each commit should be one coherent unit: a rename, a dependency addition, a config change. Makes history readable and reverts surgical.
 
+## Working rules for agents (learned the hard way)
+
+Every rule below is here because it was violated during the 2026-08-28 hoyolab
+cookie / xfinity outage investigation and cost real time or produced wrong work.
+
+### Never commit something you know or suspect is broken
+
+`services/mysql-backup/.env.template` was committed while _already knowing_ it
+referenced 1Password items that did not exist, with the problem noted in the PR
+description instead. Flagging a defect is not a substitute for not shipping it.
+If you have verified something is broken, exclude it and say why.
+
+### Do not write a claim into code, comments, or docs that you have not verified
+
+A commit landed asserting that a 404 from the Uptime Kuma push URL "means the
+push monitor no longer exists". That was a guess. The real cause was Kuma
+restarting the monitor after a `stat_hourly` duplicate-key error, so the 404 was
+transient — which inverted the correct retry behaviour. A plausible mechanism
+written in an authoritative voice is worse than an admitted unknown, because the
+next reader treats it as established.
+
+Say "I could not verify X" instead. It is always an acceptable answer.
+
+### Fixing the handling is not the same as finding the cause
+
+The heartbeat crash was "fixed" (stop crashing on a failed ping) before anyone
+asked _why the ping failed_. Both are needed. Ask explicitly: do I know the
+cause, or only the symptom?
+
+### The dashboard is not evidence of what is running
+
+`railway variable list` returning the new value does not mean the container has
+it. Verify from the service's own behaviour — its logs — not from control-plane
+state. See [A variable change alone may not reach the container](#a-variable-change-alone-may-not-reach-the-container).
+
+### Prefer primary evidence over deduction
+
+The cookie root cause was pinned by reading `#parseCookie` and the bot's own log
+lines, not by reasoning about what "should" happen. When a deduction and a log
+disagree, the log wins. If retention has aged out the evidence, say so rather
+than reconstructing a plausible story.
+
+### Match the conventions of the file you are editing
+
+A test was appended using a `silentLogger` helper that did not exist, because
+the file's existing `fakeLogger()`/`opts()` helpers were never read. Read the
+surrounding code first, even for a small addition.
+
+### The shell resets its working directory between commands
+
+Each Bash invocation starts in the repo root regardless of a previous `cd`. Use
+absolute paths, or `cd` as the first clause of the same command. Several files
+were wrongly concluded to be "missing" or "permission-blocked" when the command
+was simply running from the wrong directory.
+
+### Use direnv, not ad-hoc secret reads
+
+Once `swarp secrets refresh` has run, use `direnv exec . <command>`. Do not
+shell out to `op read` per command — it is slower, prompts for auth, and risks
+putting secret values into command lines.
+
+### Write the lesson down before the session ends
+
+Corrections given in conversation are lost when the session is. If a correction
+changes how work should be done here, it belongs in this file (or the relevant
+service README) as part of the same change — not in a summary message.
+
 ## Railway CLI patterns
 
 ### Read state
