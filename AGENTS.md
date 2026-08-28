@@ -11,82 +11,32 @@ Operational knowledge for AI agents working on this repo. For project docs, see 
 5. **Test before you push** — for any service with a Dockerfile, build and run it locally before pushing. Use Docker to replicate the Railway runtime exactly. Validate early, validate often, and question every assumption about what will happen in production. Enforced: the `.husky/pre-push` hook builds the image of every service the push changes and blocks the push on failure (or when the Docker daemon is down).
 6. **One logical change per commit** — no mega-commits. Each commit should be one coherent unit: a rename, a dependency addition, a config change. Makes history readable and reverts surgical.
 
-## Working rules for agents (learned the hard way)
+## Working rules for agents
 
-Every rule below is here because it was violated during the 2026-08-28 hoyolab
-cookie / xfinity outage investigation and cost real time or produced wrong work.
+The generic working rules — reality-first debugging, commit discipline, never
+stating unverified causes, verification method — live in the shared Craft
+memory, which your global instructions boot you through (`Principles/` and
+`Library/Playbooks/The dashboard says it's fixed but the thing still
+misbehaves`). They are deliberately not duplicated here: a copy per repo
+drifts, and a lesson that lives only in one repo gets re-taught in every
+other one. If you have not done the Craft boot, do it before working.
 
-### Never commit something you know or suspect is broken
-
-`services/mysql-backup/.env.template` was committed while _already knowing_ it
-referenced 1Password items that did not exist, with the problem noted in the PR
-description instead. Flagging a defect is not a substitute for not shipping it.
-If you have verified something is broken, exclude it and say why.
-
-### Do not write a claim into code, comments, or docs that you have not verified
-
-A commit landed asserting that a 404 from the Uptime Kuma push URL "means the
-push monitor no longer exists". That was a guess. The real cause was Kuma
-restarting the monitor after a `stat_hourly` duplicate-key error, so the 404 was
-transient — which inverted the correct retry behaviour. A plausible mechanism
-written in an authoritative voice is worse than an admitted unknown, because the
-next reader treats it as established.
-
-Say "I could not verify X" instead. It is always an acceptable answer.
-
-### Fixing the handling is not the same as finding the cause
-
-The heartbeat crash was "fixed" (stop crashing on a failed ping) before anyone
-asked _why the ping failed_. Both are needed. Ask explicitly: do I know the
-cause, or only the symptom?
-
-### The dashboard is not evidence of what is running
-
-`railway variable list` returning the new value does not mean the container has
-it. Verify from the service's own behaviour — its logs — not from control-plane
-state. See [A variable change alone may not reach the container](#a-variable-change-alone-may-not-reach-the-container).
-
-### Reality first: read the failing thing before theorizing about it
-
-When a system misbehaves, the FIRST action is to read its actual state at the
-finest grain available — the exact bytes of its config, its own logs, the
-surface closest to the failing code. Not the dashboard, not a view, not your
-memory of what was set. The 2026-08-28 cookie incident burned hours on four
-successive theories (stale env, build cache, staged changes, needs-rebuild)
-while `railway environment config -e production --json` would have shown the
-answer — a leading space in the value — in one command, at any point.
-
-A theory is only worth holding after naming the observation that would falsify
-it; if that observation costs one command, run the command instead. Your second
-theory about the same symptom is the signal that you are avoiding a read. When
-a deduction and a log disagree, the log wins. If retention has aged out the
-evidence, say "I could not verify" rather than reconstructing a plausible
-story.
-
-### Match the conventions of the file you are editing
-
-A test was appended using a `silentLogger` helper that did not exist, because
-the file's existing `fakeLogger()`/`opts()` helpers were never read. Read the
-surrounding code first, even for a small addition.
-
-### The shell resets its working directory between commands
-
-Each Bash invocation starts in the repo root regardless of a previous `cd`. Use
-absolute paths, or `cd` as the first clause of the same command. Several files
-were wrongly concluded to be "missing" or "permission-blocked" when the command
-was simply running from the wrong directory.
+What belongs here is only what is specific to this repo:
 
 ### Use direnv, not ad-hoc secret reads
 
-Once `swarp secrets refresh` has run, use `direnv exec . <command>`. Do not
-shell out to `op read` per command — it is slower, prompts for auth, and risks
-putting secret values into command lines.
+Once `swarp secrets refresh` has run, use `direnv exec . <command>` (or
+`direnv exec services/<name>` for a service's own secrets). Do not shell out
+to `op read` per command — it is slower, prompts for auth, and risks putting
+secret values into command lines.
 
-### Write the lesson down before the session ends
+### Reality first, made concrete for Railway
 
-Corrections given in conversation are lost when the session is. If a correction
-changes how work should be done here, it belongs in this file (or the relevant
-service README) as part of the same change — not in a summary message.
+The generic method is the Craft playbook above. The Railway-specific commands
+for it: a deployment's ground truth is `railway environment config -e <env>
+--json` (the committed config, byte for byte); `railway variable list` is
+only the view. Check leading/trailing whitespace of every secret value before
+any other theory — a one-space defect cost a full night on 2026-08-28.
 
 ## Railway CLI patterns
 
