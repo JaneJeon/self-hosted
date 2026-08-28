@@ -13,6 +13,20 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 5. Saves the new state
 6. Pings Uptime Kuma on success (missed pings trigger an alert)
 
+### Upstream flakiness and retries
+
+The Xfinity API intermittently returns `HTTP 500` with body `{"error": {"errorCode": 500, "errorMessage": "internalerror: Error contacting backend"}}`. During a degradation on 2026-07-17 it failed roughly 40% of calls. The 500s correlate with ~11-20s latency; healthy calls return in ~2s.
+
+Both Xfinity calls are wrapped in `withRetry` ([retry.mjs](retry.mjs)) — 5 attempts, exponential backoff with jitter, and a 15s per-attempt timeout. Only transient failures retry: 5xx, timeouts, and socket errors. A **4xx is not retried** — it means the address or API contract changed, which is a real bug that should surface.
+
+Retries exist because there is no infrastructure safety net: Railway forces `restartPolicyType: NEVER` on cron services, so the `ON_FAILURE` policy in [railway.json](railway.json) is silently ignored (see [AGENTS.md](../../AGENTS.md)). A crashed run is simply a missed run.
+
+The heartbeat is deliberately only pinged on success. A page therefore means a _sustained_ upstream failure or a real bug — not a single blip. That is intentional: if the API is genuinely down, this service is blind and you should know.
+
+### Tests
+
+`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. Covers the retry policy, including a real HTTP 500 retried over a socket.
+
 ### Environment variables
 
 | Variable             | Required | Purpose                                     |
