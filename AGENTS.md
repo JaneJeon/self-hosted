@@ -29,6 +29,26 @@ railway variable set "KEY=value" --service <name>
 railway link -e production -s <name> && railway volume add --mount-path <path>
 ```
 
+### Token scopes matter
+
+There are two kinds of Railway token and they are not interchangeable:
+
+| Token                   | Env var             | Works for                                      | Fails on                      |
+| ----------------------- | ------------------- | ---------------------------------------------- | ----------------------------- |
+| Project token           | `RAILWAY_TOKEN`     | `logs`, `variable list/set`, `deployment list` | `link`, `service link`, `ssh` |
+| Account/workspace token | `RAILWAY_API_TOKEN` | all of the above, plus `whoami`                | —                             |
+
+A project token is scoped to one project+environment, so account-level
+operations return a bare `Unauthorized`. If `railway link` or `railway ssh`
+fails that way, the token type is the cause — not the token's validity. Pass
+`--service <name>` explicitly instead of linking.
+
+`railway ssh` additionally needs a registered SSH key (`railway ssh keys add`).
+
+Note that an invalid `RAILWAY_TOKEN` in the environment **overrides** a working
+interactive login, so a stale `.env` can break a CLI that would otherwise work.
+Use `env -u RAILWAY_TOKEN railway ...` to test that.
+
 ### Things the CLI cannot do
 
 - Connect a service to a GitHub repo source (must use Railway dashboard)
@@ -51,11 +71,32 @@ railway volume add --mount-path <path>
 
 **Setting, renaming, or deleting a Railway variable triggers an immediate rebuild and deploy.** Make sure code changes are committed and pushed (or the service is otherwise ready) BEFORE touching variables. Never change variables as a standalone step mid-implementation.
 
+### A variable change alone may not reach the container
+
+Setting a variable triggers a redeploy, but a redeploy that reuses a cached
+build can start the container with a **stale environment snapshot**. Observed
+2026-08-28: `HOYOLAB_COOKIE` was updated and `railway variable list` returned
+the new value, yet two successive redeploys produced containers still parsing
+the old one.
+
+Railway also dedupes on value, so re-setting the same value is a no-op and
+triggers nothing. To force the new value in, make a real code change matching
+the service's `watchPatterns` and push — which is the GitOps path anyway.
+
+Symptom to watch for: the service logs behaviour consistent with the previous
+secret while the dashboard shows the new one.
+
 ### Secrets management (swarp + 1Password)
 
 Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. The root `.env.template` holds only `RAILWAY_TOKEN` (Railway CLI). Service-specific secrets (e.g. B2/restic for `mysql-backup`) live in that service's `.env.template`.
 
 Each service directory has an `.envrc` that calls `source_up` to inherit the root env (Railway token). Services with their own secrets add `dotenv .env` after `source_up`.
+
+`swarp secrets refresh` is all-or-nothing: if any `.env.template` references a
+1Password item that does not exist, the whole run aborts and **no** service's
+`.env` is written — including the root `RAILWAY_TOKEN`. A missing item in one
+service therefore breaks the Railway CLI everywhere. Verify with
+`op item list --vault "Self Hosting" --format json | jq -r '.[].title'`.
 
 To inject secrets into Railway without exposing values:
 
