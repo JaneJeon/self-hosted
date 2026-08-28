@@ -30,15 +30,39 @@ sent, the outage check has already succeeded and the new state is saved.
 
 It used to throw, which surfaced as `unhandled error` and made a broken
 `HEARTBEAT_URL` indistinguishable from a broken outage check. On 2026-08-26 the
-push URL began returning `HTTP 404` and the service "crashed" three times in a
-row while the actual monitoring worked perfectly.
+service "crashed" three runs in a row (22:15, 22:33, 22:47 UTC) while the actual
+monitoring worked perfectly.
 
-Now the ping is retried under the same policy as the Xfinity calls, and a
-persistent failure is logged as `heartbeat failed - watchdog is blind` with a
-non-zero exit code so Railway still flags it. A 404 is deliberately not
-retried: it means the push monitor no longer exists, so Uptime Kuma cannot
-distinguish "this cron is broken" from "this cron was deleted" — which is
-exactly the silent failure this service exists to avoid.
+**Root cause of those 404s — it was not our URL.** Uptime Kuma failed to write
+its hourly rollup for this monitor and restarted the monitor to recover:
+
+```
+Duplicate entry '7-1787781600' for key 'stat_hourly.stat_hourly_monitor_id_timestamp_unique'
+[MONITOR] ERROR: Please report to https://github.com/louislam/uptime-kuma/issues
+[MONITOR] INFO: Try to restart the monitor
+```
+
+Monitor `#7` is this service's push monitor and `1787781600` is the 22:00 UTC
+hour bucket. Kuma hit that collision 8 times and restarted the monitor 4 times
+within that hour; while a monitor is restarting its push route returns **404**.
+Once the clock rolled into the 23:00 bucket the collision stopped and heartbeats
+resumed on the _same, unchanged_ URL.
+
+So a 404 here is **not** evidence the monitor was deleted, and the heartbeat
+therefore retries everything — 4xx included — via `transient: () => true`. A
+wasted retry on a fire-and-forget ping costs nothing, whereas treating a
+transient 404 as fatal cost three crashed runs. The Xfinity API calls keep the
+default policy, where a 4xx really does mean the contract changed.
+
+If the retries are exhausted, it is logged as
+`heartbeat failed - watchdog is blind` with a non-zero exit code so Railway
+still flags it.
+
+### Why the graph shows occasional yellow
+
+The Uptime Kuma monitor uses a 960s (16 min) window against a 15 min cron, so a
+single skipped or delayed Railway run trips `Pending`. Kuma only alerts after
+two consecutive misses, so these show as yellow bars and correctly do not page.
 
 ### Tests
 

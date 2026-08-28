@@ -320,8 +320,8 @@ async function main() {
   // The outage check is done and the state is saved by this point, so a failed
   // heartbeat is a monitoring fault, not a failed run. Reporting it as an
   // unhandled error made a broken HEARTBEAT_URL look identical to a broken
-  // outage check. Retry transient failures, then record it and keep the exit
-  // code non-zero so Railway still surfaces it.
+  // outage check. Retry, then record it and keep the exit code non-zero so
+  // Railway still surfaces it.
   if (heartbeatUrl) {
     try {
       await withRetry(
@@ -335,13 +335,13 @@ async function main() {
               resp.status
             )
         },
-        { label: 'heartbeat', logger }
+        // Everything is retried here, 4xx included. Uptime Kuma returns 404
+        // while it is restarting a monitor, so a 404 is not proof the monitor
+        // is gone. A wasted retry on a fire-and-forget ping costs nothing.
+        { label: 'heartbeat', logger, transient: () => true }
       )
       logger.info('heartbeat sent')
     } catch (err) {
-      // A 4xx here is not retried: it means HEARTBEAT_URL points at a push
-      // monitor that no longer exists, so Uptime Kuma cannot tell "this cron
-      // is broken" from "this cron was deleted". That needs a human.
       logger.error(
         { err },
         'heartbeat failed - watchdog is blind, check HEARTBEAT_URL'

@@ -129,3 +129,30 @@ test('backoffFor: grows exponentially and stays within the jitter band', () => {
     }
   }
 })
+
+test('withRetry: a custom transient predicate can retry a 4xx', async () => {
+  let calls = 0
+  const result = await withRetry(
+    async () => {
+      calls++
+      if (calls < 3) throw httpError('Heartbeat returned HTTP 404', 404)
+      return 'pinged'
+    },
+    opts({ transient: () => true })
+  )
+
+  assert.equal(result, 'pinged')
+  assert.equal(calls, 3)
+})
+
+test('withRetry: default policy still refuses to retry a 4xx', async () => {
+  let calls = 0
+  await assert.rejects(
+    withRetry(async () => {
+      calls++
+      throw httpError('Outage API returned HTTP 404', 404)
+    }, opts()),
+    /HTTP 404/
+  )
+  assert.equal(calls, 1)
+})

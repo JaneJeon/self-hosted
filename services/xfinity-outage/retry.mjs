@@ -25,15 +25,18 @@ export function backoffFor(attempt) {
   return Math.round(2 ** (attempt - 1) * 1000 * (0.5 + Math.random()))
 }
 
+// `transient` is overridable because "retrying cannot help" is a per-caller
+// judgement. For the Xfinity API a 404 is a real bug; for the Uptime Kuma
+// heartbeat it is routinely transient (see monitor.mjs).
 export async function withRetry(
   fn,
-  { label, logger, attempts = RETRY_ATTEMPTS }
+  { label, logger, attempts = RETRY_ATTEMPTS, transient = isTransient }
 ) {
   for (let attempt = 1; ; attempt++) {
     try {
       return await fn()
     } catch (err) {
-      if (attempt >= attempts || !isTransient(err)) throw err
+      if (attempt >= attempts || !transient(err)) throw err
       const backoff = backoffFor(attempt)
       logger.warn(
         { err, label, attempt, attempts, backoff },
