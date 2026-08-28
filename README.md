@@ -48,5 +48,5 @@ Railway injects service variables at both build time (as Docker `ARG`s) and runt
 ### Prerequisites
 
 - [nvm](https://nvm.sh) — `nvm use && npm install` (installs git hooks)
-- [direnv](https://direnv.net/) — loads `.envrc` secrets automatically; service directories inherit `RAILWAY_TOKEN` from the root `.envrc` via `source_up`
+- [direnv](https://direnv.net/) — loads `.envrc` secrets automatically; service directories inherit `RAILWAY_API_TOKEN` from the root `.envrc` via `source_up`
 - [Gitleaks](https://github.com/gitleaks/gitleaks) — `brew install gitleaks` (pre-commit secrets scan)

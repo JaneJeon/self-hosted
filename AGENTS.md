@@ -90,13 +90,13 @@ secret while the dashboard shows the new one.
 
 ### Secrets management (swarp + 1Password)
 
-Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. The root `.env.template` holds only `RAILWAY_TOKEN` (Railway CLI). Service-specific secrets (e.g. B2/restic for `mysql-backup`) live in that service's `.env.template`.
+Secrets use 1Password references in `.env.template` files. `swarp secrets refresh` resolves them into a local `.env`. The root `.env.template` holds only `RAILWAY_API_TOKEN` (Railway CLI). Service-specific secrets (e.g. B2/restic for `mysql-backup`) live in that service's `.env.template`.
 
 Each service directory has an `.envrc` that calls `source_up` to inherit the root env (Railway token). Services with their own secrets add `dotenv .env` after `source_up`.
 
 `swarp secrets refresh` is all-or-nothing: if any `.env.template` references a
 1Password item that does not exist, the whole run aborts and **no** service's
-`.env` is written — including the root `RAILWAY_TOKEN`. A missing item in one
+`.env` is written — including the root `RAILWAY_API_TOKEN`. A missing item in one
 service therefore breaks the Railway CLI everywhere. Verify with
 `op item list --vault "Self Hosting" --format json | jq -r '.[].title'`.
 
