@@ -23,6 +23,23 @@ Retries exist because there is no infrastructure safety net: Railway forces `res
 
 The heartbeat is deliberately only pinged on success. A page therefore means a _sustained_ upstream failure or a real bug — not a single blip. That is intentional: if the API is genuinely down, this service is blind and you should know.
 
+### Heartbeat failures
+
+A failed heartbeat is a _monitoring_ fault, not a failed run: by the time it is
+sent, the outage check has already succeeded and the new state is saved.
+
+It used to throw, which surfaced as `unhandled error` and made a broken
+`HEARTBEAT_URL` indistinguishable from a broken outage check. On 2026-08-26 the
+push URL began returning `HTTP 404` and the service "crashed" three times in a
+row while the actual monitoring worked perfectly.
+
+Now the ping is retried under the same policy as the Xfinity calls, and a
+persistent failure is logged as `heartbeat failed - watchdog is blind` with a
+non-zero exit code so Railway still flags it. A 404 is deliberately not
+retried: it means the push monitor no longer exists, so Uptime Kuma cannot
+distinguish "this cron is broken" from "this cron was deleted" — which is
+exactly the silent failure this service exists to avoid.
+
 ### Tests
 
 `npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. Covers the retry policy, including a real HTTP 500 retried over a socket.

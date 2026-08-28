@@ -317,10 +317,37 @@ async function main() {
 
   store.save(newState)
 
+  // The outage check is done and the state is saved by this point, so a failed
+  // heartbeat is a monitoring fault, not a failed run. Reporting it as an
+  // unhandled error made a broken HEARTBEAT_URL look identical to a broken
+  // outage check. Retry transient failures, then record it and keep the exit
+  // code non-zero so Railway still surfaces it.
   if (heartbeatUrl) {
-    const resp = await fetch(heartbeatUrl)
-    if (!resp.ok) throw new Error(`Heartbeat returned HTTP ${resp.status}`)
-    logger.info('heartbeat sent')
+    try {
+      await withRetry(
+        async () => {
+          const resp = await fetch(heartbeatUrl, {
+            signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
+          })
+          if (!resp.ok)
+            throw httpError(
+              `Heartbeat returned HTTP ${resp.status}`,
+              resp.status
+            )
+        },
+        { label: 'heartbeat', logger }
+      )
+      logger.info('heartbeat sent')
+    } catch (err) {
+      // A 4xx here is not retried: it means HEARTBEAT_URL points at a push
+      // monitor that no longer exists, so Uptime Kuma cannot tell "this cron
+      // is broken" from "this cron was deleted". That needs a human.
+      logger.error(
+        { err },
+        'heartbeat failed - watchdog is blind, check HEARTBEAT_URL'
+      )
+      process.exitCode = 1
+    }
   }
 
   logger.info('done')
