@@ -305,8 +305,11 @@ instrument fault reads as one missed heartbeat rather than as a dead credential.
 a reason, or when a probe you ran by hand returns a non-zero retcode. A DOWN
 with no reason means the probe could not decide (timeout, DNS) and the
 credential may be fine — check the monitor's last message before rotating
-anything. There is no automatic path: the bot's `crons/update-cookie` calls an
-endpoint HoYoverse retired, so it can never succeed.
+anything. There is no automatic path and there cannot be one. Upstream's
+`crons/update-cookie` was deleted from the fork on 2026-09-01: it called an
+endpoint HoYoverse retired, it wrote v1 field names redemption does not read,
+and it only mutated memory that the next restart discarded. Rotation is manual,
+always.
 
 1. Capture a fresh cookie from a logged-in `act.hoyolab.com` page. **Never from
    `hsr.hoyoverse.com/gift`** — that page sets only three of the six required
