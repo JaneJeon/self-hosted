@@ -28,7 +28,9 @@ What belongs here is only what is specific to this repo:
 Once `swarp secrets refresh` has run, use `direnv exec . <command>` (or
 `direnv exec services/<name>` for a service's own secrets). Do not shell out
 to `op read` per command — it is slower, prompts for auth, and risks putting
-secret values into command lines.
+secret values into command lines. The one exception is pushing a single secret
+into Railway, where `op read ... | railway variable set --stdin` keeps the value
+out of argv entirely (see [Secrets management](#secrets-management-swarp--1password)).
 
 ### Reality first, made concrete for Railway
 
@@ -53,8 +55,17 @@ railway ssh --service <name> -- "<command>"
 
 ```bash
 railway variable set "KEY=value" --service <name>
+railway variable set KEY --stdin --service <name>          # value read from stdin
+railway variable set "A=1" "B=2" --skip-deploys --service <name>
 railway link -e production -s <name> && railway volume add --mount-path <path>
 ```
+
+Two flags on `variable set` are worth knowing for every service here:
+
+- `--stdin` reads the value from standard input, so a secret never enters argv,
+  shell history, or a process listing. Use it for anything sensitive.
+- `--skip-deploys` suppresses the automatic redeploy, so you can set several
+  variables and deploy once at the end instead of once per variable.
 
 ### Token scopes matter
 
@@ -100,6 +111,9 @@ railway volume add --mount-path <path>
 
 **Setting, renaming, or deleting a Railway variable triggers an immediate rebuild and deploy.** Make sure code changes are committed and pushed (or the service is otherwise ready) BEFORE touching variables. Never change variables as a standalone step mid-implementation.
 
+Pass `--skip-deploys` when you are setting several variables in a row, then let
+the last one (or a `git push`) trigger a single deploy.
+
 ### Debugging "the variable is right but the service acts wrong"
 
 `railway variable list` and `railway environment config -e <env> --json` are
@@ -134,10 +148,14 @@ To inject secrets into Railway without exposing values:
 
 ```bash
 cd services/<name>
-swarp secrets refresh      # populates .env from 1Password
-set -a && source .env && set +a
-railway variable set "KEY=$KEY" ... --service <service-name>
+op read "op://<vault>/<item>/<field>" | railway variable set KEY --stdin --service <service-name>
 ```
+
+`--stdin` is the safe form: the value goes from 1Password to Railway without
+ever appearing in argv, shell history, or a process listing. The older pattern
+(`set -a && source .env && set +a`, then `railway variable set "KEY=$KEY"`)
+interpolates the secret into the command line and should not be used for
+secrets.
 
 ### Multi-workspace gotcha
 
@@ -255,6 +273,71 @@ restic unlock                             # break stale locks
 - `UPTIME_KUMA_DB_TYPE` must be `"mariadb"` even when using MySQL 8.4 — it's the driver name, not the DB engine
 - The `2-slim` image has no embedded database; it requires external MySQL
 - Push monitors (`/api/push/<token>?status=up&msg=OK&ping=`) are used for cron health monitoring — the cron pings ONLY on success, so a missed ping triggers an alert
+
+### hoyolab-auto: three credential monitors, and what to do when one pages
+
+The Railway service is named `Hoyolab Auto` (space, capitals), not
+`hoyolab-auto` like the directory.
+
+It pushes to **three** monitors, not one. The bot holds two independent
+credentials inside a single cookie and they expire on different schedules, so an
+aggregate monitor cannot say which one broke, lets one failure hide behind the
+other's success, and destroys the per-concern "down since" and duration. Do not
+collapse them.
+
+| Kuma monitor                                             | Railway variable             | DOWN means                                                                |
+| -------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| `Hoyolab Auto - process alive`                           | `KUMA_PUSH_URL_LIVENESS`     | the process died or the health cron stopped, whatever the credentials say |
+| `Hoyolab Auto - login credential (ltoken_v2)`            | `KUMA_PUSH_URL_LTOKEN`       | daily check-in, Mimo, stamina and reminders have stopped                  |
+| `Hoyolab Auto - redemption credential (cookie_token_v2)` | `KUMA_PUSH_URL_COOKIE_TOKEN` | code redemption has stopped                                               |
+
+All three are Push monitors, as of 2026-09-01: heartbeat interval 2400s,
+Retries 1, retry interval 2400s, notification `PagerDuty Alerts - Railway Stack`
+(the Kuma default). Worst case to page is 80 minutes. The app's health cron runs
+every 30 minutes and once at startup; liveness pings whenever that cron reaches
+the end of its run, whatever the credential probes returned, which is what makes
+it a real process check. Unlike the
+absence-only pattern above, this cron pushes an explicit `down` with a reason.
+When the probe itself fails (timeout, DNS) it pushes **nothing**, so an
+instrument fault reads as one missed heartbeat rather than as a dead credential.
+
+**Rotating the cookie** — do this when either credential monitor goes DOWN with
+a reason, or when a probe you ran by hand returns a non-zero retcode. A DOWN
+with no reason means the probe could not decide (timeout, DNS) and the
+credential may be fine — check the monitor's last message before rotating
+anything. There is no automatic path: the bot's `crons/update-cookie` calls an
+endpoint HoYoverse retired, so it can never succeed.
+
+1. Capture a fresh cookie from a logged-in `act.hoyolab.com` page. **Never from
+   `hsr.hoyoverse.com/gift`** — that page sets only three of the six required
+   fields, and a cookie missing the `ltoken_v2` triplet crashes the bot at
+   startup instead of merely breaking redemption.
+2. Update the source of truth, 1Password item
+   `op://Self Hosting/Hoyolab Cookie/credential`.
+3. Verify BEFORE deploying: all six fields present, no leading or trailing
+   whitespace, both credential classes probing `retcode 0`, and game roles
+   resolving for **both** `hkrpg_global` (HSR) and `nap_global` (ZZZ). One cookie
+   serves two accounts, so proving one game proves nothing about the other. The
+   probe procedure is in Craft, `Systems/HoYoverse account cookies` — run it
+   inside the container, never with the cookie on your own machine. The role
+   check has no recorded procedure; write down what you run.
+4. Push it without the value entering a command line or a file:
+
+   ```bash
+   op read "op://Self Hosting/Hoyolab Cookie/credential" | railway variable set HOYOLAB_COOKIE --stdin --service 'Hoyolab Auto'
+   ```
+
+5. Confirm the container is running the new value by decoding the token's
+   issued-at field inside the container. The 1Password copy and the Railway
+   variable can drift; compare them by issued-at, never by printing values.
+
+The credential lifetime is not a schedule. Exactly one has ever been measured,
+as of 2026-09-01: under four days. Do not build a calendar reminder from it —
+one interval is not a period, and that is what the monitors are for.
+
+Full API reference and probe details live in Craft,
+`Systems/HoYoverse account cookies`, and `Systems/hoyolab-auto` carries the
+deployment and the monitor rationale.
 
 ## Shell patterns
 
