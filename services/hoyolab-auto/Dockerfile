@@ -1,4 +1,4 @@
-FROM ghcr.io/janejeon/hoyolab-auto:sha-79ca0c4
+FROM ghcr.io/janejeon/hoyolab-auto:sha-81541cc
 
 # Image runs as non-root 'hoyolab'; stay as root to install packages and run entrypoint
 USER root
