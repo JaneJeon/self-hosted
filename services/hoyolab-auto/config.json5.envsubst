@@ -1,5 +1,14 @@
 {
-    loglevel: 'debug',
+    // 'info', not 'debug'. Debug logs every HTTP request, including the 5-second
+    // Telegram poll, which is ~17k lines a day. That volume exhausted Railway's
+    // log retention during the 2026-08-28 investigation: the forensic trail
+    // could not reach back 36 hours. Railway logs are the only history there is,
+    // since nothing ships them anywhere (NETWORKING.md: Railway containers
+    // cannot reach the Home Assistant VictoriaLogs stack), so burning retention
+    // costs real evidence.
+    //
+    // Raise to 'debug' deliberately while investigating, then put it back.
+    loglevel: 'info',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
     retry: {
         attempts: 2,
