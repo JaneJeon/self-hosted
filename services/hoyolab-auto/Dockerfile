@@ -1,4 +1,10 @@
-FROM ghcr.io/janejeon/hoyolab-auto:sha-be75753
+# --platform is required, not cosmetic. The upstream image is published amd64
+# only (JaneJeon/hoyolab-auto .github/workflows/docker-image.yaml), because
+# Railway runs x86-64 and the emulated arm64 leg was half the build's wall clock
+# and where a build once hung. Without this line, `docker build` on an Apple
+# Silicon Mac fails with "no match for platform in manifest", which breaks the
+# pre-push hook and golden rule 2 for everyone on arm64 hardware.
+FROM --platform=linux/amd64 ghcr.io/janejeon/hoyolab-auto:sha-c2f73e8
 
 # Image runs as non-root 'hoyolab'; stay as root to install packages and run entrypoint
 USER root
