@@ -5,6 +5,21 @@
         attempts: 2,
         delayMs: 5000
     },
+    health: {
+        // Credential health check. Probes ltoken_v2 and cookie_token_v2
+        // separately, at startup and on the 'health' cron, then pings Uptime
+        // Kuma. Pushes 'down' naming the dead credential. Pushes nothing when
+        // the probe itself failed, so a blip is not reported as an outage.
+        kuma: {
+            // Pings whenever the health cron completes, whatever the
+            // credentials say. This is the one that catches a dead process.
+            liveness: '$KUMA_PUSH_URL_LIVENESS',
+            // ltoken_v2: daily check-in, Mimo, stamina, reminders.
+            ltoken: '$KUMA_PUSH_URL_LTOKEN',
+            // cookie_token_v2: code redemption, and nothing else.
+            cookieToken: '$KUMA_PUSH_URL_COOKIE_TOKEN',
+        },
+    },
     platforms: [
         {
             id: 1,
