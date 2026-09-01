@@ -342,6 +342,80 @@ Full API reference and probe details live in Craft,
 `Systems/HoYoverse account cookies`, and `Systems/hoyolab-auto` carries the
 deployment and the monitor rationale.
 
+## PagerDuty
+
+### Who is allowed to alert
+
+One rule decides most design questions here. **A service must never alert.** It
+emits logs, and it pushes heartbeats. That is all.
+
+| Layer       | Job                                                       |
+| ----------- | --------------------------------------------------------- |
+| The service | Do the work, log it, push a heartbeat carrying an outcome |
+| Uptime Kuma | Decide up, down or silence, and hold the history          |
+| PagerDuty   | Urgency, escalation, quiet hours, deferral                |
+| Telegram    | A log Jane can silence and read back later, not a channel |
+
+Telegram is **not** an alert path, and neither is a second "alerts" bot. Jane is
+phasing that channel out. An earlier plan to route failures there is recorded as
+superseded on JANE-233; do not rebuild it.
+
+### Quiet hours are a PagerDuty setting, not a service setting
+
+Never implement a quiet window inside a service or inside Kuma. It belongs in
+PagerDuty, on the service's incident urgency rule.
+
+As of 2026-09-01 five of six services use `use_support_hours`: Railway,
+Analytics Pipeline, Frontend, Calendars Service and Vultr Cluster. All are
+08:00-00:00 `America/Los_Angeles`, all seven days, high urgency during, low
+outside, with **Raise urgency of unacknowledged incidents to high** checked.
+Home Assistant is deliberately `constant` and pages around the clock.
+
+### The queue, and why it is a queue rather than a downgrade
+
+Jane's requirement was that a non-urgent alert be **deferred**, not demoted,
+because a demoted alert lands in an inbox she never reads.
+
+PagerDuty cannot hold a notification until a later time. Its own docs are
+explicit: support hours change how responders are notified, not whether an
+incident is created. The queue is built from two settings together:
+
+1. Outside support hours the incident is created at **low** urgency.
+2. Jane has **no low-urgency notification rules at all**, so low urgency
+   notifies on nothing.
+3. At 08:00 the raise-urgency action promotes anything still unacknowledged, and
+   her high-urgency rules fire: two push, then email at 1 min, then a phone call
+   at 3 min.
+
+So a 3am failure is silent, and pages at 08:00. If Kuma pushes `up` before then
+because the failure self-healed, the incident auto-resolves and never pages at
+all. That last property is intended, and it is also the reason JANE-238 exists:
+nothing currently reviews incidents that resolved themselves overnight.
+
+**Deleting the low-urgency rule is what makes this work.** Notification rules are
+per user, not per service, so restoring one would put every deferred service back
+to emailing at 3am.
+
+### Verified, not assumed
+
+PagerDuty **does** post low-urgency incidents to `#infra-railway-incidents`.
+Confirmed 2026-09-01 by creating incident #123 at low urgency and reading the
+channel, then resolving it. This matters: it is the only record of an overnight
+failure, since nothing else notifies until 08:00. Do not assume a future change
+preserves it. Re-test the same way.
+
+### Escalation is a one-shot
+
+Policy `PW9IXQN` has one level, a 30 minute timeout, `num_loops: 0`, and targets
+Jane directly with no schedule. Both service re-trigger checkboxes are off, and
+every Kuma monitor has resend `0`. An unacknowledged incident runs her contact
+methods once and is never mentioned again. Left as-is on purpose, but know it.
+
+### Free plan
+
+Alert grouping, Event Orchestration's advanced actions, Auto-Pause and AIOps are
+all gated. Anything built here has to assume the REST API and a scheduled job.
+
 ## Shell patterns
 
 ### Railway deploy wait loop
