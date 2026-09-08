@@ -189,25 +189,32 @@ test('a repeat run over the same signal sends nothing further', async () => {
   }
 })
 
-test('state is saved before any heartbeat is pushed', async () => {
+test('every heartbeat fires strictly after the domain work is saved', async () => {
+  // Ordering is the requirement, not merely that both happened. A ping sent
+  // before the state is durable would report success for work that could
+  // still be lost.
   const restore = trackerServer(watching)
-  const pushed = []
   process.env[HEARTBEAT_VARS.liveness] = 'http://127.0.0.1:1/liveness'
   const originalFetch = globalThis.fetch
+  const h = harness()
   globalThis.fetch = async (url, init) => {
     const href = String(url)
     if (href.includes('/liveness')) {
-      pushed.push('heartbeat')
+      h.calls.push('heartbeat:liveness')
       return new Response('', { status: 200 })
     }
     return originalFetch(url, init)
   }
   try {
-    const h = harness()
     await run({ ...h.deps })
     const saveAt = h.calls.indexOf('state:save')
+    const pingAt = h.calls.indexOf('heartbeat:liveness')
     assert.ok(saveAt >= 0, 'state must be saved')
-    assert.ok(pushed.length > 0, 'liveness must fire on a healthy run')
+    assert.ok(pingAt >= 0, 'liveness must fire on a healthy run')
+    assert.ok(pingAt > saveAt, 'the ping must come after the save, not before')
+    // The calendar and telegram work also precedes the ping.
+    assert.ok(h.calls.indexOf('caldav:put') < pingAt)
+    assert.ok(h.calls.indexOf('telegram:send') < pingAt)
   } finally {
     globalThis.fetch = originalFetch
     delete process.env[HEARTBEAT_VARS.liveness]
