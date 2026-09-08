@@ -155,6 +155,27 @@ test('"in ~ N hours" is an approximation, so it anchors rather than bounds', () 
   assert.equal(r.endMs - r.startMs, 60 * 60 * 1000)
 })
 
+test('a landing verb whose subject is not the reset yields no window', () => {
+  // Other things land too. This case is absent from the 52 real announcements
+  // and was found by checking a dependency parser against this one: without the
+  // competing-subject guard, the second clause clears the landing-verb check and
+  // produces a confident, wrong window.
+  const r = deriveWindow({
+    text: 'The outage started around 2am and the fix landed at 4am.',
+    evidenceAt: SEP_7
+  })
+  assert.equal(r.ok, false)
+})
+
+test('a competing subject does not block a clause that also names the reset', () => {
+  const r = deriveWindow({
+    text: 'Limits land around 6pm PT during scheduled maintenance.',
+    evidenceAt: SEP_7
+  })
+  assert.equal(r.ok, true)
+  assert.equal(iso(r.startMs), '2026-09-08T01:00:00.000Z')
+})
+
 test('one clause landing and another crediting do not merge into one window', () => {
   // The real announcement puts a true "in the next hour" and a false "over the
   // next 24 hours" in one sentence, joined by "and".

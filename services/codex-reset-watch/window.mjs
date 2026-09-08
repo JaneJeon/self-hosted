@@ -51,6 +51,22 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const LANDING_VERB =
   /\b(lands?|landing|landed|propagat\w+|arriv\w+|will be (fully )?reset|will come)\b/i
 
+// A landing verb alone is not enough, because other things land too. "The
+// outage started around 2am and the fix landed at 4am" clears the landing-verb
+// check on its second clause and yields a confident, wrong window. So a clause
+// naming something else as the thing that landed is rejected, unless it also
+// names the reset. The corpus's real landing phrases ("Lands in the next hour",
+// "Propagating in the next hour") name no subject at all and are unaffected.
+//
+// Found by testing spaCy's dependency parse against this parser: the parse
+// attaches each time to its governing verb, which distinguishes "reset" from
+// "credit" and from "fix". This is the cheap approximation of that, and the
+// case it fixes is absent from the 52 real announcements but would have been
+// silent if it ever appeared.
+const COMPETING_SUBJECT =
+  /\b(fix(es|ed)?|outage|incident|patch(es|ed)?|deploy(ment)?s?|rollout|migration|maintenance)\b/i
+const RESET_SUBJECT = /\b(reset|limits?|usage|quota)\b/i
+
 // Clauses split on sentence boundaries and on coordinating conjunctions. The
 // conjunction split is load-bearing: one real announcement reads "...will be
 // fully reset again in the next hour and we will credit one additional reset
@@ -375,6 +391,8 @@ export function parseClaims(text, { evidenceAtMs }) {
   for (const clause of text.split(CLAUSE_SPLIT)) {
     if (!clause) continue
     if (!LANDING_VERB.test(clause)) continue
+    // Something else is landing here, and the clause never mentions the reset.
+    if (COMPETING_SUBJECT.test(clause) && !RESET_SUBJECT.test(clause)) continue
     anchored = true
     let rest = clause
     for (const pattern of PATTERNS) {
