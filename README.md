@@ -9,14 +9,17 @@ All services run on Railway in a single project. Each service has its own direct
 
 ### Services
 
-| Service          | Image Base                         | Purpose                         | Schedule        |
-| ---------------- | ---------------------------------- | ------------------------------- | --------------- |
-| **mysql**        | `mysql:8.4`                        | Shared MySQL database           | Persistent      |
-| **ghost**        | `ghost`                            | Blog (janejeon.blog)            | Persistent      |
-| **uptime-kuma**  | `louislam/uptime-kuma:2-slim`      | Monitoring & status page        | Persistent      |
-| **hoyolab-auto** | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in          | Persistent      |
-| **mysql-backup** | `mysql:8.4` + restic               | Incremental MySQL backups to B2 | Cron (3 AM UTC) |
-| **Tailscale**    | `tailscale`                        | VPN subnet router               | Persistent      |
+| Service                    | Image Base                         | Purpose                                 | Schedule        |
+| -------------------------- | ---------------------------------- | --------------------------------------- | --------------- |
+| **mysql**                  | `mysql:8.4`                        | Shared MySQL database                   | Persistent      |
+| **ghost**                  | `ghost`                            | Blog (janejeon.blog)                    | Persistent      |
+| **uptime-kuma**            | `louislam/uptime-kuma:2-slim`      | Monitoring & status page                | Persistent      |
+| **hoyolab-auto**           | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in                  | Persistent      |
+| **mysql-backup**           | `mysql:8.4` + restic               | Incremental MySQL backups to B2         | Cron (3 AM UTC) |
+| **Tailscale**              | `tailscale`                        | VPN subnet router                       | Persistent      |
+| **xfinity-outage**         | `node:22-alpine`                   | Xfinity outage watch → Telegram         | Cron (15 min)   |
+| **codex-reset-watch**      | `node:22-alpine`                   | Codex reset watch → Fastmail + Telegram | Cron (2 h)      |
+| **grafana-image-renderer** | `grafana/grafana-image-renderer`   | Renders Grafana panels as PNGs          | Persistent      |
 
 ### How services connect
 
