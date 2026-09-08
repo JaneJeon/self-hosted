@@ -1,0 +1,35 @@
+{
+  "data": {
+    "latest_reset": {
+      "id": "2096035437299237298",
+      "reset_type": "regular",
+      "announced_at": "2026-09-05T00:39:25.000Z",
+      "text": "We have reset usage limits for all Codex users.",
+      "source": {
+        "type": "x_post",
+        "author": "thsottiaux",
+        "url": "https://x.com/thsottiaux/status/2096035437299237298"
+      }
+    },
+    "scheduled_reset": null,
+    "active_watch": {
+      "level": "elevated",
+      "reset_chance_percent": 65,
+      "forecast_window": "Reset lands around 6pm PT",
+      "observed_at": "2026-09-07T22:00:00.000Z",
+      "expires_at": "2026-09-08T06:00:00.000Z",
+      "text": "Signals point to a reset landing around 6pm PT.",
+      "source": {
+        "type": "observed",
+        "url": "https://x.com/thsottiaux/status/2096900000000000000"
+      }
+    },
+    "stats": {
+      "total": 51,
+      "last_reset_at": "2026-09-05T00:39:25.000Z",
+      "days_since_last": 2.9,
+      "avg_interval_days": 7
+    }
+  },
+  "meta": { "api_version": "v1", "generated_at": "2026-09-07T22:05:00.000Z" }
+}

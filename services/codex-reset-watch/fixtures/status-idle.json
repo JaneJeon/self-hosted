@@ -1,0 +1,23 @@
+{
+  "data": {
+    "latest_reset": {
+      "id": "observed-2097043464538264003",
+      "reset_type": "regular",
+      "announced_at": "2026-09-08T01:56:57.501Z",
+      "text": "Codex usage limits have been reset. Check your limits.",
+      "source": {
+        "type": "observed",
+        "url": "https://x.com/thsottiaux/status/2097043464538264003"
+      }
+    },
+    "scheduled_reset": null,
+    "active_watch": null,
+    "stats": {
+      "total": 52,
+      "last_reset_at": "2026-09-08T01:56:57.501Z",
+      "days_since_last": 0.1,
+      "avg_interval_days": 7
+    }
+  },
+  "meta": { "api_version": "v1", "generated_at": "2026-09-08T03:09:47.734Z" }
+}
