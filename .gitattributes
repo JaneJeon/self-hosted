@@ -1,0 +1,5 @@
+# RFC 5545 requires CRLF line endings, and the CalDAV parser tests assert on
+# the exact bytes of these fixtures, including a deliberately folded line.
+# Without this, git normalizes them to LF on checkout and the folding test
+# fails on a fresh clone while passing in the working copy that created it.
+*.ics -text
