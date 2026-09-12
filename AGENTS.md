@@ -346,19 +346,22 @@ deployment and the monitor rationale.
 
 ### Who is allowed to alert
 
-One rule decides most design questions here. **A service must never alert.** It
-emits logs, and it pushes heartbeats. That is all.
+For operational mechanism health, **a service must never page directly**. It
+emits logs and pushes outcome heartbeats; Kuma and PagerDuty own health paging.
+Domain Action pings (for example unfinished game chores) are a separate policy:
+Rethink Notifications, JANE-241–244, routes those through Telegram Alerts.
 
-| Layer       | Job                                                       |
-| ----------- | --------------------------------------------------------- |
-| The service | Do the work, log it, push a heartbeat carrying an outcome |
-| Uptime Kuma | Decide up, down or silence, and hold the history          |
-| PagerDuty   | Urgency, escalation, quiet hours, deferral                |
-| Telegram    | A log Jane can silence and read back later, not a channel |
+| Layer       | Job                                                              |
+| ----------- | ---------------------------------------------------------------- |
+| The service | Do the work, log it, push a heartbeat carrying an outcome        |
+| Uptime Kuma | Decide up, down or silence, and hold the history                 |
+| PagerDuty   | Urgency, escalation, quiet hours, deferral                       |
+| Telegram    | Domain Action pings and silent Receipt history; no health paging |
 
-Telegram is **not** an alert path, and neither is a second "alerts" bot. Jane is
-phasing that channel out. An earlier plan to route failures there is recorded as
-superseded on JANE-233; do not rebuild it.
+Telegram is **not** an operational health alert path. The earlier plan to route
+mechanism failures to a second bot remains superseded on JANE-233. The Alerts
+bot now carries domain Action pings; automation Receipts, including failures,
+go silently to the Notifications bot. Neither replaces Kuma/PagerDuty.
 
 ### Quiet hours are a PagerDuty setting, not a service setting
 
