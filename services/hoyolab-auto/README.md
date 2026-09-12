@@ -32,3 +32,13 @@ fresh weekly progress. Do not mark the weekly acceptance work complete.
 The three Kuma monitors retain their existing private HTTP references. They
 cover process and credential health, not fresh-notes or delivery correctness;
 that coverage remains a separate monitoring task.
+
+### Current weekly objects
+
+The task view and legacy weekly emitter use the current game mechanics:
+Star Rail tracks Echo of War plus the unified Cyclical Points track; Zenless
+tracks Lost Void Bounty plus Ridu Weekly. Legacy mode counters and the retired
+Investigation Points weekly limit do not create extra obligations. Missing
+progress for an actual obligation remains unknown. See
+[application PR #15](https://github.com/JaneJeon/hoyolab-auto/pull/15) for the
+live-response evidence, official update references, and regression coverage.

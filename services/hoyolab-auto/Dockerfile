@@ -4,7 +4,7 @@
 # and where a build once hung. Without this line, `docker build` on an Apple
 # Silicon Mac fails with "no match for platform in manifest", which breaks the
 # pre-push hook and golden rule 2 for everyone on arm64 hardware.
-FROM --platform=linux/amd64 ghcr.io/janejeon/hoyolab-auto:sha-d5881ef
+FROM --platform=linux/amd64 ghcr.io/janejeon/hoyolab-auto:sha-33b0cf1
 
 # Image runs as non-root 'hoyolab'; stay as root to install packages and run entrypoint
 USER root
