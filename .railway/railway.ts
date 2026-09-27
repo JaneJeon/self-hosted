@@ -26,6 +26,11 @@ export default defineRailway(() => {
   })
 
   const telegram = service('telegram-mcp', {
+    build: {
+      builder: 'DOCKERFILE',
+      watchPatterns: ['/services/telegram-mcp/**']
+    },
+    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
     healthcheck: '/ping',
     healthcheckTimeout: 180,
     replicas: { 'us-west2': 1 },
@@ -38,6 +43,11 @@ export default defineRailway(() => {
   })
 
   const whatsapp = service('whatsapp-mcp', {
+    build: {
+      builder: 'DOCKERFILE',
+      watchPatterns: ['/services/whatsapp-mcp/**']
+    },
+    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
     source: github('JaneJeon/self-hosted', {
       branch: 'codex/railway-mcp',
       rootDirectory: '/services/whatsapp-mcp'
@@ -54,6 +64,11 @@ export default defineRailway(() => {
   })
 
   const gateway = service('agentgateway', {
+    build: {
+      builder: 'DOCKERFILE',
+      watchPatterns: ['/services/agentgateway/**']
+    },
+    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
     source: github('JaneJeon/self-hosted', {
       branch: 'codex/railway-mcp',
       rootDirectory: '/services/agentgateway'
