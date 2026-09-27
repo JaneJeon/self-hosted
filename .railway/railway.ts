@@ -1,4 +1,11 @@
-import { defineRailway, preserve, project, service, volume } from 'railway/iac'
+import {
+  defineRailway,
+  github,
+  preserve,
+  project,
+  service,
+  volume
+} from 'railway/iac'
 
 // Manage only the MCP services. Existing Railway services still use their own
 // deployment configuration and are deliberately outside this partial.
@@ -43,6 +50,10 @@ export default defineRailway(() => {
   })
 
   const gateway = service('agentgateway', {
+    source: github('JaneJeon/self-hosted', {
+      branch: 'codex/railway-mcp',
+      rootDirectory: '/services/agentgateway'
+    }),
     domains: [{ domain: 'mcp.janejeon.dev', port: 8080 }],
     replicas: { 'us-west2': 1 },
     env: {
