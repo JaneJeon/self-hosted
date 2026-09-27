@@ -17,20 +17,24 @@ RUN go mod download
 COPY --from=source /src/src ./
 RUN go build -ldflags="-w -s" -o /out/whatsapp
 
+FROM restic/restic:0.18.1 AS restic-source
+
 FROM alpine:3.23
 
-RUN apk add --no-cache ffmpeg libwebp-tools poppler-utils su-exec tzdata \
+RUN apk add --no-cache curl ffmpeg libwebp-tools poppler-utils sqlite su-exec tzdata \
     && addgroup -g 20000 gowa \
     && adduser -D -u 20001 -G gowa -h /app gowauser
 
 ENV TZ=UTC
 WORKDIR /app
 COPY --from=builder /out/whatsapp /app/whatsapp
+COPY --from=restic-source /usr/bin/restic /usr/local/bin/restic
 RUN mkdir -p /app/data \
     && ln -s /app/data/storages /app/storages \
     && ln -s /app/data/statics /app/statics
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY backup.sh backup-loop.sh /usr/local/bin/
+RUN chmod +x /entrypoint.sh /usr/local/bin/backup.sh /usr/local/bin/backup-loop.sh
 
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]

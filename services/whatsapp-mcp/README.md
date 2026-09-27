@@ -15,5 +15,16 @@ to the Go process. Its `--host` defaults to `RAILWAY_PRIVATE_DOMAIN` so the SSE
 message endpoint names an address that agentgateway can reach. For local Docker
 testing, set `WHATSAPP_MCP_HOST` to the container hostname on a test network.
 
-The separate B2 backup loop will be added after the service and volume layout
-have passed local tests.
+The entrypoint refuses to start until both migrated databases and the B2
+backup variables are present. A background loop starts a backup when none has
+succeeded in the past 24 hours, then retries failures hourly. It copies each
+database with SQLite online backup, stages other state and media, and backs the
+snapshot up to an encrypted restic repository. Retention is last 10, daily 7,
+weekly 5, monthly 12. Only success pings the Kuma push monitor.
+
+Required backup variables: `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`,
+`B2_ACCOUNT_ID`, `B2_ACCOUNT_KEY`, and `HEARTBEAT_URL`. Store their source
+values in 1Password and inject them into Railway without argv or log exposure.
+Use a repository distinct from the MySQL backup prefix. Restore into a
+temporary directory first, verify both SQLite databases with `PRAGMA
+quick_check`, then copy their contents into the stopped service volume.
