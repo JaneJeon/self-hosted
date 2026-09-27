@@ -5,7 +5,7 @@ Self-hosted infrastructure on [Railway](https://railway.com), deployed via GitOp
 
 ## Architecture
 
-All services run on Railway in a single project. Each service has its own directory under `services/` with a `Dockerfile` and `railway.json` (config-as-code). See each service's directory for service-specific details.
+All services run on Railway in a single project. Each service has its own directory under `services/`. Existing services use `railway.json`; the three MCP services use the `mcp` partial in `.railway/railway.ts`. See each service's directory for service-specific details.
 
 ### Services
 
@@ -17,6 +17,9 @@ All services run on Railway in a single project. Each service has its own direct
 | **hoyolab-auto** | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in          | Persistent      |
 | **mysql-backup** | `mysql:8.4` + restic               | Incremental MySQL backups to B2 | Cron (3 AM UTC) |
 | **Tailscale**    | `tailscale`                        | VPN subnet router               | Persistent      |
+| **telegram-mcp** | Python + Node                      | Private Telegram MCP backend    | Persistent      |
+| **whatsapp-mcp** | Go + restic                        | Private WhatsApp MCP and backup | Persistent      |
+| **agentgateway** | `agentgateway:v1.5.0`              | Authenticated MCP entry point   | Persistent      |
 
 ### How services connect
 
@@ -28,13 +31,16 @@ mysql-backup ───┘
 mysql-backup ─────────────┼──▶ B2 (restic repo)
                           │
 mysql-backup ─────────────┼──▶ uptime-kuma (push heartbeat on success)
+
+Codex, Claude ──▶ agentgateway ──▶ telegram-mcp
+                              └──▶ whatsapp-mcp ──▶ B2 and uptime-kuma
 ```
 
 Inter-service communication is over Railway's private network (`*.railway.internal`).
 
 ## Deployment
 
-All deploys go through `git push`. Each service's `railway.json` has `watchPatterns` that determine which file changes trigger a rebuild.
+All deploys go through `git push`. Existing services use `railway.json` watch patterns. The new MCP services are represented by the named `mcp` partial in `.railway/railway.ts`, which leaves the existing services outside its ownership.
 
 ### Environment variables
 
