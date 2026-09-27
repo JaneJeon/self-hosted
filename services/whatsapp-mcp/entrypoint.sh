@@ -4,17 +4,24 @@ set -eu
 # One volume contains all mutable WhatsApp state. The image keeps only symlinks
 # at the paths expected by the unchanged upstream binary.
 mkdir -p /app/data/storages /app/data/statics/qrcode /app/data/statics/senditems /app/data/statics/media
-chown -R gowauser:gowa /app/data
 
-# An empty first boot would create a new unpaired device state in the volume.
-# Wait for the consistent Mac snapshot and backup configuration instead.
-test -s /app/data/storages/whatsapp.db
-test -s /app/data/storages/chatstorage.db
 : "${RESTIC_REPOSITORY:?}"
 : "${RESTIC_PASSWORD:?}"
 : "${B2_ACCOUNT_ID:?}"
 : "${B2_ACCOUNT_KEY:?}"
 : "${HEARTBEAT_URL:?}"
+
+# An empty first boot would create a new unpaired device. Stay alive so Railway
+# can accept volume uploads, but do not start Go until the final snapshot has
+# been copied and the operator uploads the marker as the very last file.
+trap 'exit 0' INT TERM
+echo "Waiting for migrated WhatsApp state in /app/data"
+until [ -f /app/data/.migration-ready ] \
+  && [ -s /app/data/storages/whatsapp.db ] \
+  && [ -s /app/data/storages/chatstorage.db ]; do
+  sleep 5
+done
+chown -R gowauser:gowa /app/data
 
 /usr/local/bin/backup-loop.sh &
 backup_pid=$!

@@ -9,18 +9,29 @@ Mount one Railway volume at `/app/data`. The image links upstream `storages`
 and `statics` to this volume. Both SQLite databases, their WAL state, message
 history, and media live there. Run exactly one replica. Before initial startup,
 stop the Mac instance and transfer a consistent snapshot of the local state.
+The container may be deployed before cutover: it waits without starting Go
+until `/app/data/.migration-ready` and both SQLite databases exist. Upload the
+marker only after the complete snapshot is on the volume.
 
 The entrypoint passes an empty environment except for fixed non-secret values
 to the Go process. Its `--host` defaults to `RAILWAY_PRIVATE_DOMAIN` so the SSE
 message endpoint names an address that agentgateway can reach. For local Docker
 testing, set `WHATSAPP_MCP_HOST` to the container hostname on a test network.
 
-The entrypoint refuses to start until both migrated databases and the B2
-backup variables are present. A background loop starts a backup when none has
+The entrypoint requires the B2 backup variables and waits for both migrated
+databases and the marker. A background loop starts a backup when none has
 succeeded in the past 24 hours, then retries failures hourly. It copies each
 database with SQLite online backup, stages other state and media, and backs the
 snapshot up to an encrypted restic repository. Retention is last 10, daily 7,
 weekly 5, monthly 12. Only success pings the Kuma push monitor.
+
+For cutover, stop the Mac Go process first. Run
+`python3 export-state.py <local-upstream>/src <new-empty-export-directory>` to
+copy other state and media and make validated SQLite copies. Upload the
+exported `storages` and `statics` directories to their matching paths on the
+Railway volume with `railway volume files --volume whatsapp-mcp-volume upload`.
+Check the uploaded files, then upload an empty `.migration-ready` file last.
+Keep the local source and export for rollback.
 
 Required backup variables: `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`,
 `B2_ACCOUNT_ID`, `B2_ACCOUNT_KEY`, and `HEARTBEAT_URL`. Store their source
