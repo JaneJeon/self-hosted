@@ -38,6 +38,10 @@ export default defineRailway(() => {
   })
 
   const whatsapp = service('whatsapp-mcp', {
+    source: github('JaneJeon/self-hosted', {
+      branch: 'codex/railway-mcp',
+      rootDirectory: '/services/whatsapp-mcp'
+    }),
     replicas: { 'us-west2': 1 },
     volumeMounts: { '/app/data': whatsappData },
     env: {
