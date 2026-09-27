@@ -37,7 +37,8 @@ export default defineRailway(() => {
       B2_ACCOUNT_ID: preserve(),
       B2_ACCOUNT_KEY: preserve(),
       RESTIC_REPOSITORY: preserve(),
-      RESTIC_PASSWORD: preserve()
+      RESTIC_PASSWORD: preserve(),
+      HEARTBEAT_URL: preserve()
     }
   })
 

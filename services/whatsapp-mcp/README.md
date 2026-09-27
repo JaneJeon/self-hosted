@@ -30,5 +30,5 @@ temporary directory first, verify both SQLite databases with `PRAGMA
 quick_check`, then copy their contents into the stopped service volume.
 The B2 key is the existing scoped Railway key; the `Railway WhatsApp MCP Backup`
 item holds a separate repository path and restic password. `.env.template`
-resolves these four values through `swarp secrets refresh`. Add the Kuma
-heartbeat URL to this template after its new push monitor exists.
+resolves the backup credentials and the dedicated Kuma monitor URL through
+`swarp secrets refresh`.
