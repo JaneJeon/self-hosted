@@ -1,0 +1,36 @@
+FROM alpine:3.23 AS source
+
+RUN apk add --no-cache ca-certificates git
+ARG WHATSAPP_REF=d64bbdf1b4fad0a917ce783c9471d49a17f16a4c
+RUN git init /src \
+    && git -C /src remote add origin https://github.com/aldinokemal/go-whatsapp-web-multidevice.git \
+    && git -C /src fetch --depth 1 origin "$WHATSAPP_REF" \
+    && git -C /src checkout --detach FETCH_HEAD \
+    && test "$(git -C /src rev-parse HEAD)" = "$WHATSAPP_REF"
+
+FROM golang:1.25-alpine3.23 AS builder
+
+RUN apk add --no-cache gcc musl-dev gcompat
+WORKDIR /src
+COPY --from=source /src/src/go.mod /src/src/go.sum ./
+RUN go mod download
+COPY --from=source /src/src ./
+RUN go build -ldflags="-w -s" -o /out/whatsapp
+
+FROM alpine:3.23
+
+RUN apk add --no-cache ffmpeg libwebp-tools poppler-utils su-exec tzdata \
+    && addgroup -g 20000 gowa \
+    && adduser -D -u 20001 -G gowa -h /app gowauser
+
+ENV TZ=UTC
+WORKDIR /app
+COPY --from=builder /out/whatsapp /app/whatsapp
+RUN mkdir -p /app/data \
+    && ln -s /app/data/storages /app/storages \
+    && ln -s /app/data/statics /app/statics
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 8080
+ENTRYPOINT ["/entrypoint.sh"]
