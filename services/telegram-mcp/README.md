@@ -9,6 +9,8 @@ Runtime variables: `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, and
 `TELEGRAM_SESSION_STRING`. Store their source values in 1Password and inject
 them into Railway with `railway variable set KEY --stdin`. Do not put them in
 build arguments, Git, command lines, or logs.
+The `Railway Telegram MCP` item is the source of truth, and `.env.template`
+resolves it locally through `swarp secrets refresh`.
 
 Mount one Railway volume at `/data`. Upstream file-path tools are restricted to
 that server-side root and cannot access files on a desktop client. The session
