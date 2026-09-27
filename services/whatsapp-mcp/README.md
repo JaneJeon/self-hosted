@@ -27,11 +27,14 @@ weekly 5, monthly 12. Only success pings the Kuma push monitor.
 
 For cutover, stop the Mac Go process first. Run
 `python3 export-state.py <local-upstream>/src <new-empty-export-directory>` to
-copy other state and media and make validated SQLite copies. Upload the
-exported `storages` and `statics` directories to their matching paths on the
-Railway volume with `railway volume files --volume whatsapp-mcp-volume upload`.
-Check the uploaded files, then upload an empty `.migration-ready` file last.
-Keep the local source and export for rollback.
+copy other state and media and make validated SQLite copies. Create a tar archive
+containing the exported `storages` and `statics` directories. Upload that one
+file with `railway volume files --volume whatsapp-mcp-volume upload
+<archive> /whatsapp-state.tar`; the CLI's `/` is the container's `/app/data`.
+Compare the archive's SHA-256 locally and through `railway ssh`, then extract
+it inside the waiting container to `/app/data`. Check both uploaded databases
+with `PRAGMA quick_check`. Upload an empty `/.migration-ready` file last to
+start Go and the backup loop. Keep the local source and export for rollback.
 
 Required backup variables: `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`,
 `B2_ACCOUNT_ID`, `B2_ACCOUNT_KEY`, and `HEARTBEAT_URL`. Store their source
