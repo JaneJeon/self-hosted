@@ -42,6 +42,7 @@ export default defineRailway(() => {
   })
 
   const gateway = service('agentgateway', {
+    domains: [{ domain: 'mcp.janejeon.dev', port: 8080 }],
     replicas: { 'us-west2': 1 },
     env: {
       TELEGRAM_MCP_URL: preserve(),
