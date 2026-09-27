@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/agentgateway/agentgateway/refs/tags/v1.5.0/schema/config.json
+config:
+  adminAddr: 127.0.0.1:15000
+
+gateways:
+  default:
+    port: 8080
+
+routes:
+  - name: telegram
+    matches:
+      - path:
+          exact: /telegram
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/telegram
+      - path:
+          pathPrefix: /.well-known/oauth-authorization-server/telegram
+    backends:
+      - mcp:
+          targets:
+            - name: telegram
+              mcp:
+                host: ${TELEGRAM_MCP_URL}
+              policies:
+                requestHeaderModifier:
+                  remove:
+                    - authorization
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${AUTH0_ISSUER}
+        audiences:
+          - ${AUTH0_AUDIENCE}
+        provider:
+          auth0: {}
+        jwks:
+          url: ${AUTH0_JWKS_URL}
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/telegram
+          scopesSupported:
+            - mcp:use
+          bearerMethodsSupported:
+            - header
+      authorization:
+        rules:
+          - '"mcp:use" in jwt.permissions && jwt.sub == "${JANE_SUB}"'
+
+  - name: whatsapp
+    matches:
+      - path:
+          exact: /whatsapp
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/whatsapp
+      - path:
+          pathPrefix: /.well-known/oauth-authorization-server/whatsapp
+    backends:
+      - mcp:
+          targets:
+            - name: whatsapp
+              sse:
+                host: ${WHATSAPP_MCP_HOST}
+                port: 8080
+                path: /sse
+              policies:
+                requestHeaderModifier:
+                  remove:
+                    - authorization
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${AUTH0_ISSUER}
+        audiences:
+          - ${AUTH0_AUDIENCE}
+        provider:
+          auth0: {}
+        jwks:
+          url: ${AUTH0_JWKS_URL}
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/whatsapp
+          scopesSupported:
+            - mcp:use
+          bearerMethodsSupported:
+            - header
+      authorization:
+        rules:
+          - '"mcp:use" in jwt.permissions && jwt.sub == "${JANE_SUB}"'
