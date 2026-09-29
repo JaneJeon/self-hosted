@@ -66,6 +66,44 @@ export default defineRailway(() => {
     }
   })
 
+  // Provision private identity services before attaching their Git sources.
+  const identity = service('Keycloak', {
+    build: {
+      builder: 'DOCKERFILE',
+      watchPatterns: ['/services/keycloak/**']
+    },
+    deploy: { restartPolicyType: 'ALWAYS' },
+    replicas: { 'us-west2': 1 },
+    env: {
+      KC_DB_URL:
+        'jdbc:mysql://${{MySQL.RAILWAY_PRIVATE_DOMAIN}}:3306/${{MySQL.KEYCLOAK_MYSQL_DATABASE}}?sslMode=DISABLED&allowPublicKeyRetrieval=true',
+      KC_DB_USERNAME: '${{MySQL.KEYCLOAK_MYSQL_USERNAME}}',
+      KC_DB_PASSWORD: '${{MySQL.KEYCLOAK_MYSQL_PASSWORD}}',
+      KC_BOOTSTRAP_ADMIN_CLIENT_ID: 'migration-bootstrap',
+      KC_BOOTSTRAP_ADMIN_CLIENT_SECRET: preserve(),
+      PRIVATE_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/auth',
+      ISSUER: 'https://mcp.janejeon.dev/auth/realms/personal',
+      JWKS_URL:
+        'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/auth/realms/personal/protocol/openid-connect/certs'
+    }
+  })
+
+  const identityMcp = service('Keycloak MCP', {
+    build: {
+      builder: 'DOCKERFILE',
+      watchPatterns: ['/services/keycloak-mcp/**']
+    },
+    deploy: { restartPolicyType: 'ALWAYS' },
+    replicas: { 'us-west2': 1 },
+    env: {
+      KC_URL: identity.env.PRIVATE_URL,
+      KC_REALM: 'personal',
+      OIDC_CLIENT_ID: 'codex',
+      QUARKUS_OIDC_TOKEN_ISSUER: identity.env.ISSUER,
+      MCP_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/mcp'
+    }
+  })
+
   const gateway = service('agentgateway', {
     build: {
       builder: 'DOCKERFILE',
@@ -88,6 +126,14 @@ export default defineRailway(() => {
   })
 
   return project('Personal Project', {
-    resources: [telegram, whatsapp, gateway, telegramData, whatsappData]
+    resources: [
+      telegram,
+      whatsapp,
+      gateway,
+      identity,
+      identityMcp,
+      telegramData,
+      whatsappData
+    ]
   })
 })
