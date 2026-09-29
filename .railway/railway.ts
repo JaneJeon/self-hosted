@@ -66,13 +66,16 @@ export default defineRailway(() => {
     }
   })
 
-  // Provision private identity services before attaching their Git sources.
   const identity = service('Keycloak', {
     build: {
       builder: 'DOCKERFILE',
       watchPatterns: ['/services/keycloak/**']
     },
     deploy: { restartPolicyType: 'ALWAYS' },
+    source: github('JaneJeon/self-hosted', {
+      branch: 'codex/railway-mcp',
+      rootDirectory: '/services/keycloak'
+    }),
     replicas: { 'us-west2': 1 },
     env: {
       KC_DB_URL:
@@ -94,6 +97,10 @@ export default defineRailway(() => {
       watchPatterns: ['/services/keycloak-mcp/**']
     },
     deploy: { restartPolicyType: 'ALWAYS' },
+    source: github('JaneJeon/self-hosted', {
+      branch: 'codex/railway-mcp',
+      rootDirectory: '/services/keycloak-mcp'
+    }),
     replicas: { 'us-west2': 1 },
     env: {
       KC_URL: identity.env.PRIVATE_URL,
