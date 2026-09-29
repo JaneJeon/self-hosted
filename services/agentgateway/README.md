@@ -1,28 +1,45 @@
-# MCP agentgateway
+# Personal MCP gateway
 
-This is the only public Railway service for Telegram and WhatsApp MCP. Add the
-custom domain `mcp.janejeon.dev` to this service and create its Cloudflare CNAME
-as DNS-only. The public endpoints are `/telegram` and `/whatsapp`. Each has a
-separate MCP backend and OAuth resource. Do not publish a domain for either
-backend or the gateway admin listener.
+The only public Railway entry point is `https://mcp.janejeon.dev`:
 
-Required variables:
+- `/telegram` and `/whatsapp`: private messaging MCP backends.
+- `/keycloak`: the restricted identity management MCP.
+- `/auth/realms/personal/` and login assets: Keycloak login and discovery.
 
-| Name                | Value                                                 |
-| ------------------- | ----------------------------------------------------- |
-| `TELEGRAM_MCP_URL`  | `http://telegram-mcp.railway.internal:8080/mcp`       |
-| `WHATSAPP_MCP_HOST` | `whatsapp-mcp.railway.internal`                       |
-| `AUTH0_ISSUER`      | Auth0 tenant URL with a trailing slash                |
-| `AUTH0_JWKS_URL`    | Auth0 tenant URL followed by `/.well-known/jwks.json` |
-| `AUTH0_AUDIENCE`    | Identifier of the Auth0 API for this gateway          |
-| `JANE_SUB`          | Stable Auth0 user ID allowed to use these tools       |
+Keep both messaging backends and both identity services private. The Keycloak
+master realm, administrative web API, and management ports are not publicly
+routed. The gateway admin listener binds only to loopback on port 15000.
 
-Agentgateway requires a valid Auth0 JWT with the `mcp:use` permission and the
-configured Jane subject. The token is stripped before forwarding MCP traffic
-to either backend. Keep dynamic client registration disabled in Auth0; configure
-the Codex and Claude OAuth clients explicitly and register their exact callback
-URLs. Configure the Auth0 API to include permissions in access tokens.
+The gateway acts as an OAuth resource server. Clients discover Keycloak directly,
+use registered public clients with S256 PKCE, and send access tokens to the
+gateway. Require issuer, audience, subject, and expiration claims, the configured
+`MCP_ALLOWED_SUB`, and the `mcp-use` realm role. Messaging backends receive no
+Authorization header. Only the Keycloak management backend receives the validated
+user token, so Keycloak can enforce that user's view permissions.
 
-The admin listener binds to loopback on port 15000. The public MCP listener is
-port 8080. Run `agentgateway --validate-only -f /config.yaml` against the built
-image with test environment values before pushing.
+All service dependencies use Railway references in `.railway/railway.ts`:
+
+| Variable            | Source                                 |
+| ------------------- | -------------------------------------- |
+| `TELEGRAM_MCP_URL`  | Telegram MCP's `MCP_URL`               |
+| `WHATSAPP_MCP_HOST` | Whatsapp MCP's private domain          |
+| `OIDC_ISSUER`       | Keycloak's `ISSUER`                    |
+| `OIDC_JWKS_URL`     | Keycloak's private `JWKS_URL`          |
+| `KEYCLOAK_HOST`     | Keycloak's `PRIVATE_HOST`              |
+| `KEYCLOAK_MCP_URL`  | Keycloak MCP's `MCP_URL`               |
+| `MCP_ALLOWED_SUB`   | The single authorized Keycloak user ID |
+
+During migration, only the generated `migration-test` identity is authorized.
+When Jane's permanent account is ready, switch `MCP_ALLOWED_SUB`, verify its
+login, and revoke/remove the temporary user's sessions and account.
+
+Codex uses OAuth client ID `codex` with callback port 8765. Claude uses client ID
+`claude` and no secret. The realm seed declares exact callbacks. Verify Claude's
+actual authorization request before considering that connector complete.
+
+Agentgateway exits when its initial JWKS fetch fails. Railway therefore uses
+`ALWAYS` restart behavior so the gateway recovers when Keycloak becomes available.
+Existing Auth0 configuration variables are retained temporarily for rollback.
+
+See `services/keycloak/README.md` for the tested direct-discovery rationale and
+identity provisioning procedure. Build and run the image locally before pushing.

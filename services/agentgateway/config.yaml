@@ -13,8 +13,6 @@ routes:
           exact: /telegram
       - path:
           pathPrefix: /.well-known/oauth-protected-resource/telegram
-      - path:
-          pathPrefix: /.well-known/oauth-authorization-server/telegram
     backends:
       - mcp:
           targets:
@@ -28,22 +26,23 @@ routes:
     policies:
       mcpAuthentication:
         mode: strict
-        issuer: ${AUTH0_ISSUER}
+        issuer: ${OIDC_ISSUER}
         audiences:
-          - ${AUTH0_AUDIENCE}
-        provider:
-          auth0: {}
+          - https://mcp.janejeon.dev
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
         jwks:
-          url: ${AUTH0_JWKS_URL}
+          url: ${OIDC_JWKS_URL}
         resourceMetadata:
           resource: https://mcp.janejeon.dev/telegram
           scopesSupported:
-            - mcp:use
+            - openid
+            - offline_access
           bearerMethodsSupported:
             - header
       authorization:
         rules:
-          - '"mcp:use" in jwt.permissions && jwt.sub == "${JANE_SUB}"'
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
 
   - name: whatsapp
     matches:
@@ -51,8 +50,6 @@ routes:
           exact: /whatsapp
       - path:
           pathPrefix: /.well-known/oauth-protected-resource/whatsapp
-      - path:
-          pathPrefix: /.well-known/oauth-authorization-server/whatsapp
     backends:
       - mcp:
           targets:
@@ -68,19 +65,88 @@ routes:
     policies:
       mcpAuthentication:
         mode: strict
-        issuer: ${AUTH0_ISSUER}
+        issuer: ${OIDC_ISSUER}
         audiences:
-          - ${AUTH0_AUDIENCE}
-        provider:
-          auth0: {}
+          - https://mcp.janejeon.dev
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
         jwks:
-          url: ${AUTH0_JWKS_URL}
+          url: ${OIDC_JWKS_URL}
         resourceMetadata:
           resource: https://mcp.janejeon.dev/whatsapp
           scopesSupported:
-            - mcp:use
+            - openid
+            - offline_access
           bearerMethodsSupported:
             - header
       authorization:
         rules:
-          - '"mcp:use" in jwt.permissions && jwt.sub == "${JANE_SUB}"'
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
+
+  - name: keycloak-management
+    matches:
+      - path:
+          exact: /keycloak
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/keycloak
+    backends:
+      - mcp:
+          targets:
+            - name: keycloak
+              mcp:
+                host: ${KEYCLOAK_MCP_URL}
+              policies:
+                backendAuth:
+                  passthrough: {}
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${OIDC_ISSUER}
+        audiences: [https://mcp.janejeon.dev]
+        jwks:
+          url: ${OIDC_JWKS_URL}
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/keycloak
+          scopesSupported: [openid, offline_access]
+          bearerMethodsSupported: [header]
+      authorization:
+        rules:
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
+
+  - name: identity-public
+    matches:
+      - path:
+          pathPrefix: /auth/realms/personal/
+      - path:
+          pathPrefix: /auth/resources/
+      - path:
+          exact: /auth/.well-known/oauth-authorization-server/realms/personal
+    backends:
+      - host: ${KEYCLOAK_HOST}
+    policies:
+      requestHeaderModifier:
+        remove:
+          [
+            forwarded,
+            x-forwarded-for,
+            x-forwarded-prefix,
+            x-original-forwarded-for,
+            x-real-ip
+          ]
+        set:
+          x-forwarded-proto: https
+          x-forwarded-host: mcp.janejeon.dev
+          x-forwarded-port: '443'
+
+  - name: identity-discovery
+    matches:
+      - path:
+          exact: /.well-known/oauth-authorization-server/auth/realms/personal
+    backends:
+      - host: ${KEYCLOAK_HOST}
+    policies:
+      urlRewrite:
+        path:
+          full: /auth/.well-known/oauth-authorization-server/realms/personal

@@ -76,12 +76,11 @@ The same native login and read test subsequently passed against the production
 26.7.4 image with MySQL 8.4 and login served under the gateway's `/auth` path.
 The management MCP also completed a realm read using that user's token.
 
-`agentgateway.yaml` is the prepared configuration candidate to move into
-`services/agentgateway/config.yaml` at activation. It requires `OIDC_ISSUER`
+The gateway configuration lives in `services/agentgateway/config.yaml`. It requires `OIDC_ISSUER`
 (`https://mcp.janejeon.dev/auth/realms/personal`), `OIDC_JWKS_URL`
 (`http://keycloak.railway.internal:8080/auth/realms/personal/protocol/openid-connect/certs`),
 `KEYCLOAK_HOST` (`keycloak.railway.internal:8080`), `KEYCLOAK_MCP_URL`
-(`http://keycloak-mcp.railway.internal:8080/mcp`), and `JANE_SUB`, alongside the
+(`http://keycloak-mcp.railway.internal:8080/mcp`), and `MCP_ALLOWED_SUB`, alongside the
 existing Telegram and WhatsApp private URLs. It exposes no master realm or
 administrative web endpoints. Forwarded client IP headers are stripped; use
 gateway access logs for the original client address.

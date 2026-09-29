@@ -85,6 +85,7 @@ export default defineRailway(() => {
       KC_BOOTSTRAP_ADMIN_CLIENT_ID: 'migration-bootstrap',
       KC_BOOTSTRAP_ADMIN_CLIENT_SECRET: preserve(),
       PRIVATE_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/auth',
+      PRIVATE_HOST: '${{RAILWAY_PRIVATE_DOMAIN}}:8080',
       ISSUER: 'https://mcp.janejeon.dev/auth/realms/personal',
       JWKS_URL:
         'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/auth/realms/personal/protocol/openid-connect/certs'
@@ -116,7 +117,7 @@ export default defineRailway(() => {
       builder: 'DOCKERFILE',
       watchPatterns: ['/services/agentgateway/**']
     },
-    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
+    deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
       branch: 'codex/railway-mcp',
       rootDirectory: '/services/agentgateway'
@@ -125,6 +126,11 @@ export default defineRailway(() => {
     env: {
       TELEGRAM_MCP_URL: telegram.env.MCP_URL,
       WHATSAPP_MCP_HOST: whatsapp.env.RAILWAY_PRIVATE_DOMAIN,
+      OIDC_ISSUER: identity.env.ISSUER,
+      OIDC_JWKS_URL: identity.env.JWKS_URL,
+      KEYCLOAK_HOST: identity.env.PRIVATE_HOST,
+      KEYCLOAK_MCP_URL: identityMcp.env.MCP_URL,
+      MCP_ALLOWED_SUB: preserve(),
       AUTH0_ISSUER: preserve(),
       AUTH0_JWKS_URL: preserve(),
       AUTH0_AUDIENCE: preserve(),
