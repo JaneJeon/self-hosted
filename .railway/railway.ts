@@ -25,7 +25,7 @@ export default defineRailway(() => {
     sizeMB: 5000
   })
 
-  const telegram = service('telegram-mcp', {
+  const telegram = service('Telegram MCP', {
     build: {
       builder: 'DOCKERFILE',
       watchPatterns: ['/services/telegram-mcp/**']
@@ -36,13 +36,14 @@ export default defineRailway(() => {
     replicas: { 'us-west2': 1 },
     volumeMounts: { '/data': telegramData },
     env: {
+      MCP_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/mcp',
       TELEGRAM_API_ID: preserve(),
       TELEGRAM_API_HASH: preserve(),
       TELEGRAM_SESSION_STRING: preserve()
     }
   })
 
-  const whatsapp = service('whatsapp-mcp', {
+  const whatsapp = service('Whatsapp MCP', {
     build: {
       builder: 'DOCKERFILE',
       watchPatterns: ['/services/whatsapp-mcp/**']
@@ -59,7 +60,9 @@ export default defineRailway(() => {
       B2_ACCOUNT_KEY: preserve(),
       RESTIC_REPOSITORY: preserve(),
       RESTIC_PASSWORD: preserve(),
-      HEARTBEAT_URL: preserve()
+      KUMA_PUSH_PATH: preserve(),
+      HEARTBEAT_URL:
+        'http://${{"Uptime Kuma".RAILWAY_PRIVATE_DOMAIN}}:${{"Uptime Kuma".PORT}}${{KUMA_PUSH_PATH}}'
     }
   })
 
@@ -76,8 +79,8 @@ export default defineRailway(() => {
     domains: [{ domain: 'mcp.janejeon.dev', port: 8080 }],
     replicas: { 'us-west2': 1 },
     env: {
-      TELEGRAM_MCP_URL: preserve(),
-      WHATSAPP_MCP_HOST: preserve(),
+      TELEGRAM_MCP_URL: telegram.env.MCP_URL,
+      WHATSAPP_MCP_HOST: whatsapp.env.RAILWAY_PRIVATE_DOMAIN,
       AUTH0_ISSUER: preserve(),
       AUTH0_JWKS_URL: preserve(),
       AUTH0_AUDIENCE: preserve(),

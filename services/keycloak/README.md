@@ -28,6 +28,13 @@ client ID `codex` and callback port 8765. Claude uses client ID `claude`, withou
 a client secret. Verify Claude's published callback against its actual login
 request before cutover.
 
+When adding these services to Railway, use reference variables for every
+service dependency. Build `KC_DB_URL` from MySQL's private domain and database
+variable, and reference MySQL's dedicated Keycloak username/password variables.
+Build gateway and management MCP URLs from Keycloak's `RAILWAY_PRIVATE_DOMAIN`.
+This keeps values linked and shows the dependency in Railway's canvas. See
+`.railway/README.md`.
+
 ## Why direct discovery
 
 A local test with Codex 0.154.0, agentgateway 1.5.0, and Keycloak 26.7.1 found

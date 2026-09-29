@@ -14,12 +14,12 @@ the validated token reaches this server. Keep this service private.
 
 Runtime configuration:
 
-| Variable                    | Value                                           |
-| --------------------------- | ----------------------------------------------- |
-| `KC_URL`                    | `http://keycloak.railway.internal:8080/auth`    |
-| `KC_REALM`                  | `personal`                                      |
-| `QUARKUS_OIDC_TOKEN_ISSUER` | `https://mcp.janejeon.dev/auth/realms/personal` |
-| `OIDC_CLIENT_ID`            | Registered public MCP client ID                 |
+| Variable                    | Value                                                   |
+| --------------------------- | ------------------------------------------------------- |
+| `KC_URL`                    | `http://${{keycloak.RAILWAY_PRIVATE_DOMAIN}}:8080/auth` |
+| `KC_REALM`                  | `personal`                                              |
+| `QUARKUS_OIDC_TOKEN_ISSUER` | `https://mcp.janejeon.dev/auth/realms/personal`         |
+| `OIDC_CLIENT_ID`            | Registered public MCP client ID                         |
 
 The image overrides upstream's trust-all TLS default and requires authentication
 on both `/mcp` and `/mcp/*`. Its JWKS URL uses the private Keycloak address, while
