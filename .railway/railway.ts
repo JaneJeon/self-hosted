@@ -76,7 +76,6 @@ export default defineRailway(() => {
       branch: 'codex/railway-mcp',
       rootDirectory: '/services/agentgateway'
     }),
-    domains: [{ domain: 'mcp.janejeon.dev', port: 8080 }],
     replicas: { 'us-west2': 1 },
     env: {
       TELEGRAM_MCP_URL: telegram.env.MCP_URL,

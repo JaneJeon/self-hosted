@@ -5,6 +5,11 @@ named `mcp` partial. It preserves credentials already injected into Railway;
 secret values belong in 1Password and never in this file. The existing services
 are outside this partial.
 
+The existing `mcp.janejeon.dev` domain is retained outside this partial. Railway
+configuration cannot register custom domains, and the project-token CI planner
+has reported this existing domain as a new registration. Omitting `domains`
+produces no domain deletion in the verified plan and preserves its live binding.
+
 Represent service dependencies with Railway reference variables. Use private
 domains and the provider's variables so values update together and the canvas
 shows the actual dependency. The gateway references both MCP backends, and
