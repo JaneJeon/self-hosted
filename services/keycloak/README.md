@@ -19,6 +19,15 @@ Use a dedicated `personal` realm, disabled public signup, registered public
 clients, exact callbacks, and S256 PKCE. Disable password grants and service
 accounts for desktop clients. Authorize Jane's subject at the gateway.
 
+`personal-realm.json` seeds those settings on first startup. Existing realms
+are skipped, so later changes require an explicit administrative update.
+No user or password is embedded. Provision Jane using her saved login, assign
+`mcp-use`, and grant the appropriate realm view roles for management MCP.
+Record her new Keycloak subject in the gateway before activation. Codex uses
+client ID `codex` and callback port 8765. Claude uses client ID `claude`, without
+a client secret. Verify Claude's published callback against its actual login
+request before cutover.
+
 ## Why direct discovery
 
 A local test with Codex 0.154.0, agentgateway 1.5.0, and Keycloak 26.7.1 found
@@ -27,6 +36,24 @@ while Keycloak returns its own issuer in the OAuth callback. Codex rejects the
 mismatch. Removing the provider adapter makes protected resource metadata point
 directly to Keycloak. Native OAuth login, tool discovery, and a read-only tool
 call then succeeded. Keep explicit JWKS configuration and required JWT claims.
+
+The same native login and read test subsequently passed against the production
+26.7.4 image with MySQL 8.4 and login served under the gateway's `/auth` path.
+The management MCP also completed a realm read using that user's token.
+
+`agentgateway.yaml` is the prepared configuration candidate to move into
+`services/agentgateway/config.yaml` at activation. It requires `OIDC_ISSUER`
+(`https://mcp.janejeon.dev/auth/realms/personal`), `OIDC_JWKS_URL`
+(`http://keycloak.railway.internal:8080/auth/realms/personal/protocol/openid-connect/certs`),
+`KEYCLOAK_HOST` (`keycloak.railway.internal:8080`), `KEYCLOAK_MCP_URL`
+(`http://keycloak-mcp.railway.internal:8080/mcp`), and `JANE_SUB`, alongside the
+existing Telegram and WhatsApp private URLs. It exposes no master realm or
+administrative web endpoints. Forwarded client IP headers are stripped; use
+gateway access logs for the original client address.
+
+Deploy Keycloak and provision the realm before changing the live gateway.
+Agentgateway exits if its initial JWKS fetch fails, so enable ongoing restart
+retries for the gateway when adding the identity service dependency.
 
 The upstream [standalone authentication reference](https://agentgateway.dev/docs/standalone/latest/documentation/configuration/security/mcp-authn/)
 documents this resource server mode. The
