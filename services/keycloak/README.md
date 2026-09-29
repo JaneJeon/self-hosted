@@ -1,13 +1,15 @@
 # Keycloak for personal MCP
 
-This is the production container candidate for replacing Auth0. It is not yet
-connected to Railway. Keycloak uses a separate `keycloak` database and account
+This production container replaces Auth0 for the migration. The private
+Railway service is declared in `.railway/railway.ts`. Keycloak uses a separate `keycloak` database and account
 in the existing MySQL 8.4 service. The existing all-databases backup includes
 that database once provisioned. No additional volume is needed.
 
 Run one replica. Supply `KC_DB_URL`, `KC_DB_USERNAME`, and `KC_DB_PASSWORD`
 at runtime. Supply bootstrap administrator credentials only for provisioning.
-Store new credentials in 1Password before activating this service. Do not use
+Store permanent credentials in 1Password. During the user-authorized temporary
+account phase, generated credentials are held in Railway variables and the
+ignored, owner-readable `services/keycloak/.env`. Do not use
 the development server or its embedded database in Railway.
 
 Agentgateway will expose only the personal realm, public discovery, and login
@@ -27,6 +29,32 @@ Record her new Keycloak subject in the gateway before activation. Codex uses
 client ID `codex` and callback port 8765. Claude uses client ID `claude`, without
 a client secret. Verify Claude's published callback against its actual login
 request before cutover.
+
+## Temporary test account
+
+Jane authorized a temporary account while she is away from her computer.
+`provision-test-user.py` creates `migration-test` in the personal realm and
+grants `mcp-use` plus the realm/client view roles needed by the management MCP.
+It uses the temporary bootstrap service account through private requests from
+the existing WhatsApp container. Credentials are passed through stdin and are
+never printed. It records the returned subject in the ignored `.env`.
+
+Run after Keycloak has started:
+
+```sh
+direnv exec services/keycloak python3 services/keycloak/provision-test-user.py
+```
+
+Switch the gateway's allowed subject to the returned test subject before testing.
+The test user is a real authorization principal, so use its generated password
+and keep public signup disabled. Do not use a fixed example password.
+
+When Jane returns, create her permanent account, enroll the desired login
+method, assign its roles, and test a separate login. Switch the gateway's allowed
+subject to that account, revoke the test user's sessions, and remove the test
+account. Store database and permanent administrative credentials in 1Password.
+Remove the temporary bootstrap client after permanent administrative access
+has been established. Move `.env` to the normal swarp template workflow then.
 
 When adding these services to Railway, use reference variables for every
 service dependency. Build `KC_DB_URL` from MySQL's private domain and database

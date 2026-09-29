@@ -1,8 +1,10 @@
 # MCP Railway infrastructure
 
-`railway.ts` owns only the three MCP services and their two volumes through the
-named `mcp` partial. It preserves credentials already injected into Railway;
-secret values belong in 1Password and never in this file. The existing services
+`railway.ts` owns the MCP services, private identity services, and two MCP volumes
+through the named `mcp` partial. It preserves credentials injected into Railway;
+secret values never belong in this file. Permanent credentials belong in
+1Password. The authorized temporary identity credentials are held in an ignored
+local `.env` until Jane returns. The existing services
 are outside this partial.
 
 The existing `mcp.janejeon.dev` domain is retained outside this partial. Railway
