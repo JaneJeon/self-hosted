@@ -109,7 +109,6 @@ def main():
                 "lastName": "Test",
                 "email": "migration-test@example.invalid",
                 "emailVerified": False,
-                "attributes": {"provisionedBy": ["railway-mcp-migration"]},
                 "credentials": [
                     {
                         "type": "password",
@@ -121,9 +120,15 @@ def main():
             token=token,
         )
         users = request(base, realm + "/users" + query, token=token)
-    if len(users) != 1 or users[0].get("attributes", {}).get("provisionedBy") != [
-        "railway-mcp-migration"
-    ]:
+    # Default Keycloak user profiles discard unmanaged custom attributes.
+    # Match the dedicated test identity's managed fields instead.
+    expected = {
+        "username": username,
+        "email": "migration-test@example.invalid",
+        "firstName": "Migration",
+        "lastName": "Test",
+    }
+    if len(users) != 1 or any(users[0].get(k) != v for k, v in expected.items()):
         raise RuntimeError("Refusing to modify an unexpected user")
     subject = users[0]["id"]
     role = request(base, realm + "/roles/mcp-use", token=token)
