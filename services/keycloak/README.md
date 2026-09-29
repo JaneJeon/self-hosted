@@ -23,6 +23,11 @@ accounts for desktop clients. Authorize Jane's subject at the gateway.
 
 `personal-realm.json` seeds those settings on first startup. Existing realms
 are skipped, so later changes require an explicit administrative update.
+The `basic` default client scope supplies the required `sub` claim. Each client
+keeps full-scope access disabled and explicitly permits `mcp-use` plus the three
+realm/client view roles. User role assignment alone does not put those roles in
+a token when the client's scope mappings exclude them. The provisioning script
+reconciles these settings for existing clients too.
 No user or password is embedded. Provision Jane using her saved login, assign
 `mcp-use`, and grant the appropriate realm view roles for management MCP.
 Record her new Keycloak subject in the gateway before activation. Codex uses

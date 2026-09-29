@@ -35,7 +35,7 @@
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
-      "defaultClientScopes": ["profile", "roles", "email"],
+      "defaultClientScopes": ["basic", "profile", "roles", "email"],
       "optionalClientScopes": ["offline_access"],
       "protocolMappers": [
         {
@@ -48,7 +48,8 @@
             "id.token.claim": "false"
           }
         }
-      ]
+      ],
+      "fullScopeAllowed": false
     },
     {
       "clientId": "claude",
@@ -65,7 +66,7 @@
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
-      "defaultClientScopes": ["profile", "roles", "email"],
+      "defaultClientScopes": ["basic", "profile", "roles", "email"],
       "optionalClientScopes": ["offline_access"],
       "protocolMappers": [
         {
@@ -78,7 +79,30 @@
             "id.token.claim": "false"
           }
         }
-      ]
+      ],
+      "fullScopeAllowed": false
     }
-  ]
+  ],
+  "scopeMappings": [
+    {
+      "client": "codex",
+      "roles": ["mcp-use"]
+    },
+    {
+      "client": "claude",
+      "roles": ["mcp-use"]
+    }
+  ],
+  "clientScopeMappings": {
+    "realm-management": [
+      {
+        "client": "codex",
+        "roles": ["view-realm", "view-clients", "query-clients"]
+      },
+      {
+        "client": "claude",
+        "roles": ["view-realm", "view-clients", "query-clients"]
+      }
+    ]
+  }
 }

@@ -94,6 +94,25 @@ def main():
         form=True,
     )["access_token"]
     realm = "/admin/realms/personal"
+    # Keycloak's basic scope supplies sub. Existing realms are not updated by
+    # startup imports, so reconcile the two already-registered clients too.
+    basic = next(
+        scope
+        for scope in request(base, realm + "/client-scopes", token=token)
+        if scope["name"] == "basic"
+    )
+    oauth_clients = []
+    for client_name in ("codex", "claude"):
+        client = request(base, realm + "/clients?clientId=" + client_name, token=token)[
+            0
+        ]
+        oauth_clients.append(client)
+        request(
+            base,
+            realm + f"/clients/{client['id']}/default-client-scopes/{basic['id']}",
+            "PUT",
+            token=token,
+        )
     username = os.environ["MCP_TEST_USERNAME"]
     query = "?" + urllib.parse.urlencode({"username": username, "exact": "true"})
     users = request(base, realm + "/users" + query, token=token)
@@ -135,6 +154,14 @@ def main():
     request(
         base, realm + f"/users/{subject}/role-mappings/realm", "POST", [role], token
     )
+    for oauth_client in oauth_clients:
+        request(
+            base,
+            realm + f"/clients/{oauth_client['id']}/scope-mappings/realm",
+            "POST",
+            [role],
+            token,
+        )
     client = request(base, realm + "/clients?clientId=realm-management", token=token)[0]
     roles = [
         request(base, realm + f"/clients/{client['id']}/roles/{name}", token=token)
@@ -147,6 +174,15 @@ def main():
         roles,
         token,
     )
+    for oauth_client in oauth_clients:
+        request(
+            base,
+            realm
+            + f"/clients/{oauth_client['id']}/scope-mappings/clients/{client['id']}",
+            "POST",
+            roles,
+            token,
+        )
     target = Path(__file__).with_name(".env")
     lines = [
         line
