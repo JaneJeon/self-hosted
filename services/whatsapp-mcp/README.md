@@ -24,6 +24,15 @@ succeeded in the past 24 hours, then retries failures hourly. It copies each
 database with SQLite online backup, stages other state and media, and backs the
 snapshot up to an encrypted restic repository. Retention is last 10, daily 7,
 weekly 5, monthly 12. Only success pings the Kuma push monitor.
+Backups use the stable hostname `whatsapp-mcp`; retention groups by backup path
+so a new container does not create a separate retention history.
+
+Keep the Kuma monitor paused while the service is waiting for initial migration.
+After state transfer, a successful snapshot restore check, and startup of the
+daily loop, resume the monitor and verify a real successful backup heartbeat.
+Do not send a synthetic success to suppress an alert. A paused Kuma monitor
+rejects its push URL with 404 (`Monitor not found or not active`), even when the
+preceding B2 snapshot and retention succeeded.
 
 For cutover, stop the Mac Go process first. Run
 `python3 export-state.py <local-upstream>/src <new-empty-export-directory>` to

@@ -39,8 +39,11 @@ cp -a /app/data/statics/. "$snapshot/statics/"
 if ! restic snapshots >/dev/null 2>&1; then
   restic init
 fi
-restic backup --tag whatsapp-mcp "$snapshot"
-restic forget --keep-last 10 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --prune
+restic backup --host whatsapp-mcp --tag whatsapp-mcp "$snapshot"
+# Container hostnames change on deployment. Group by the fixed backup path so
+# retention also includes snapshots from earlier container instances.
+restic forget --tag whatsapp-mcp --group-by paths \
+  --keep-last 10 --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --prune
 
 # Keep the push monitor silent on failure; a missed heartbeat alerts through Kuma.
 printf 'url = "%s"\n' "$HEARTBEAT_URL" | curl --config - --fail --silent --show-error --output /dev/null
