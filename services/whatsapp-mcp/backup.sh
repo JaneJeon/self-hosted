@@ -8,13 +8,16 @@ umask 077
 : "${B2_ACCOUNT_KEY:?}"
 : "${HEARTBEAT_URL:?}"
 
-lock=/tmp/whatsapp-backup.lock
-if ! mkdir "$lock" 2>/dev/null; then
+lock=/tmp/whatsapp-backup.flock
+# Kernel locks are released when a job dies. A directory lock can survive an
+# interrupted container process and block every later backup indefinitely.
+exec 9>"$lock"
+if ! flock -n 9; then
   echo "WhatsApp backup already running" >&2
   exit 1
 fi
 snapshot=/tmp/whatsapp-backup/whatsapp-mcp
-trap 'rm -rf /tmp/whatsapp-backup "$lock"' EXIT
+trap 'rm -rf /tmp/whatsapp-backup' EXIT
 rm -rf /tmp/whatsapp-backup
 mkdir -p "$snapshot/storages" "$snapshot/statics"
 

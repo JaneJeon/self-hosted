@@ -26,6 +26,8 @@ snapshot up to an encrypted restic repository. Retention is last 10, daily 7,
 weekly 5, monthly 12. Only success pings the Kuma push monitor.
 Backups use the stable hostname `whatsapp-mcp`; retention groups by backup path
 so a new container does not create a separate retention history.
+The backup job holds a kernel file lock. An interrupted process releases the
+lock automatically, so stale temporary files cannot permanently block backups.
 
 Keep the Kuma monitor paused while the service is waiting for initial migration.
 After state transfer, a successful snapshot restore check, and startup of the
