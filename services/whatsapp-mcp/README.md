@@ -28,6 +28,8 @@ succeeded in the past 24 hours, then retries failures hourly. It copies each
 database with SQLite online backup, stages other state and media, and backs the
 snapshot up to an encrypted restic repository. Retention is last 10, daily 7,
 weekly 5, monthly 12. Only success pings the Kuma push monitor.
+SQLite copies wait up to 30 seconds for locks and retry up to five times before
+the job fails, allowing concurrent startup and normal database writes to finish.
 Backups use the stable hostname `whatsapp-mcp`; retention groups by backup path
 so a new container does not create a separate retention history.
 The backup job holds a kernel file lock. An interrupted process releases the

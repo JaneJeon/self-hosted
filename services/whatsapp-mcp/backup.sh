@@ -23,8 +23,19 @@ mkdir -p "$snapshot/storages" "$snapshot/statics"
 
 # The SQLite online backup command includes committed WAL transactions without
 # copying a live database and WAL as unrelated files.
-sqlite3 /app/data/storages/whatsapp.db ".backup '$snapshot/storages/whatsapp.db'"
-sqlite3 /app/data/storages/chatstorage.db ".backup '$snapshot/storages/chatstorage.db'"
+backup_database() {
+  database=$1
+  destination=$2
+  attempt=1
+  while ! sqlite3 -cmd '.timeout 30000' "$database" ".backup '$destination'"; do
+    [ "$attempt" -lt 5 ] || return 1
+    echo "SQLite backup busy or failed; retrying ($attempt/5)" >&2
+    attempt=$((attempt + 1))
+    sleep 5
+  done
+}
+backup_database /app/data/storages/whatsapp.db "$snapshot/storages/whatsapp.db"
+backup_database /app/data/storages/chatstorage.db "$snapshot/storages/chatstorage.db"
 test "$(sqlite3 "$snapshot/storages/whatsapp.db" 'PRAGMA quick_check;')" = ok
 test "$(sqlite3 "$snapshot/storages/chatstorage.db" 'PRAGMA quick_check;')" = ok
 
