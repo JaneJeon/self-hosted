@@ -31,6 +31,10 @@ export default defineRailway(() => {
       watchPatterns: ['/services/telegram-mcp/**']
     },
     deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
+    source: github('JaneJeon/self-hosted', {
+      branch: 'codex/railway-mcp',
+      rootDirectory: '/services/telegram-mcp'
+    }),
     healthcheck: '/ping',
     healthcheckTimeout: 180,
     replicas: { 'us-west2': 1 },
