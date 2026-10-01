@@ -53,6 +53,7 @@ values in 1Password and inject them into Railway without argv or log exposure.
 Use a repository distinct from the MySQL backup prefix. Restore into a
 temporary directory first, verify both SQLite databases with `PRAGMA
 quick_check`, then copy their contents into the stopped service volume.
+See [RECOVERY.md](RECOVERY.md) for the required stop, restore, and rollback order.
 The B2 key is the existing scoped Railway key; the `Railway WhatsApp MCP Backup`
 item holds a separate repository path and restic password. `.env.template`
 resolves the backup credentials and the dedicated Kuma monitor URL through

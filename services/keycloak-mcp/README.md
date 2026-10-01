@@ -1,8 +1,10 @@
-# Keycloak management MCP candidate
+# Keycloak management MCP
 
 Pinned community [Keycloak MCP server](https://github.com/sshaaf/keycloak-mcp-server)
-0.4.0, with its image pinned by digest. This service is not connected to Railway
-yet. It permits only `GET_REALM` and `GET_CLIENTS` for initial dogfooding.
+0.4.0, with its image pinned by digest. As of September 30, 2026, this private
+Railway service is live behind `https://mcp.janejeon.dev/keycloak`. Native Codex
+OAuth login and `GET_REALM` succeeded against production. It permits only
+`GET_REALM` and `GET_CLIENTS` for initial dogfooding.
 The upstream tool schema also lists disabled operations; the server rejects
 them before execution.
 

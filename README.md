@@ -5,7 +5,7 @@ Self-hosted infrastructure on [Railway](https://railway.com), deployed via GitOp
 
 ## Architecture
 
-All services run on Railway in a single project. Each service has its own directory under `services/`. Existing services use `railway.json`; the three MCP services use the `mcp` partial in `.railway/railway.ts`. See each service's directory for service-specific details.
+All services run on Railway in a single project. Each service has its own directory under `services/`. Existing services use `railway.json`; the five messaging, gateway, and identity services use the `mcp` partial in `.railway/railway.ts`. See each service's directory for service-specific details.
 
 ### Services
 
@@ -20,6 +20,8 @@ All services run on Railway in a single project. Each service has its own direct
 | **telegram-mcp** | Python + Node                      | Private Telegram MCP backend    | Persistent      |
 | **whatsapp-mcp** | Go + restic                        | Private WhatsApp MCP and backup | Persistent      |
 | **agentgateway** | `agentgateway:v1.5.0`              | Authenticated MCP entry point   | Persistent      |
+| **keycloak**     | `keycloak:26.7.4`                  | OAuth identity provider         | Persistent      |
+| **keycloak-mcp** | Keycloak MCP 0.4.0                 | Restricted identity inspection  | Persistent      |
 
 ### How services connect
 
@@ -33,10 +35,18 @@ mysql-backup ─────────────┼──▶ B2 (restic repo
 mysql-backup ─────────────┼──▶ uptime-kuma (push heartbeat on success)
 
 Codex, Claude ──▶ agentgateway ──▶ telegram-mcp
-                              └──▶ whatsapp-mcp ──▶ B2 and uptime-kuma
+                              ├──▶ whatsapp-mcp ──▶ B2 and uptime-kuma
+                              ├──▶ keycloak-mcp ──▶ keycloak
+                              └──▶ keycloak ──▶ mysql
 ```
 
 Inter-service communication is over Railway's private network (`*.railway.internal`).
+
+Native clients authenticate through Keycloak at `mcp.janejeon.dev/auth` and use
+`/telegram`, `/whatsapp`, or `/keycloak` on the gateway. Both messaging clients
+completed read calls after the September 30 cutover. The Mac launchers are
+disabled; preserve their data for rollback. Identity currently uses the
+authorized temporary migration account pending Jane's permanent login setup.
 
 ## Deployment
 
