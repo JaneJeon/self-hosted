@@ -23,11 +23,21 @@ until [ -f /app/data/.migration-ready ] \
 done
 chown -R gowauser:gowa /app/data
 
+# GOWA prints Viper settings at startup. Pass only non-secret values to it.
+host=${WHATSAPP_MCP_HOST:-${RAILWAY_PRIVATE_DOMAIN:-127.0.0.1}}
+# Upstream uses this name for both its listener and advertised SSE endpoint.
+# During a Railway rollout, service DNS can still name the previous container.
+# Bind the advertised name to this container's own address locally; other
+# containers continue to discover it through Railway DNS.
+if [ -n "${RAILWAY_PRIVATE_DOMAIN:-}" ] && [ "$host" = "$RAILWAY_PRIVATE_DOMAIN" ]; then
+  own_address=$(getent hosts "$HOSTNAME" | awk 'NR == 1 { print $1 }')
+  test -n "$own_address"
+  printf '%s %s\n' "$own_address" "$host" >> /etc/hosts
+fi
+
 /usr/local/bin/backup-loop.sh &
 backup_pid=$!
 
-# GOWA prints Viper settings at startup. Pass only non-secret values to it.
-host=${WHATSAPP_MCP_HOST:-${RAILWAY_PRIVATE_DOMAIN:-127.0.0.1}}
 su-exec gowauser env -i \
   HOME=/app \
   PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \

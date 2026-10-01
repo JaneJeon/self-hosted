@@ -17,6 +17,10 @@ The entrypoint passes an empty environment except for fixed non-secret values
 to the Go process. Its `--host` defaults to `RAILWAY_PRIVATE_DOMAIN` so the SSE
 message endpoint names an address that agentgateway can reach. For local Docker
 testing, set `WHATSAPP_MCP_HOST` to the container hostname on a test network.
+Upstream also binds its listener to this hostname. During Railway rollouts the
+service DNS can still point to the previous container, so the entrypoint maps
+the advertised private name to its own container address in `/etc/hosts`.
+Other containers still use Railway DNS; upstream source remains unchanged.
 
 The entrypoint requires the B2 backup variables and waits for both migrated
 databases and the marker. A background loop starts a backup when none has
