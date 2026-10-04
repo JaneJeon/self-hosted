@@ -25,7 +25,13 @@ docker build -t mysql-backup-test services/mysql-backup
 docker run --rm --entrypoint bash \
   -v "$PWD/services/mysql-backup/test-backup.sh:/test-backup.sh:ro" \
   mysql-backup-test /test-backup.sh
+python3 services/mysql-backup/test-round-trip.py
 ```
+
+The round-trip check creates a disposable MySQL server and local restic
+repository. It restores fixture rows and verifies that a partial dump creates
+neither a new snapshot nor a success heartbeat. GitHub Actions runs both checks
+on native AMD64 Linux for matching pull requests and pushes.
 
 ## Restore
 
