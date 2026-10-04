@@ -119,6 +119,8 @@ try:
             "docker",
             "run",
             "--rm",
+            "--user",
+            f"{os.getuid()}:{os.getgid()}",
             "--network",
             network,
             "-v",
@@ -127,6 +129,8 @@ try:
             "RESTIC_REPOSITORY=/repo",
             "-e",
             "RESTIC_PASSWORD=fixture",
+            "-e",
+            "RESTIC_CACHE_DIR=/tmp/restic-cache",
             "--label",
             "codex.mysql-backup-test=" + suffix,
         ]
