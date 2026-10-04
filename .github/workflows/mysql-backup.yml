@@ -1,0 +1,34 @@
+name: MySQL Backup
+
+on:
+  pull_request:
+    paths:
+      - services/mysql-backup/**
+      - .github/workflows/mysql-backup.yml
+  push:
+    branches:
+      - master
+    paths:
+      - services/mysql-backup/**
+      - .github/workflows/mysql-backup.yml
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Build the production architecture
+        run: docker build --platform linux/amd64 -t mysql-backup-test:ci services/mysql-backup
+      - name: Check timeout and failure behavior
+        run: |
+          docker run --rm --entrypoint bash \
+            -v "$PWD/services/mysql-backup/test-backup.sh:/test-backup.sh:ro" \
+            mysql-backup-test:ci /test-backup.sh
+      - name: Check a real MySQL dump and restore
+        env:
+          BACKUP_TEST_IMAGE: mysql-backup-test:ci
+        run: python3 services/mysql-backup/test-round-trip.py
