@@ -1,0 +1,41 @@
+name: WhatsApp Backup
+
+on:
+  pull_request:
+    paths:
+      - services/whatsapp-mcp/**
+      - .github/workflows/whatsapp-backup.yml
+  push:
+    branches:
+      - master
+      - codex/railway-mcp
+    paths:
+      - services/whatsapp-mcp/**
+      - .github/workflows/whatsapp-backup.yml
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --prefer-offline
+      - run: npm run lint
+      - name: Build the production architecture
+        run: docker build --platform linux/amd64 -t whatsapp-backup-test:ci services/whatsapp-mcp
+      - name: Check deadlines, interruption, locks, and success markers
+        run: |
+          docker run --rm --entrypoint sh \
+            -v "$PWD/services/whatsapp-mcp/test-backup.sh:/test-backup.sh:ro" \
+            whatsapp-backup-test:ci /test-backup.sh
+      - name: Restore SQLite WAL data, state, and media
+        env:
+          BACKUP_TEST_IMAGE: whatsapp-backup-test:ci
+        run: python3 services/whatsapp-mcp/test-round-trip.py
