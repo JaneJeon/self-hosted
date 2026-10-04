@@ -12,6 +12,10 @@ log "=== MySQL backup starting ==="
 : "${B2_ACCOUNT_ID:?}"
 : "${B2_ACCOUNT_KEY:?}"
 
+# The password is already in the runtime environment. Keep it out of the
+# mysqldump argument list, including on retries.
+export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"
+
 # A B2 request can keep retrying inside restic without returning to the shell.
 # End each attempt so a fresh process can reconnect and the daily cron can exit.
 run_restic() {
@@ -47,7 +51,6 @@ run_restic backup \
        --lock-tables=false \
        -h "${MYSQL_HOST}" \
        -u root \
-       -p"${MYSQL_ROOT_PASSWORD}" \
        --all-databases
 
 log "Applying retention policy (keep-last 10, daily 7, weekly 5, monthly 12)..."
