@@ -2,6 +2,15 @@
 set -u
 
 marker=/app/data/storages/.whatsapp-backup-last-success
+job_pid=
+stop_job() {
+  if [ -n "$job_pid" ]; then
+    kill -TERM "$job_pid" 2>/dev/null || true
+    wait "$job_pid" 2>/dev/null || true
+  fi
+  exit 0
+}
+trap stop_job INT TERM
 while :; do
   now=$(date -u +%s)
   last=0
@@ -14,10 +23,14 @@ while :; do
 
   until_time=$((last + 86400))
   if [ "$now" -ge "$until_time" ]; then
-    if /usr/local/bin/backup.sh; then
+    timeout --kill-after=30s 1h /usr/local/bin/backup.sh &
+    job_pid=$!
+    if wait "$job_pid"; then
+      job_pid=
       date -u +%s > "$marker"
       sleep 300
     else
+      job_pid=
       echo "WhatsApp backup failed; retrying in one hour" >&2
       sleep 3600
     fi
