@@ -21,7 +21,7 @@ FROM restic/restic:0.18.1 AS restic-source
 
 FROM alpine:3.23
 
-RUN apk add --no-cache curl ffmpeg libwebp-tools poppler-utils sqlite su-exec tzdata \
+RUN apk add --no-cache coreutils curl ffmpeg libwebp-tools poppler-utils sqlite su-exec tzdata \
     && addgroup -g 20000 gowa \
     && adduser -D -u 20001 -G gowa -h /app gowauser
 
