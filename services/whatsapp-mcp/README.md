@@ -32,8 +32,19 @@ SQLite copies wait up to 30 seconds for locks and retry up to five times before
 the job fails, allowing concurrent startup and normal database writes to finish.
 Backups use the stable hostname `whatsapp-mcp`; retention groups by backup path
 so a new container does not create a separate retention history.
-The backup job holds a kernel file lock. An interrupted process releases the
-lock automatically, so stale temporary files cannot permanently block backups.
+The backup job holds a kernel file lock. Children can inherit that descriptor,
+so termination stops the active command before removing staging data. The loop
+forwards termination to the active job. No lock directory needs manual deletion.
+
+Each job has a one-hour deadline. Restic operations get three fresh attempts,
+each limited to five minutes with a 30-second kill grace and ten seconds between
+attempts. Each SQLite copy has a 60-second deadline while preserving the existing
+30-second lock wait and five attempts. Heartbeats have a ten-second connection
+timeout and a 30-second total deadline. The image uses GNU timeout for process
+group handling.
+
+Provision repositories explicitly with `restic init`. A failed repository read
+leaves its diagnostic visible and fails the job without attempting initialization.
 
 Keep the Kuma monitor paused while the service is waiting for initial migration.
 After state transfer, a successful snapshot restore check, and startup of the
@@ -64,3 +75,23 @@ The B2 key is the existing scoped Railway key; the `Railway WhatsApp MCP Backup`
 item holds a separate repository path and restic password. `.env.template`
 resolves the backup credentials and the dedicated Kuma monitor URL through
 `swarp secrets refresh`.
+
+## Backup verification
+
+```bash
+docker build -t whatsapp-backup-test services/whatsapp-mcp
+docker run --rm --entrypoint sh \
+  -v "$PWD/services/whatsapp-mcp/test-backup.sh:/test-backup.sh:ro" \
+  whatsapp-backup-test /test-backup.sh
+python3 services/whatsapp-mcp/test-round-trip.py
+```
+
+The checks use disposable data. They cover deadlines, retries, concurrent jobs,
+interrupted children, lock release, success markers, and a real SQLite WAL
+backup/restore with state and media hashes. Native AMD64 GitHub Actions runs
+the same checks for this service's changes.
+
+For an incident, read Craft's `Library/Playbooks/A backup missed its heartbeat`
+and `Library/Playbooks/I need to verify backup recovery before closing an incident`.
+The service's current monitoring and data-protection state lives in
+`Library/Systems/WhatsApp MCP on Railway — migration and backup monitoring`.
