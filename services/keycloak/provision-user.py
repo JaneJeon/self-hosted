@@ -5,19 +5,13 @@ Use direnv for credentials. The password never enters argv or tool output.
 Existing identities are not reset by this script.
 """
 
-import importlib.util
 import json
 import os
 import subprocess
 import urllib.parse
 from pathlib import Path
 
-spec = importlib.util.spec_from_file_location(
-    "private_api", Path(__file__).with_name("provision-test-user.py")
-)
-private_api = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(private_api)
-request = private_api.request
+from private_api import request
 
 
 def main():

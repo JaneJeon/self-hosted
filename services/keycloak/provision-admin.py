@@ -8,14 +8,13 @@ master realm admin role. Retirement is an explicit, guarded second step.
 import argparse
 import base64
 import hmac
-import importlib.util
 import json
 import os
 import subprocess
 import urllib.parse
-from pathlib import Path
 
-PROJECT = "1ca64bca-3c33-4155-9ad5-104306f5119e"
+from private_api import request
+
 ADMIN_ROLE = "admin"
 MAINTENANCE_CLIENT_ID = "mcp-maintenance"
 RETIRABLE_BOOTSTRAP_ID = "migration-bootstrap"
@@ -289,17 +288,6 @@ def provision(
     return {"clientId": admin_id, "retiredBootstrap": bool(retire_bootstrap)}
 
 
-def _production_requester():
-    spec = importlib.util.spec_from_file_location(
-        "private_api", Path(__file__).with_name("provision-test-user.py")
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Could not load the private Keycloak request helper")
-    private_api = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(private_api)
-    return private_api.request
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -321,7 +309,7 @@ def main():
     if not isinstance(base, str) or "${{" in base:
         raise RuntimeError("Keycloak private URL did not resolve")
     result = provision(
-        _production_requester(),
+        request,
         base,
         os.environ["KC_BOOTSTRAP_ADMIN_CLIENT_ID"],
         os.environ["KC_BOOTSTRAP_ADMIN_CLIENT_SECRET"],
