@@ -106,8 +106,8 @@ export default defineRailway(() => {
       branch: 'master',
       rootDirectory: '/services/whatsapp-trial'
     }),
-    // Bootstrap the empty volume while the entrypoint waits for its marker.
-    // Enable /health after the reviewed seed is installed, before publication.
+    healthcheck: '/health',
+    healthcheckTimeout: 180,
     replicas: { 'us-west2': 1 },
     volumeMounts: { '/app/data': whatsappTrialData },
     env: {
