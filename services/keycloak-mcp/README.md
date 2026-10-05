@@ -8,6 +8,13 @@ OAuth login and `GET_REALM` succeeded against production. It permits only
 The upstream tool schema also lists disabled operations; the server rejects
 them before execution.
 
+The image preserves the upstream JVM logging/default options and appends an
+explicit 64 MiB initial / 256 MiB maximum heap. The original 80% RAM setting
+sized a very large heap against the Railway host and the deployed Java process
+used about 1.7 GiB RSS. An explicit heap prevents that sizing behavior. Measure
+the deployed RSS and exercise both enabled reads after changes; the heap limit
+is not a total-process memory limit.
+
 The service uses the caller's Keycloak JWT for administration. It has no shared
 administrator password or service account. Keycloak must separately grant the
 caller the appropriate `realm-management` view roles. Restrict the public gateway

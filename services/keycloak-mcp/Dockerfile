@@ -3,6 +3,7 @@ FROM quay.io/sshaaf/keycloak-mcp-server@sha256:b7e9cba72f8a531c888792f204289fc2c
 # Validate the user's JWT and use it for Keycloak's own authorization checks.
 # Discovery advertises public URLs; fetch JWKS over private networking instead.
 ENV KC_REALM=personal \
+    JAVA_OPTS_APPEND="-Djava.util.logging.manager=org.jboss.logmanager.LogManager -Xms64m -Xmx256m" \
     QUARKUS_OIDC_DISCOVERY_ENABLED=false \
     QUARKUS_OIDC_JWKS_PATH=/protocol/openid-connect/certs \
     QUARKUS_TLS_TRUST_ALL=false \
