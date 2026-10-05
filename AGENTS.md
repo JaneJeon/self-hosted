@@ -2,6 +2,12 @@
 
 Operational knowledge for AI agents working on this repo. For project docs, see [README.md](README.md). For service-specific details, read the `README.md` in each service's directory under `services/`.
 
+## Active MCP overnight work (2026-10-05)
+
+When continuing this migration after interruption or compaction, read `.agent-state/mcp-overnight.md` and Craft migration Index `1bb694d1-0c1d-e4e0-e7f2-ab5adcc75a82` before acting. The local checkpoint has the current next step and private artifact locations; Craft owns durable decisions and evidence. Update both as work progresses.
+
+Latest user direction overrides earlier goal wording: **NO passkeys in this run**. Make permanent `Jane` username/password work, make all intended MCPs usable in Claude, Codex, and ChatGPT, fix rollout reconnection and WhatsApp result contents, reduce Keycloak MCP memory, merge the code in this repo, and save the reusable deployment and WhatsApp-use guides. Do not hand routine setup or cleanup back to Jane. The user authorizes unsigned commits and bounded Luna grunt workers; the parent owns decisions. Never claim completion from a status check or a forced backup alone.
+
 ## Golden rules
 
 1. **GitOps only** — all deploys via `git push`. Never use `railway redeploy`.

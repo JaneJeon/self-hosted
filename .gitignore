@@ -1,4 +1,5 @@
 # Project-specific ignores
+.agent-state/
 **/*.env
 **/*.userfile
 **/*.pem
