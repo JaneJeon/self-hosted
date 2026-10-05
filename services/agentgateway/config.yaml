@@ -1,0 +1,156 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/agentgateway/agentgateway/refs/tags/v1.5.0/schema/config.json
+config:
+  adminAddr: 127.0.0.1:15000
+
+gateways:
+  default:
+    port: 8080
+
+routes:
+  - name: telegram
+    matches:
+      - path:
+          exact: /telegram
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/telegram
+    backends:
+      - mcp:
+          targets:
+            - name: telegram
+              mcp:
+                host: ${TELEGRAM_MCP_URL}
+              policies:
+                requestHeaderModifier:
+                  remove:
+                    - authorization
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${OIDC_ISSUER}
+        audiences:
+          - https://mcp.janejeon.dev
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
+        jwks:
+          url: ${OIDC_JWKS_URL}
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/telegram
+          scopesSupported:
+            - openid
+            - offline_access
+          bearerMethodsSupported:
+            - header
+      authorization:
+        rules:
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
+
+  - name: whatsapp
+    matches:
+      - path:
+          exact: /whatsapp
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/whatsapp
+    backends:
+      - mcp:
+          # WhatsApp stores account/chat state in its own database. Each request
+          # can create a fresh transport, avoiding reuse of a dead SSE stream
+          # after backend rollouts in the pinned gateway version.
+          statefulMode: stateless
+          targets:
+            - name: whatsapp
+              sse:
+                host: ${WHATSAPP_MCP_HOST}
+                port: 8080
+                path: /sse
+              policies:
+                requestHeaderModifier:
+                  remove:
+                    - authorization
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${OIDC_ISSUER}
+        audiences:
+          - https://mcp.janejeon.dev
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
+        jwks:
+          url: ${OIDC_JWKS_URL}
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/whatsapp
+          scopesSupported:
+            - openid
+            - offline_access
+          bearerMethodsSupported:
+            - header
+      authorization:
+        rules:
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
+
+  - name: keycloak-management
+    matches:
+      - path:
+          exact: /keycloak
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/keycloak
+    backends:
+      - mcp:
+          targets:
+            - name: keycloak
+              mcp:
+                host: ${KEYCLOAK_MCP_URL}
+              policies:
+                backendAuth:
+                  passthrough: {}
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${OIDC_ISSUER}
+        audiences: [https://mcp.janejeon.dev]
+        jwks:
+          url: ${OIDC_JWKS_URL}
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/keycloak
+          scopesSupported: [openid, offline_access]
+          bearerMethodsSupported: [header]
+      authorization:
+        rules:
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
+
+  - name: identity-public
+    matches:
+      - path:
+          pathPrefix: /auth/realms/personal/
+      - path:
+          pathPrefix: /auth/resources/
+      - path:
+          exact: /auth/.well-known/oauth-authorization-server/realms/personal
+    backends:
+      - host: ${KEYCLOAK_HOST}
+    policies:
+      requestHeaderModifier:
+        remove:
+          [
+            forwarded,
+            x-forwarded-for,
+            x-forwarded-prefix,
+            x-original-forwarded-for,
+            x-real-ip
+          ]
+        set:
+          x-forwarded-proto: https
+          x-forwarded-host: mcp.janejeon.dev
+          x-forwarded-port: '443'
+
+  - name: identity-discovery
+    matches:
+      - path:
+          exact: /.well-known/oauth-authorization-server/auth/realms/personal
+    backends:
+      - host: ${KEYCLOAK_HOST}
+    policies:
+      urlRewrite:
+        path:
+          full: /auth/.well-known/oauth-authorization-server/realms/personal

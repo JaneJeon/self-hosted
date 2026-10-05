@@ -1,0 +1,25 @@
+name: MCP transport
+
+on:
+  pull_request:
+    paths:
+      - services/agentgateway/**
+      - .github/workflows/mcp-transport.yml
+  push:
+    branches: [master, codex/railway-mcp]
+    paths:
+      - services/agentgateway/**
+      - .github/workflows/mcp-transport.yml
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - run: docker pull cr.agentgateway.dev/agentgateway:v1.5.0
+      - name: Reproduce stale SSE and verify recovery without gateway restart
+        run: python3 services/agentgateway/tests/test-sse-reconnect.py

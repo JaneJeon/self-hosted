@@ -1,0 +1,35 @@
+name: Railway MCP configuration
+
+on:
+  push:
+    branches:
+      - codex/railway-mcp
+      - master
+    paths:
+      - .railway/**
+      - .github/workflows/railway-mcp.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: railway-mcp-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm install --global @railway/cli@5.54.1
+      - name: Preview MCP Railway changes
+        run: env _="$(command -v railway)" railway config plan
+      - name: Apply MCP Railway changes
+        run: env _="$(command -v railway)" railway config apply --yes

@@ -1,0 +1,147 @@
+{
+  "realm": "personal",
+  "enabled": true,
+  "displayName": "Jane\u2019s personal services",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": true,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "mcp-use",
+        "description": "Use personal MCP tools"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "codex",
+      "name": "Codex MCP",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": [
+        "http://127.0.0.1:8765/callback/1yPAsfwTHtx_",
+        "http://127.0.0.1:8765/callback/jnh3sLZTeaMt",
+        "http://127.0.0.1:8765/callback/PZkl0TfTaxI1"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": ["basic", "profile", "roles", "email"],
+      "optionalClientScopes": ["offline_access"],
+      "protocolMappers": [
+        {
+          "name": "personal-mcp-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "https://mcp.janejeon.dev",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "fullScopeAllowed": false
+    },
+    {
+      "clientId": "claude",
+      "name": "Claude MCP",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": ["https://claude.ai/api/mcp/auth_callback"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": ["basic", "profile", "roles", "email"],
+      "optionalClientScopes": ["offline_access"],
+      "protocolMappers": [
+        {
+          "name": "personal-mcp-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "https://mcp.janejeon.dev",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "fullScopeAllowed": false
+    },
+    {
+      "clientId": "chatgpt",
+      "name": "ChatGPT MCP",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": ["https://chatgpt.com/connector_platform_oauth_redirect"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": ["basic", "profile", "roles"],
+      "optionalClientScopes": ["offline_access"],
+      "protocolMappers": [
+        {
+          "name": "personal-mcp-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "https://mcp.janejeon.dev",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "fullScopeAllowed": false
+    }
+  ],
+  "scopeMappings": [
+    {
+      "client": "codex",
+      "roles": ["mcp-use"]
+    },
+    {
+      "client": "claude",
+      "roles": ["mcp-use"]
+    },
+    {
+      "client": "chatgpt",
+      "roles": ["mcp-use"]
+    }
+  ],
+  "clientScopeMappings": {
+    "realm-management": [
+      {
+        "client": "codex",
+        "roles": ["view-realm", "view-clients", "query-clients"]
+      },
+      {
+        "client": "claude",
+        "roles": ["view-realm", "view-clients", "query-clients"]
+      },
+      {
+        "client": "chatgpt",
+        "roles": ["view-realm", "view-clients", "query-clients"]
+      }
+    ]
+  }
+}

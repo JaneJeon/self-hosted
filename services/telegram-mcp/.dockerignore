@@ -1,0 +1,5 @@
+.env
+.env.*
+*.db
+*.session
+.git
