@@ -12,6 +12,8 @@ The image contains no Go bridge or backup executable. Startup requires `WHATSAPP
 
 The manifest records the reviewed source snapshot, timestamp, row counts and file digests. Startup rejects an identity/checksum/schema mismatch or corrupt database. `/health` succeeds only after the loaded files pass validation; removing or changing a snapshot file makes readiness fail and query calls return errors. The server's instructions and tool descriptions identify the data as snapshot-based, not live. Imported read markers are unknown, so do not treat returned `unread` flags as verified current read state.
 
+Set Railway `PORT=8080` explicitly. The pinned server and `MCP_URL` use port 8080; [Railway health probes use `PORT`](https://docs.railway.com/deployments/healthchecks). An absent or mismatched value can prevent `/health` from reaching the listener even after Uvicorn starts successfully.
+
 ## Prepare the seed privately
 
 The selected source is ordinary snapshot `530656a0`, independently restored and validated by the parent. Use its actual restic timestamp, not the example fixture timestamp. Restore into disposable RAM through the existing backup recovery workflow, using cached service direnv credentials. Do not copy the running production databases.

@@ -112,6 +112,7 @@ export default defineRailway(() => {
     volumeMounts: { '/app/data': whatsappTrialData },
     env: {
       MCP_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/mcp',
+      PORT: '8080',
       WHATSAPP_CANDIDATE_READ_ONLY: '1',
       WHATSAPP_TRIAL_SNAPSHOT: '530656a0'
     }
