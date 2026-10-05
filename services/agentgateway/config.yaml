@@ -52,6 +52,10 @@ routes:
           pathPrefix: /.well-known/oauth-protected-resource/whatsapp
     backends:
       - mcp:
+          # WhatsApp stores account/chat state in its own database. Each request
+          # can create a fresh transport, avoiding reuse of a dead SSE stream
+          # after backend rollouts in the pinned gateway version.
+          statefulMode: stateless
           targets:
             - name: whatsapp
               sse:

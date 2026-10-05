@@ -12,6 +12,18 @@ rows, instead of only "Retrieved N messages". The Docker builder applies this
 helper to the pinned upstream's structured-result call sites and runs its test.
 Tool names, schemas, device selection, and database state are unchanged.
 
+The gateway uses a stateless MCP route for this backend. Each request initializes
+a fresh SSE transport, so a backend rollout cannot leave later requests using
+the pinned gateway's cached dead stream. WhatsApp account/chat state lives in
+the application's database and process, independently of that transport. An
+in-flight call interrupted during rollout can still fail. The gateway does not
+silently replay a write with an unknown outcome.
+
+Run `MCP_TEST_IMAGE=<built-image> python3 test-mcp.py` for an isolated,
+unpaired real-Go fixture. It checks 40 tools, structured/text equivalence, and
+successful calls after restarting only the backend. The network blocks external
+WhatsApp access and all test data is synthetic.
+
 Mount one Railway volume at `/app/data`. The image links upstream `storages`
 and `statics` to this volume. Both SQLite databases, their WAL state, message
 history, and media live there. Run exactly one replica. Before initial startup,

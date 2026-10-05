@@ -39,3 +39,7 @@ jobs:
         env:
           BACKUP_TEST_IMAGE: whatsapp-backup-test:ci
         run: python3 services/whatsapp-mcp/test-round-trip.py
+      - name: Check real MCP contents and backend restart recovery
+        env:
+          MCP_TEST_IMAGE: whatsapp-backup-test:ci
+        run: python3 services/whatsapp-mcp/test-mcp.py

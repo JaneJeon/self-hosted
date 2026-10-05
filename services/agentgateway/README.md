@@ -17,6 +17,20 @@ gateway. Require issuer, audience, subject, and expiration claims, the configure
 Authorization header. Only the Keycloak management backend receives the validated
 user token, so Keycloak can enforce that user's view permissions.
 
+WhatsApp's route uses `statefulMode: stateless`. In pinned v1.5.0, the legacy
+SSE client caches its active transport even after that transport reaches EOF.
+Later calls on that session fail with `upstream closed on receive`. The
+stateless route creates a fresh initialized upstream transport per request;
+WhatsApp's durable account/chat state remains in its own backend. This prevents
+later requests from inheriting a dead transport after a rollout. It does not
+retry an interrupted in-flight operation whose outcome could be unknown.
+
+`python3 tests/test-sse-reconnect.py` reproduces the original same-session HTTP
+500 against the pinned image, verifies fresh backend/session controls, and
+checks the stateless route survives the same closure without a gateway restart.
+The WhatsApp service's real-binary integration separately verifies its tool
+inventory and result content across a backend restart.
+
 All service dependencies use Railway references in `.railway/railway.ts`:
 
 | Variable            | Source                                 |
