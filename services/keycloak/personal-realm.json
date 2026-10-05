@@ -81,6 +81,37 @@
         }
       ],
       "fullScopeAllowed": false
+    },
+    {
+      "clientId": "chatgpt",
+      "name": "ChatGPT MCP",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": true,
+      "redirectUris": ["https://chatgpt.com/connector_platform_oauth_redirect"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": ["basic", "profile", "roles"],
+      "optionalClientScopes": ["offline_access"],
+      "protocolMappers": [
+        {
+          "name": "personal-mcp-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "https://mcp.janejeon.dev",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ],
+      "fullScopeAllowed": false
     }
   ],
   "scopeMappings": [
@@ -90,6 +121,10 @@
     },
     {
       "client": "claude",
+      "roles": ["mcp-use"]
+    },
+    {
+      "client": "chatgpt",
       "roles": ["mcp-use"]
     }
   ],
@@ -101,6 +136,10 @@
       },
       {
         "client": "claude",
+        "roles": ["view-realm", "view-clients", "query-clients"]
+      },
+      {
+        "client": "chatgpt",
         "roles": ["view-realm", "view-clients", "query-clients"]
       }
     ]
