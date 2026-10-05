@@ -29,7 +29,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm install --global @railway/cli@5.54.1
-      - name: Preview MCP Railway changes
-        run: env _="$(command -v railway)" railway config plan
-      - name: Apply MCP Railway changes
-        run: env _="$(command -v railway)" railway config apply --yes
+      - name: Validate and apply the pinned MCP plan
+        run: python3 .railway/apply-mcp.py

@@ -86,8 +86,6 @@ export default defineRailway(() => {
         'jdbc:mysql://${{MySQL.RAILWAY_PRIVATE_DOMAIN}}:3306/${{MySQL.KEYCLOAK_MYSQL_DATABASE}}?sslMode=DISABLED&allowPublicKeyRetrieval=true',
       KC_DB_USERNAME: '${{MySQL.KEYCLOAK_MYSQL_USERNAME}}',
       KC_DB_PASSWORD: '${{MySQL.KEYCLOAK_MYSQL_PASSWORD}}',
-      KC_BOOTSTRAP_ADMIN_CLIENT_ID: 'migration-bootstrap',
-      KC_BOOTSTRAP_ADMIN_CLIENT_SECRET: preserve(),
       PRIVATE_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/auth',
       PRIVATE_HOST: '${{RAILWAY_PRIVATE_DOMAIN}}:8080',
       ISSUER: 'https://mcp.janejeon.dev/auth/realms/personal',

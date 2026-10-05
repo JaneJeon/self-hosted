@@ -5,19 +5,13 @@ Use direnv for credentials. The password never enters argv or tool output.
 Existing identities are not reset by this script.
 """
 
-import importlib.util
 import json
 import os
 import subprocess
 import urllib.parse
 from pathlib import Path
 
-spec = importlib.util.spec_from_file_location(
-    "private_api", Path(__file__).with_name("provision-test-user.py")
-)
-private_api = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(private_api)
-request = private_api.request
+from private_api import request
 
 
 def main():
@@ -32,14 +26,17 @@ def main():
         ).stdout
     )
     base = values["PRIVATE_URL"]
+    admin_prefix = (
+        "KC_ADMIN" if os.environ.get("KC_ADMIN_CLIENT_ID") else "KC_BOOTSTRAP_ADMIN"
+    )
     token = request(
         base,
         "/realms/master/protocol/openid-connect/token",
         "POST",
         {
             "grant_type": "client_credentials",
-            "client_id": os.environ["KC_BOOTSTRAP_ADMIN_CLIENT_ID"],
-            "client_secret": os.environ["KC_BOOTSTRAP_ADMIN_CLIENT_SECRET"],
+            "client_id": os.environ[admin_prefix + "_CLIENT_ID"],
+            "client_secret": os.environ[admin_prefix + "_CLIENT_SECRET"],
         },
         form=True,
     )["access_token"]
