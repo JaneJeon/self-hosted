@@ -58,6 +58,17 @@ def validate_plan(preview, pinned):
     return len(changes), len(destructive)
 
 
+def validate_apply_result(report):
+    # --plan returns ChangeSetApplyResult directly, not RunnerResponse.ok.
+    if report.get("status") not in ("applied", "noop"):
+        raise RuntimeError("Railway did not confirm the pinned apply")
+    changes = report.get("changes")
+    if not isinstance(changes, list) or any(
+        change.get("status") not in ("applied", "noop") for change in changes
+    ):
+        raise RuntimeError("Pinned MCP apply has unconfirmed operation results")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check-only", action="store_true")
@@ -104,8 +115,7 @@ def main():
             env=command_env,
             timeout=300,
         )
-        if json.loads(result.stdout).get("ok") is not True:
-            raise RuntimeError("Railway did not confirm the pinned apply")
+        validate_apply_result(json.loads(result.stdout))
         print("Pinned MCP configuration applied")
 
 
