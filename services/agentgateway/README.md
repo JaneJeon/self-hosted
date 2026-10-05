@@ -43,9 +43,10 @@ All service dependencies use Railway references in `.railway/railway.ts`:
 | `KEYCLOAK_MCP_URL`  | Keycloak MCP's `MCP_URL`               |
 | `MCP_ALLOWED_SUB`   | The single authorized Keycloak user ID |
 
-During migration, only the generated `migration-test` identity is authorized.
-When Jane's permanent account is ready, switch `MCP_ALLOWED_SUB`, verify its
-login, and revoke/remove the temporary user's sessions and account.
+The permanent `Jane` username/password identity is now the authorized subject.
+Its password source is the 1Password `MCP Gateway Auth` item. Keep the configured
+subject in sync with the account returned by Keycloak. Identity transitions
+require fresh native client logins and reads before revoking the prior account.
 
 Codex uses OAuth client ID `codex` with callback port 8765. Claude uses client ID
 `claude` and no secret. The realm seed declares exact callbacks. Verify Claude's
