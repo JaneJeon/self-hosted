@@ -1,5 +1,20 @@
 # Keycloak for personal MCP
 
+## Permanent username/password identity
+
+`provision-user.py` provisions the authorized identity from direnv variables
+`MCP_PERMANENT_USERNAME`, `MCP_PERMANENT_PASSWORD`, `MCP_PERMANENT_FIRST_NAME`,
+and `MCP_PERMANENT_LAST_NAME`. It preserves an existing identity's password,
+assigns only MCP use and the management read roles, and records its subject in
+the ignored `.env`. Email is optional in the dedicated personal realm; public
+registration and password reset remain disabled. Secrets travel through stdin.
+
+The browser account page is
+`https://mcp.janejeon.dev/auth/realms/personal/account/`. The private hostname
+redirects to this canonical public hostname because Keycloak uses one fixed
+issuer/origin for OAuth. The account page manages the user's own account;
+the master realm and administrative web API remain private.
+
 This production container replaces Auth0 for the migration. The private
 Railway service is declared in `.railway/railway.ts`. Keycloak uses a separate `keycloak` database and account
 in the existing MySQL 8.4 service. The existing all-databases backup includes
