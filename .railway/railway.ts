@@ -7,6 +7,8 @@ import {
   volume
 } from 'railway/iac'
 
+// Railway stores Railpack/V3 and automatically detects the standard Dockerfiles.
+// Match those stored defaults so adding one MCP does not update every service.
 // Manage only the MCP services. Existing Railway services still use their own
 // deployment configuration and are deliberately outside this partial.
 export const partial = 'mcp'
@@ -33,10 +35,16 @@ export default defineRailway(() => {
 
   const telegram = service('Telegram MCP', {
     build: {
-      builder: 'DOCKERFILE',
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
       watchPatterns: ['/services/telegram-mcp/**']
     },
-    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
+    deploy: {
+      runtime: 'V2',
+      useLegacyStacker: false,
+      ipv6EgressEnabled: false,
+      restartPolicyMaxRetries: 3
+    },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
       rootDirectory: '/services/telegram-mcp'
@@ -55,10 +63,16 @@ export default defineRailway(() => {
 
   const whatsapp = service('Whatsapp MCP', {
     build: {
-      builder: 'DOCKERFILE',
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
       watchPatterns: ['/services/whatsapp-mcp/**']
     },
-    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
+    deploy: {
+      runtime: 'V2',
+      useLegacyStacker: false,
+      ipv6EgressEnabled: false,
+      restartPolicyMaxRetries: 3
+    },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
       rootDirectory: '/services/whatsapp-mcp'
@@ -78,10 +92,16 @@ export default defineRailway(() => {
 
   const whatsappTrial = service('Whatsapp Trial', {
     build: {
-      builder: 'DOCKERFILE',
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
       watchPatterns: ['/services/whatsapp-trial/**']
     },
-    deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
+    deploy: {
+      runtime: 'V2',
+      useLegacyStacker: false,
+      ipv6EgressEnabled: false,
+      restartPolicyMaxRetries: 3
+    },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
       rootDirectory: '/services/whatsapp-trial'
@@ -99,7 +119,8 @@ export default defineRailway(() => {
 
   const identity = service('Keycloak', {
     build: {
-      builder: 'DOCKERFILE',
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
       watchPatterns: ['/services/keycloak/**']
     },
     deploy: { restartPolicyType: 'ALWAYS' },
@@ -123,7 +144,8 @@ export default defineRailway(() => {
 
   const identityMcp = service('Keycloak MCP', {
     build: {
-      builder: 'DOCKERFILE',
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
       watchPatterns: ['/services/keycloak-mcp/**']
     },
     deploy: { restartPolicyType: 'ALWAYS' },
@@ -143,7 +165,8 @@ export default defineRailway(() => {
 
   const gateway = service('agentgateway', {
     build: {
-      builder: 'DOCKERFILE',
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
       watchPatterns: ['/services/agentgateway/**']
     },
     deploy: { restartPolicyType: 'ALWAYS' },

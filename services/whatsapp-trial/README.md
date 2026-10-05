@@ -36,7 +36,7 @@ The ready marker is deliberately excluded. Never upload the original WhatsApp da
 
 ## Provision and transfer
 
-The parent owns reviewed merge, live provisioning and consumer grants. Inspect the exact pinned plan before applying: the trial adds one private service, one volume and one gateway URL reference. Record the ten existing baseline operations separately; each advertises a deployment effect, so they are not no-ops. The dry plan is not a deployment.
+The parent owns reviewed merge, live provisioning and consumer grants. Inspect the exact pinned plan before applying: the trial adds one private service, one volume and one gateway URL reference. Record the three existing gateway reference setters separately; the target expressions are already stored, while the planner marks them with deployment effects. The model matches Railway's stored build/deploy defaults to avoid updates to every existing service. Railway [detects each standard Dockerfile automatically](https://docs.railway.com/builds/dockerfiles). The dry plan is not a deployment.
 
 Merge/apply phase 1 and load the private seed before merging phase 2's route. This keeps the gateway URL reference available before a runtime uses it. A new blank trial volume must fail health readiness; prepare its archive before provisioning so the seed can be transferred during its 180-second healthcheck window. If that first deployment fails, seed the volume and start its next deployment through GitOps.
 
