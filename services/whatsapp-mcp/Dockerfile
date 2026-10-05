@@ -15,6 +15,10 @@ WORKDIR /src
 COPY --from=source /src/src/go.mod /src/src/go.sum ./
 RUN go mod download
 COPY --from=source /src/src ./
+COPY mcp-result-compat.go mcp-result-compat_test.go ./ui/mcp/
+RUN sed -i 's/mcp.NewToolResultStructured(/newStructuredResult(/g' \
+    ui/mcp/query.go ui/mcp/app.go ui/mcp/group.go \
+    && go test ./ui/mcp
 RUN go build -ldflags="-w -s" -o /out/whatsapp
 
 FROM restic/restic:0.18.1 AS restic-source

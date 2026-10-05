@@ -1,9 +1,16 @@
 # WhatsApp MCP
 
-This service builds the pinned upstream Go source without modifications. It
+This service builds the pinned upstream Go source with one result adapter. It
 serves the upstream SSE MCP endpoint at `/sse` on port 8080, reachable only over
 Railway private networking. Agentgateway exposes the public Streamable HTTP
 endpoint. The local `mcp.js` desktop wrapper is not deployed.
+
+`mcp-result-compat.go` ports the local wrapper's result behavior: preserve
+`structuredContent` and append its JSON as a text block. Claude and other
+clients that consume only text now receive actual contacts, chats, and message
+rows, instead of only "Retrieved N messages". The Docker builder applies this
+helper to the pinned upstream's structured-result call sites and runs its test.
+Tool names, schemas, device selection, and database state are unchanged.
 
 Mount one Railway volume at `/app/data`. The image links upstream `storages`
 and `statics` to this volume. Both SQLite databases, their WAL state, message
