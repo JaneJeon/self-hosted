@@ -18,6 +18,11 @@ COPY --from=source /src/src ./
 COPY mcp-result-compat.go mcp-result-compat_test.go ./ui/mcp/
 RUN sed -i 's/mcp.NewToolResultStructured(/newStructuredResult(/g' \
     ui/mcp/query.go ui/mcp/app.go ui/mcp/group.go \
+    && sed -i \
+    -e 's/mcp.WithDescription("Retrieve all contacts available in the connected WhatsApp account.")/mcp.WithDescription(contactsDescription)/' \
+    -e 's/mcp.WithDescription("Retrieve recent chats with optional pagination and search filters.")/mcp.WithDescription(chatsDescription)/' \
+    -e 's/mcp.WithDescription("Fetch messages from a specific chat, with optional pagination, search, and time filters.")/mcp.WithDescription(messagesDescription)/' \
+    ui/mcp/query.go \
     && go test ./ui/mcp
 RUN go build -ldflags="-w -s" -o /out/whatsapp
 
