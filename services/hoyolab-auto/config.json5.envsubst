@@ -29,6 +29,13 @@
             cookieToken: '$KUMA_PUSH_URL_COOKIE_TOKEN',
         },
     },
+    reminders: {
+        enabled: true,
+        dailyOffsets: [20, 12, 7, 4, 2],
+        // Weekly offsets await clarification of the three-hour workload estimate.
+        // Until configured, the existing weekly reminder remains registered.
+        displayTimezones: ['America/Los_Angeles', 'America/New_York', 'Asia/Seoul'],
+    },
     platforms: [
         {
             id: 1,
@@ -43,7 +50,17 @@
             type: 'telegram',
             chatId: $TELEGRAM_CHAT_ID, // You can follow this guide to create a bot: https://github.com/torikushiii/hoyolab-auto/blob/main/setup/TELEGRAM.md
             token: '$TELEGRAM_NOTIFICATIONS_BOT_TOKEN',
-            disableNotification: false, // Set to true if you want to disable notification for Telegram bot (sounds, vibration, etc.)
+            notificationClasses: ['Receipt'],
+            disableNotification: true, // Set to true if you want to disable notification for Telegram bot (sounds, vibration, etc.)
+        },
+        {
+            id: 4,
+            active: true,
+            type: 'telegram',
+            chatId: $TELEGRAM_ALERTS_CHAT_ID,
+            token: '$TELEGRAM_ALERTS_BOT_TOKEN',
+            notificationClasses: ['Action'],
+            disableNotification: false,
         },
         {
             id: 3,
@@ -64,7 +81,7 @@
         missedCheckIn: '0 23 * * *',
         realmCurrency: '0 */1 * * *',
         shopStatus: '0 */1 * * *',
-        stamina: '*/2 * * * *',
+        deadlineReminders: '*/2 * * * *',
     },
     accounts: [
         {
