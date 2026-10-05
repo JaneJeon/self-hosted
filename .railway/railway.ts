@@ -32,7 +32,7 @@ export default defineRailway(() => {
     },
     deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
     source: github('JaneJeon/self-hosted', {
-      branch: 'codex/railway-mcp',
+      branch: 'master',
       rootDirectory: '/services/telegram-mcp'
     }),
     healthcheck: '/ping',
@@ -54,7 +54,7 @@ export default defineRailway(() => {
     },
     deploy: { restartPolicyType: 'ON_FAILURE', restartPolicyMaxRetries: 3 },
     source: github('JaneJeon/self-hosted', {
-      branch: 'codex/railway-mcp',
+      branch: 'master',
       rootDirectory: '/services/whatsapp-mcp'
     }),
     replicas: { 'us-west2': 1 },
@@ -77,7 +77,7 @@ export default defineRailway(() => {
     },
     deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
-      branch: 'codex/railway-mcp',
+      branch: 'master',
       rootDirectory: '/services/keycloak'
     }),
     replicas: { 'us-west2': 1 },
@@ -103,7 +103,7 @@ export default defineRailway(() => {
     },
     deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
-      branch: 'codex/railway-mcp',
+      branch: 'master',
       rootDirectory: '/services/keycloak-mcp'
     }),
     replicas: { 'us-west2': 1 },
@@ -123,7 +123,7 @@ export default defineRailway(() => {
     },
     deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
-      branch: 'codex/railway-mcp',
+      branch: 'master',
       rootDirectory: '/services/agentgateway'
     }),
     replicas: { 'us-west2': 1 },
