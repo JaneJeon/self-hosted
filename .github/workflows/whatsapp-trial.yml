@@ -1,0 +1,31 @@
+name: WhatsApp snapshot trial
+
+on:
+  pull_request:
+    paths:
+      - services/whatsapp-trial/**
+      - services/agentgateway/**
+      - .github/workflows/whatsapp-trial.yml
+  push:
+    branches:
+      - master
+      - codex/whatsapp-snapshot-trial
+    paths:
+      - services/whatsapp-trial/**
+      - services/agentgateway/**
+      - .github/workflows/whatsapp-trial.yml
+
+permissions:
+  contents: read
+
+jobs:
+  guard-fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pinned query image
+        run: docker build -t codex-whatsapp-trial:20261005 services/whatsapp-trial
+      - name: Build pinned gateway for the policy fixture
+        run: docker build -t codex-agentgateway:whatsapp-trial services/agentgateway
+      - name: Check data, tool, auth, readiness and restart guards
+        run: python3 services/whatsapp-trial/test.py
