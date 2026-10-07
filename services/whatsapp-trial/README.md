@@ -11,7 +11,10 @@ Retain the production GOWA service and its 40 tools. The maintained fork provide
 query trial proved its nine query schemas and actual message text in native
 Codex, including five rows matching source SQL. It does not establish live
 pairing, complete media migration or rollback after new messages arrive.
-ChatGPT/Claude trial checks are pending specific browser approval.
+The optional ChatGPT/Claude trial forms were cancelled without creating grants
+because the production replacement was declined. Those fork-specific browser
+reads are unproven; the original three production connectors were verified in
+all three clients.
 
 This directory remains an offline evaluation fixture. Retirement removes its
 Railway service, protected route and gateway reference; the detached volume
