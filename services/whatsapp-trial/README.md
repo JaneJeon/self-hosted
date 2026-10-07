@@ -4,6 +4,23 @@ This service reads an immutable copied snapshot. It never pairs, connects to Wha
 
 The trial packages the Python tools from [verygoodplugins/whatsapp-mcp](https://github.com/verygoodplugins/whatsapp-mcp/tree/895404542017f34a900f9f572a5497c275a96440). Its separate Railway service and volume prepare native client testing before a production replacement is accepted. Source follows master with this directory as its root and the standard Dockerfile. Phase 1 provisions the private service and its gateway URL reference. After private seed validation, phase 2 adds the protected `/whatsapp-trial` route. Only the existing agentgateway has a public domain.
 
+## Evaluation decision — October 7, 2026
+
+Retain the production GOWA service and its 40 tools. The maintained fork provides
+17 tools and omits device, group and administrative operations. The immutable
+query trial proved its nine query schemas and actual message text in native
+Codex, including five rows matching source SQL. It does not establish live
+pairing, complete media migration or rollback after new messages arrive.
+The optional ChatGPT/Claude trial forms were cancelled without creating grants
+because the production replacement was declined. Those fork-specific browser
+reads are unproven; the original three production connectors were verified in
+all three clients.
+
+This directory remains an offline evaluation fixture. Retirement removes its
+Railway service, protected route and gateway reference; the detached volume
+requires explicit deletion of the trial volume alone. Do not deploy this
+snapshot as the personal live WhatsApp connector.
+
 ## Query and runtime boundaries
 
 The server exposes exactly nine upstream queries: `search_contacts`, `get_contact`, `list_messages`, `list_chats`, `get_chat`, `get_direct_chat_by_contact`, `get_contact_chats`, `get_last_interaction` and `get_message_context`. Other upstream tools are removed. Cached or handcrafted calls to a removed name fail. Query tools retain their input schemas and receive read-only annotations and a dated snapshot warning.

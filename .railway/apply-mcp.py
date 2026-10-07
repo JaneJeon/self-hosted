@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply one pinned MCP plan, allowing only retired bootstrap variable removal."""
+"""Apply one pinned MCP plan with narrowly authorized retired-resource removals."""
 
 import argparse
 import json
@@ -14,6 +14,21 @@ ENVIRONMENT = "f9b71e64-8a4c-4f0d-a68e-576fa3ca016b"
 BOOTSTRAP_VARIABLES = {
     "KC_BOOTSTRAP_ADMIN_CLIENT_ID",
     "KC_BOOTSTRAP_ADMIN_CLIENT_SECRET",
+}
+
+TRIAL_REMOVALS = {
+    (
+        "resource.delete",
+        "service.Whatsapp Trial",
+        "resources.service.Whatsapp Trial",
+        None,
+    ),
+    (
+        "variable.delete",
+        "service.agentgateway",
+        "resources.service.agentgateway.variables.WHATSAPP_TRIAL_MCP_URL",
+        "WHATSAPP_TRIAL_MCP_URL",
+    ),
 }
 
 
@@ -32,11 +47,22 @@ def validate_plan(preview, pinned):
     if not isinstance(changes, list):
         raise RuntimeError("Pinned MCP plan has no change list")
     destructive = []
+    trial_removals = []
     for change in changes:
         severity = change.get("severity")
         if severity not in ("safe", "destructive"):
             raise RuntimeError("MCP plan contains an unknown change severity")
         if severity == "destructive":
+            shape = (
+                change.get("kind"),
+                change.get("address"),
+                change.get("path"),
+                change.get("variable"),
+            )
+            if shape in TRIAL_REMOVALS:
+                trial_removals.append(shape)
+                destructive.append(shape)
+                continue
             variable = change.get("variable")
             if (
                 change.get("kind") != "variable.delete"
@@ -48,11 +74,17 @@ def validate_plan(preview, pinned):
                 raise RuntimeError(
                     "MCP plan contains an unauthorized destructive change"
                 )
-            destructive.append(variable)
+            destructive.append(shape)
         elif change.get("kind", "").endswith(".delete"):
             raise RuntimeError("MCP plan mislabeled a deletion as safe")
+    if trial_removals and (
+        set(trial_removals) != TRIAL_REMOVALS or len(destructive) != len(TRIAL_REMOVALS)
+    ):
+        raise RuntimeError(
+            "Trial cleanup must contain only its exact service/reference removal pair"
+        )
     if len(destructive) != len(set(destructive)):
-        raise RuntimeError("MCP plan repeats a bootstrap variable deletion")
+        raise RuntimeError("MCP plan repeats an authorized removal")
     if pinned.get("destructive") is not bool(destructive):
         raise RuntimeError("MCP plan's destructive flag disagrees with its changes")
     return len(changes), len(destructive)
@@ -93,7 +125,7 @@ def main():
         count, removals = validate_plan(
             json.loads(preview.stdout), json.loads(pinned_path.read_text())
         )
-        print(f"Validated {count} MCP changes; {removals} retired bootstrap removals")
+        print(f"Validated {count} MCP changes; {removals} authorized removals")
         if args.check_only:
             return
         command = [

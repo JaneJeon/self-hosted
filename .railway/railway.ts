@@ -26,13 +26,6 @@ export default defineRailway(() => {
     region: 'us-west2',
     sizeMB: 5000
   })
-  const whatsappTrialData = volume('whatsapp-trial-volume', {
-    alerts: { usage: { '100': {}, '80': {}, '95': {} } },
-    allowOnlineResize: true,
-    region: 'us-west2',
-    sizeMB: 5000
-  })
-
   const telegram = service('Telegram MCP', {
     build: {
       builder: 'RAILPACK',
@@ -87,34 +80,6 @@ export default defineRailway(() => {
       KUMA_PUSH_PATH: preserve(),
       HEARTBEAT_URL:
         'http://${{"Uptime Kuma".RAILWAY_PRIVATE_DOMAIN}}:${{"Uptime Kuma".PORT}}${{KUMA_PUSH_PATH}}'
-    }
-  })
-
-  const whatsappTrial = service('Whatsapp Trial', {
-    build: {
-      builder: 'RAILPACK',
-      buildEnvironment: 'V3',
-      watchPatterns: ['/services/whatsapp-trial/**']
-    },
-    deploy: {
-      runtime: 'V2',
-      useLegacyStacker: false,
-      ipv6EgressEnabled: false,
-      restartPolicyMaxRetries: 3
-    },
-    source: github('JaneJeon/self-hosted', {
-      branch: 'master',
-      rootDirectory: '/services/whatsapp-trial'
-    }),
-    healthcheck: '/health',
-    healthcheckTimeout: 180,
-    replicas: { 'us-west2': 1 },
-    volumeMounts: { '/app/data': whatsappTrialData },
-    env: {
-      MCP_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/mcp',
-      PORT: '8080',
-      WHATSAPP_CANDIDATE_READ_ONLY: '1',
-      WHATSAPP_TRIAL_SNAPSHOT: '530656a0'
     }
   })
 
@@ -179,7 +144,6 @@ export default defineRailway(() => {
     env: {
       TELEGRAM_MCP_URL: telegram.env.MCP_URL,
       WHATSAPP_MCP_HOST: whatsapp.env.RAILWAY_PRIVATE_DOMAIN,
-      WHATSAPP_TRIAL_MCP_URL: whatsappTrial.env.MCP_URL,
       OIDC_ISSUER: identity.env.ISSUER,
       OIDC_JWKS_URL: identity.env.JWKS_URL,
       KEYCLOAK_HOST: identity.env.PRIVATE_HOST,
@@ -196,13 +160,11 @@ export default defineRailway(() => {
     resources: [
       telegram,
       whatsapp,
-      whatsappTrial,
       gateway,
       identity,
       identityMcp,
       telegramData,
-      whatsappData,
-      whatsappTrialData
+      whatsappData
     ]
   })
 })
