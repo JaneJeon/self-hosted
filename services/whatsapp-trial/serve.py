@@ -5,8 +5,10 @@ import hashlib
 import json
 import os
 import pathlib
+import socket
 import sqlite3
 
+import uvicorn
 import whatsapp
 from main import mcp
 from mcp.types import ToolAnnotations
@@ -196,4 +198,16 @@ mcp.settings.stateless_http = True
 mcp.settings.json_response = True
 if host not in {"127.0.0.1", "localhost", "::1", "0.0.0.0", "::"}:
     mcp.settings.transport_security.allowed_hosts.extend([host, f"{host}:*"])
-mcp.run(transport="streamable-http")
+# The private hostname remains an allowed HTTP Host, independently of the
+# listening socket. Railway probes can arrive over either address family.
+with socket.create_server(
+    ("::", 8080), family=socket.AF_INET6, dualstack_ipv6=True
+) as listener:
+    uvicorn.Server(
+        uvicorn.Config(
+            mcp.streamable_http_app(),
+            host="::",
+            port=8080,
+            log_level=mcp.settings.log_level.lower(),
+        )
+    ).run(sockets=[listener])
