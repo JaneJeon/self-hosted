@@ -19,6 +19,7 @@ BACKEND, GATEWAY, JWT, EMPTY = [
     PREFIX + suffix for suffix in ("-data", "-gateway", "-jwt", "-empty")
 ]
 DATA_VOLUME, EMPTY_VOLUME = PREFIX + "-data-volume", PREFIX + "-empty-volume"
+KEY_VOLUME = PREFIX + "-key-volume"
 IMAGE = os.environ.get("MCP_TEST_IMAGE", "codex-whatsapp-trial:20261005")
 GATEWAY_IMAGE = os.environ.get(
     "GATEWAY_TEST_IMAGE", "codex-agentgateway:whatsapp-trial"
@@ -132,6 +133,12 @@ def wait_ready():
 
 
 def startup_rejections():
+    platform = (
+        "linux/"
+        + run(
+            "docker", "image", "inspect", IMAGE, "--format", "{{.Architecture}}"
+        ).strip()
+    )
     check = """import hashlib,json,os,pathlib,shutil,sqlite3
 os.environ['WHATSAPP_CANDIDATE_READ_ONLY']='1';os.environ['WHATSAPP_TRIAL_SNAPSHOT']='530656a0'
 prefix=pathlib.Path('/app/mcp/trial_serve.py').read_text().split('def require_snapshot():',1)[0]
@@ -157,7 +164,7 @@ print(json.dumps(results))
             "run",
             "--rm",
             "--platform",
-            "linux/amd64",
+            platform,
             "--network",
             "none",
             "--tmpfs",
@@ -241,6 +248,26 @@ def main():
         str(ROOT / "key.pem"),
     )
     (ROOT / "key.pem").chmod(0o600)
+    run("docker", "volume", "create", KEY_VOLUME)
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-i",
+            "--volume",
+            f"{KEY_VOLUME}:/fixture",
+            "--entrypoint",
+            "python3",
+            IMAGE,
+            "-c",
+            "import pathlib,sys;path=pathlib.Path('/fixture/key.pem');path.write_bytes(sys.stdin.buffer.read());path.chmod(0o600)",
+        ],
+        input=(ROOT / "key.pem").read_bytes(),
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
     run("docker", "network", "create", "--internal", PREFIX)
     jwks_server = """import base64,json
 from http.server import BaseHTTPRequestHandler,HTTPServer
@@ -262,7 +289,7 @@ HTTPServer(('0.0.0.0',9911),Handler).serve_forever()
         "--network",
         PREFIX,
         "--volume",
-        f"{ROOT}:/fixture:ro",
+        f"{KEY_VOLUME}:/fixture:ro",
         "--entrypoint",
         "python3",
         IMAGE,
@@ -374,6 +401,20 @@ HTTPServer(('0.0.0.0',9911),Handler).serve_forever()
         args.extend(["--env", f"{name}={value}"])
     run(*args, GATEWAY_IMAGE)
     wait_ready()
+    loopback_health = json.loads(
+        run(
+            "docker",
+            "exec",
+            BACKEND,
+            "python3",
+            "-c",
+            "import http.client,json; results={};\nfor host in ('127.0.0.1','::1'):\n connection=http.client.HTTPConnection(host,8080,timeout=5);connection.request('GET','/health',headers={'Host':'healthcheck.railway.app'});response=connection.getresponse();results[host]={'status':response.status,'body':json.loads(response.read())};connection.close()\nprint(json.dumps(results))",
+        )
+    )
+    assert set(loopback_health) == {"127.0.0.1", "::1"} and all(
+        result["status"] == 200 and result["body"]["ready"]
+        for result in loopback_health.values()
+    ), loopback_health
     permissions = json.loads(
         run(
             "docker",
@@ -520,6 +561,8 @@ HTTPServer(('0.0.0.0',9911),Handler).serve_forever()
                 "data_mount": "Linux named volume",
                 "runtime_uid": int(process_uid),
                 "permissions": permissions,
+                "healthcheck_host": "healthcheck.railway.app",
+                "loopback_health": loopback_health,
                 "startup_rejections": startup_errors,
                 "data": "synthetic",
             },
@@ -552,7 +595,7 @@ if __name__ == "__main__":
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        for volume in (DATA_VOLUME, EMPTY_VOLUME):
+        for volume in (DATA_VOLUME, EMPTY_VOLUME, KEY_VOLUME):
             subprocess.run(
                 ["docker", "volume", "rm", volume],
                 stdout=subprocess.DEVNULL,
