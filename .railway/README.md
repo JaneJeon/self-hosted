@@ -27,9 +27,10 @@ template syntax without taking ownership of those services.
 Run `railway config plan` from a linked MCP service directory before committing
 changes. `.github/workflows/railway-mcp.yml` applies this partial on `git push`
 using a project-scoped production token stored in GitHub Actions and 1Password.
-The workflow validates and applies the same pinned plan. Its only permitted
-destructive changes are removal of Keycloak's two retired bootstrap variables;
-other resource or variable deletions are rejected. Plan contents stay in a
+The workflow validates and applies the same pinned plan. It permits removal
+of Keycloak's two retired bootstrap variables or the exact temporary WhatsApp
+trial service/reference pair. The trial pair must occur together and cannot
+be mixed with other deletions. Other resource or variable deletions are rejected. Plan contents stay in a
 private temporary directory and are not uploaded or printed. Use
 `direnv exec . python3 .railway/apply-mcp.py --check-only` to validate locally.
 Once each GitHub source is connected, service code deploys from pushes to its
