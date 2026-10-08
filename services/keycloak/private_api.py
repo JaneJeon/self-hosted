@@ -11,7 +11,9 @@ import urllib.parse
 PROJECT = "1ca64bca-3c33-4155-9ad5-104306f5119e"
 
 
-def request(base, path, method="GET", body=None, token=None, form=False):
+def request(
+    base, path, method="GET", body=None, token=None, form=False, return_location=False
+):
     config = [
         "url = " + json.dumps(base + path),
         "request = " + json.dumps(method),
@@ -44,7 +46,7 @@ def request(base, path, method="GET", body=None, token=None, form=False):
             "--silent",
             "--show-error",
             "--write-out",
-            "\\n%{http_code}",
+            "\\n%{http_code}" + ("\\n%header{location}" if return_location else ""),
         ],
         input="\n".join(config) + "\n",
         text=True,
@@ -58,9 +60,15 @@ def request(base, path, method="GET", body=None, token=None, form=False):
         for line in result.stdout.splitlines()
         if not line.startswith("Using SSH key from agent:")
     ).strip()
+    location = None
+    if return_location:
+        output, separator, location = output.rpartition("\n")
+        if not separator or not location:
+            raise RuntimeError("Private API did not identify the created resource")
     payload, separator, status = output.rpartition("\n")
     if not separator:
         payload, status = "", output
     if int(status) not in (200, 201, 204):
         raise RuntimeError(f"Private API returned HTTP {status} for {method} {path}")
-    return json.loads(payload) if payload.strip() else None
+    value = json.loads(payload) if payload.strip() else None
+    return (value, location) if return_location else value
