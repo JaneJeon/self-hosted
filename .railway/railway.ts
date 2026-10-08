@@ -40,6 +40,7 @@ export default defineRailway(() => {
     },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
+      checkSuites: true,
       rootDirectory: '/services/telegram-mcp'
     }),
     healthcheck: '/ping',
@@ -68,6 +69,7 @@ export default defineRailway(() => {
     },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
+      checkSuites: true,
       rootDirectory: '/services/whatsapp-mcp'
     }),
     replicas: { 'us-west2': 1 },
@@ -92,6 +94,7 @@ export default defineRailway(() => {
     deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
+      checkSuites: true,
       rootDirectory: '/services/keycloak'
     }),
     replicas: { 'us-west2': 1 },
@@ -117,6 +120,7 @@ export default defineRailway(() => {
     deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
+      checkSuites: true,
       rootDirectory: '/services/keycloak-mcp'
     }),
     replicas: { 'us-west2': 1 },
@@ -138,6 +142,7 @@ export default defineRailway(() => {
     deploy: { restartPolicyType: 'ALWAYS' },
     source: github('JaneJeon/self-hosted', {
       branch: 'master',
+      checkSuites: true,
       rootDirectory: '/services/agentgateway'
     }),
     replicas: { 'us-west2': 1 },

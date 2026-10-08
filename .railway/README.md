@@ -34,7 +34,18 @@ be mixed with other deletions. Other resource or variable deletions are rejected
 private temporary directory and are not uploaded or printed. Use
 `direnv exec . python3 .railway/apply-mcp.py --check-only` to validate locally.
 Once each GitHub source is connected, service code deploys from pushes to its
-connected branch.
+connected branch after GitHub Actions finish successfully. Every owned MCP-stack
+source sets `checkSuites: true` (Railway Wait for CI). The infrastructure workflow
+also runs the existing backup, transport and query-policy fixtures before its
+apply job. Pull requests run the fixtures but never apply production config.
+The apply job confirms the config commit without waiting for deployment health,
+so it can finish before Railway releases the pending deployment.
+
+Wait for CI evaluates workflow conclusions for the commit, not individual jobs
+or checks from other GitHub apps. Failed workflows prevent deployment; skipped
+or neutral workflows do not block. Cancellation is not a reliable deploy gate
+if another workflow succeeds. Keep required deployment tests uncancelled.
+See [Railway GitHub autodeploys](https://docs.railway.com/deployments/github-autodeploys).
 
 When rotating WhatsApp's monitor URL in 1Password, derive `KUMA_PUSH_PATH` from
 its path and query and send it through Railway stdin. Keep `HEARTBEAT_URL` as

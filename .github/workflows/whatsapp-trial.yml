@@ -1,6 +1,7 @@
 name: WhatsApp snapshot trial
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - services/whatsapp-trial/**

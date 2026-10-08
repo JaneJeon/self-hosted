@@ -1,6 +1,7 @@
 name: MCP transport
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - services/agentgateway/**

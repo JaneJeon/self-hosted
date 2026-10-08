@@ -1,6 +1,10 @@
 name: Railway MCP configuration
 
 on:
+  pull_request:
+    paths:
+      - .railway/**
+      - .github/workflows/railway-mcp.yml
   push:
     branches:
       - codex/railway-mcp
@@ -13,11 +17,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: railway-mcp-production
+  group: railway-mcp-${{ github.event_name == 'push' && 'production' || github.ref }}
   cancel-in-progress: false
 
 jobs:
+  backup:
+    uses: ./.github/workflows/whatsapp-backup.yml
+  transport:
+    uses: ./.github/workflows/mcp-transport.yml
+  query-policy:
+    uses: ./.github/workflows/whatsapp-trial.yml
   apply:
+    needs: [backup, transport, query-policy]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
