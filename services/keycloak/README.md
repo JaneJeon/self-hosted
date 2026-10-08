@@ -53,6 +53,35 @@ the observed callback `https://chatgpt.com/connector_platform_oauth_redirect`.
 Leave public-client secrets blank and verify actual callbacks before adding a
 new native client. All three use S256 PKCE.
 
+## Private browser administration
+
+Use `https://railway-subnet-router.tailnet-8245.ts.net:8443/auth/admin/master/console/`
+while connected to the existing Tailscale network. Sign in as **Jane** using the
+existing `Self Hosting/MCP Gateway Auth/password` credential. The console is
+served through Tailscale Serve with HTTPS; Funnel is disabled.
+
+A separate master-realm owner provides browser administration. The personal
+realm's Jane identity and its MCP view permissions remain unchanged. Select
+`personal` in the console realm menu to configure the MCP clients and users.
+
+The public hostname `https://mcp.janejeon.dev/auth` serves personal MCP login.
+It is not the admin console URL. `KC_HOSTNAME_ADMIN` references the router's
+`KEYCLOAK_ADMIN_URL`; master `frontendUrl` uses the same private address so its
+browser authorization endpoint does not redirect to the public gateway.
+The public gateway continues to omit `/auth/admin` and the master realm.
+
+After a reviewed GitOps deployment of the console route, provision its owner:
+
+```sh
+direnv exec services/keycloak python3 services/keycloak/provision-console-user.py
+```
+
+The helper uses private API maintenance credentials and the cached existing
+password through stdin, never argv/output. It creates the owner only if absent,
+never resets an existing password, and preserves the public personal issuer.
+If the router's DNS name changes, update its URL and rerun the helper before
+claiming browser access works. Verify actual console login and original MCP reads.
+
 ## Private maintenance and bootstrap retirement
 
 `mcp-maintenance` is a separate service-account client in the private master

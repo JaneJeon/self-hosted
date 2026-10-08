@@ -9,8 +9,8 @@ import {
 
 // Railway stores Railpack/V3 and automatically detects the standard Dockerfiles.
 // Match those stored defaults so adding one MCP does not update every service.
-// Manage only the MCP services. Existing Railway services still use their own
-// deployment configuration and are deliberately outside this partial.
+// Manage the MCP stack and its existing private admin router. Other Railway
+// services remain outside this partial. Preserve all router credentials/state.
 export const partial = 'mcp'
 
 export default defineRailway(() => {
@@ -49,7 +49,9 @@ export default defineRailway(() => {
       TS_AUTH_ONCE: 'true',
       TS_LOCAL_ADDR_PORT: preserve(),
       TS_ROUTES: preserve(),
-      TS_STATE_DIR: preserve()
+      TS_STATE_DIR: preserve(),
+      KEYCLOAK_ADMIN_URL:
+        'https://railway-subnet-router.tailnet-8245.ts.net:8443/auth'
     }
   })
 
@@ -126,6 +128,7 @@ export default defineRailway(() => {
     }),
     replicas: { 'us-west2': 1 },
     env: {
+      KC_HOSTNAME_ADMIN: adminNetwork.env.KEYCLOAK_ADMIN_URL,
       KC_DB_URL:
         'jdbc:mysql://${{MySQL.RAILWAY_PRIVATE_DOMAIN}}:3306/${{MySQL.KEYCLOAK_MYSQL_DATABASE}}?sslMode=DISABLED&allowPublicKeyRetrieval=true',
       KC_DB_USERNAME: '${{MySQL.KEYCLOAK_MYSQL_USERNAME}}',
