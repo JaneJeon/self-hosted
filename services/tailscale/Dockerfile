@@ -3,9 +3,6 @@ FROM tailscale/tailscale:v1.94.2
 ARG TS_LOCAL_ADDR_PORT
 ENV TS_LOCAL_ADDR_PORT=$TS_LOCAL_ADDR_PORT
 
-ARG TS_AUTHKEY
-ENV TS_AUTHKEY=$TS_AUTHKEY
-
 ARG TS_ROUTES
 ENV TS_ROUTES=$TS_ROUTES
 
@@ -16,3 +13,7 @@ ENV TS_ENABLE_HEALTH_CHECK=true
 ENV TS_ENABLE_METRICS=true
 
 ENV TS_EXTRA_ARGS='--accept-routes'
+
+# Credentials are supplied at runtime; never bake the auth key into the image.
+COPY serve.json /config/serve.json
+ENV TS_AUTH_ONCE=true TS_SERVE_CONFIG=/config/serve.json

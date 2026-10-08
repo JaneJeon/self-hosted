@@ -1,0 +1,10 @@
+{
+  "TCP": { "8443": { "HTTPS": true } },
+  "Web": {
+    "${TS_CERT_DOMAIN}:8443": {
+      "Handlers": {
+        "/": { "Proxy": "http://keycloak.railway.internal:8080" }
+      }
+    }
+  }
+}
