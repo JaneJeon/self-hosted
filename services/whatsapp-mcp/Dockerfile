@@ -1,4 +1,4 @@
-FROM alpine:3.23 AS source
+FROM alpine:3.24 AS source
 
 RUN apk add --no-cache ca-certificates git
 ARG WHATSAPP_REF=d64bbdf1b4fad0a917ce783c9471d49a17f16a4c
@@ -28,7 +28,7 @@ RUN go build -ldflags="-w -s" -o /out/whatsapp
 
 FROM restic/restic:0.18.1 AS restic-source
 
-FROM alpine:3.23
+FROM alpine:3.24
 
 RUN apk add --no-cache coreutils curl ffmpeg libwebp-tools poppler-utils sqlite su-exec tzdata \
     && addgroup -g 20000 gowa \
