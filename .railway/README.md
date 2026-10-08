@@ -1,12 +1,16 @@
 # MCP Railway infrastructure
 
-`railway.ts` owns the MCP services, private identity services, and two MCP volumes
+`railway.ts` owns the MCP services, private identity services, messaging volumes
+and the existing Tailscale router settings/state for private browser administration
 through the named `mcp` partial. It preserves credentials injected into Railway;
 secret values never belong in this file. Permanent credentials belong in
 1Password. Keycloak database and private maintenance credentials are sourced
 from `Self Hosting/Railway Keycloak` through the service's swarp/direnv template.
 The working Jane password remains in `Self Hosting/MCP Gateway Auth`.
-The existing services are outside this partial.
+Other existing services are outside this partial. The router declaration preserves
+its current credential/network variables and rat-volume; its console URL supplies
+Keycloak through a reference. Do not adopt existing services with empty variable
+or volume definitions: a thin declaration can propose deleting their state.
 
 The existing `mcp.janejeon.dev` domain is retained outside this partial. Railway
 configuration cannot register custom domains, and the project-token CI planner
