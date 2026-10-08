@@ -26,6 +26,33 @@ export default defineRailway(() => {
     region: 'us-west2',
     sizeMB: 5000
   })
+  const adminRouterData = volume('rat-volume', {
+    alerts: { usage: { '100': {}, '80': {}, '95': {} } },
+    allowOnlineResize: true,
+    region: 'us-west2',
+    sizeMB: 5000
+  })
+
+  // Preserve existing router settings and state; own its source and console URL.
+  const adminNetwork = service('Tailscale', {
+    build: { builder: 'NIXPACKS', buildEnvironment: 'V3' },
+    volumeMounts: { '/var/lib': adminRouterData },
+    source: github('JaneJeon/self-hosted', {
+      branch: 'master',
+      checkSuites: true,
+      rootDirectory: '/services/tailscale'
+    }),
+    env: {
+      PORT: preserve(),
+      PROMETHEUS_HOST: preserve(),
+      TS_AUTHKEY: preserve(),
+      TS_AUTH_ONCE: 'true',
+      TS_LOCAL_ADDR_PORT: preserve(),
+      TS_ROUTES: preserve(),
+      TS_STATE_DIR: preserve()
+    }
+  })
+
   const telegram = service('Telegram MCP', {
     build: {
       builder: 'RAILPACK',
@@ -168,6 +195,8 @@ export default defineRailway(() => {
       gateway,
       identity,
       identityMcp,
+      adminNetwork,
+      adminRouterData,
       telegramData,
       whatsappData
     ]
