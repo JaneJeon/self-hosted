@@ -185,7 +185,7 @@
         },
         {
             id: 5,
-            active: true,
+            active: false, // Jane quit ZZZ on 2026-10-07.
             type: 'zenless',
             data: [
                 {
