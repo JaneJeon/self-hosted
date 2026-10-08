@@ -73,12 +73,18 @@ The public gateway continues to omit `/auth/admin` and the master realm.
 After a reviewed GitOps deployment of the console route, provision its owner:
 
 ```sh
-direnv exec services/keycloak python3 services/keycloak/provision-console-user.py
+direnv exec services/keycloak python3 services/keycloak/provision-console-user.py \
+  --owner-record .agent-state/keycloak-console-owner.json
 ```
 
 The helper uses private API maintenance credentials and the cached existing
 password through stdin, never argv/output. It creates the owner only if absent,
 never resets an existing password, and preserves the public personal issuer.
+The create response binds a private ownership receipt to the actual user ID.
+Subsequent runs require that receipt; a matching name alone cannot gain admin
+rights. Keep the receipt in private agent state when changing worktrees. The
+master email profile was inspected and already optional; no profile rule is
+changed for this owner.
 If the router's DNS name changes, update its URL and rerun the helper before
 claiming browser access works. Verify actual console login and original MCP reads.
 
