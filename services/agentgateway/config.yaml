@@ -119,6 +119,40 @@ routes:
         rules:
           - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
 
+  - name: ebay
+    matches:
+      - path:
+          exact: /ebay
+      - path:
+          pathPrefix: /.well-known/oauth-protected-resource/ebay
+    backends:
+      - mcp:
+          statefulMode: stateless
+          targets:
+            - name: ebay
+              mcp:
+                host: ${EBAY_MCP_URL}
+              policies:
+                requestHeaderModifier:
+                  remove:
+                    - authorization
+    policies:
+      mcpAuthentication:
+        mode: strict
+        issuer: ${OIDC_ISSUER}
+        audiences: [https://mcp.janejeon.dev]
+        jwks:
+          url: ${OIDC_JWKS_URL}
+        jwtValidationOptions:
+          requiredClaims: [exp, iss, aud, sub]
+        resourceMetadata:
+          resource: https://mcp.janejeon.dev/ebay
+          scopesSupported: [openid, offline_access]
+          bearerMethodsSupported: [header]
+      authorization:
+        rules:
+          - 'jwt.sub == "${MCP_ALLOWED_SUB}" && "mcp-use" in jwt.realm_access.roles'
+
   - name: identity-public
     matches:
       - path:

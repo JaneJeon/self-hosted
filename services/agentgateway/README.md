@@ -4,6 +4,7 @@ The only public Railway entry point is `https://mcp.janejeon.dev`:
 
 - `/telegram` and `/whatsapp`: private messaging MCP backends.
 - `/keycloak`: the restricted identity management MCP.
+- `/ebay`: the official eBay public API MCP using application credentials.
 - `/auth/realms/personal/` and login assets: Keycloak login and discovery.
 
 Keep both messaging backends and both identity services private. The Keycloak
@@ -41,6 +42,7 @@ All service dependencies use Railway references in `.railway/railway.ts`:
 | `OIDC_JWKS_URL`     | Keycloak's private `JWKS_URL`          |
 | `KEYCLOAK_HOST`     | Keycloak's `PRIVATE_HOST`              |
 | `KEYCLOAK_MCP_URL`  | Keycloak MCP's `MCP_URL`               |
+| `EBAY_MCP_URL`      | eBay MCP's `MCP_URL`                   |
 | `MCP_ALLOWED_SUB`   | The single authorized Keycloak user ID |
 
 The permanent `Jane` username/password identity is now the authorized subject.
