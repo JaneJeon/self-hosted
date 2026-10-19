@@ -1,0 +1,14 @@
+diff --git a/src/helper/http-helper.ts b/src/helper/http-helper.ts
+--- a/src/helper/http-helper.ts
++++ b/src/helper/http-helper.ts
+@@ -52,7 +52,9 @@
+ export function buildFinalUrl(url: string, urlVariables: Record<string, unknown> | undefined): string {
+   if (urlVariables) {
+     for (const [key, value] of Object.entries(urlVariables)) {
+-      url = url.replace(new RegExp(`%7B${key}%7D`, "g"), encodeURIComponent(String(value)));
++      const encoded = encodeURIComponent(String(value));
++      url = url.split(`{${key}}`).join(encoded);
++      url = url.split(`%7B${key}%7D`).join(encoded);
+     }
+   }
+   return url;

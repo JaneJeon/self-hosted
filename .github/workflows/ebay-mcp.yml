@@ -1,0 +1,29 @@
+name: eBay MCP
+
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - services/ebay-mcp/**
+      - .github/workflows/ebay-mcp.yml
+  push:
+    branches: [master]
+    paths:
+      - services/ebay-mcp/**
+      - .github/workflows/ebay-mcp.yml
+
+permissions:
+  contents: read
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Build the production architecture
+        run: docker build --platform linux/amd64 -t ebay-mcp:test services/ebay-mcp
+      - name: Check path substitution, startup gating and credential handling
+        env:
+          EBAY_MCP_TEST_IMAGE: ebay-mcp:test
+        run: python3 services/ebay-mcp/tests/test-container.py
