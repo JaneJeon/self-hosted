@@ -93,3 +93,26 @@ backend logs contained zero exact matches for the configured credentials.
 Before release, also prove official-tool discovery, real listing search and
 details, gateway rejection policies, and a backend restart through the same
 gateway session. Verify real reads in each requested native client.
+
+## Native clients
+
+Codex's global server name is `ebay` and its URL is
+`https://mcp.janejeon.dev/ebay`. It reuses the registered public `codex` client
+and an exact registered callback on port 8765. Request only `openid` and
+`offline_access` when logging in:
+
+```sh
+codex mcp login ebay --scopes openid,offline_access
+```
+
+The default CLI login can request every scope advertised by the identity
+provider, including scopes unavailable to this client. The explicit pair above
+passed the production login and native listing reads. The client's OAuth
+registration and credentials are stored by Codex, alongside its global URL
+configuration.
+
+Claude uses the account-level custom connector named `eBay`, the same public
+URL, Streamable HTTP, the registered public client `claude`, and a blank client
+secret. Claude Code inherits this connection as `claude.ai eBay` across projects.
+The two tools retain Claude's default approval policy. Native clients use Jane's
+existing Keycloak login. eBay application keys stay in the Railway backend.
