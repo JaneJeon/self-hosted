@@ -354,6 +354,7 @@ HTTPServer(('0.0.0.0',9911),Handler).serve_forever()
         "WHATSAPP_MCP_HOST": BACKEND,
         "WHATSAPP_TRIAL_MCP_URL": f"http://{BACKEND}:8080/mcp",
         "KEYCLOAK_MCP_URL": f"http://{BACKEND}:8080/mcp",
+        "EBAY_MCP_URL": f"http://{BACKEND}:8080/mcp",
         "KEYCLOAK_HOST": f"{JWT}:9911",
         "OIDC_ISSUER": "https://issuer.fixture/personal",
         "OIDC_JWKS_URL": f"http://{JWT}:9911/jwks",
