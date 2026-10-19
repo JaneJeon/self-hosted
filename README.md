@@ -5,23 +5,24 @@ Self-hosted infrastructure on [Railway](https://railway.com), deployed via GitOp
 
 ## Architecture
 
-All services run on Railway in a single project. Each service has its own directory under `services/`. Existing services use `railway.json`; the five messaging, gateway, and identity services use the `mcp` partial in `.railway/railway.ts`. See each service's directory for service-specific details.
+All services run on Railway in a single project. Each service has its own directory under `services/`. Existing services use `railway.json`; the messaging, eBay, gateway, identity services and private admin router use the `mcp` partial in `.railway/railway.ts`. See each service's directory for service-specific details.
 
 ### Services
 
-| Service          | Image Base                         | Purpose                         | Schedule        |
-| ---------------- | ---------------------------------- | ------------------------------- | --------------- |
-| **mysql**        | `mysql:8.4`                        | Shared MySQL database           | Persistent      |
-| **ghost**        | `ghost`                            | Blog (janejeon.blog)            | Persistent      |
-| **uptime-kuma**  | `louislam/uptime-kuma:2-slim`      | Monitoring & status page        | Persistent      |
-| **hoyolab-auto** | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in          | Persistent      |
-| **mysql-backup** | `mysql:8.4` + restic               | Incremental MySQL backups to B2 | Cron (3 AM UTC) |
-| **Tailscale**    | `tailscale`                        | VPN subnet router               | Persistent      |
-| **telegram-mcp** | Python + Node                      | Private Telegram MCP backend    | Persistent      |
-| **whatsapp-mcp** | Go + restic                        | Private WhatsApp MCP and backup | Persistent      |
-| **agentgateway** | `agentgateway:v1.5.0`              | Authenticated MCP entry point   | Persistent      |
-| **keycloak**     | `keycloak:26.7.4`                  | OAuth identity provider         | Persistent      |
-| **keycloak-mcp** | Keycloak MCP 0.4.0                 | Restricted identity inspection  | Persistent      |
+| Service          | Image Base                         | Purpose                           | Schedule        |
+| ---------------- | ---------------------------------- | --------------------------------- | --------------- |
+| **mysql**        | `mysql:8.4`                        | Shared MySQL database             | Persistent      |
+| **ghost**        | `ghost`                            | Blog (janejeon.blog)              | Persistent      |
+| **uptime-kuma**  | `louislam/uptime-kuma:2-slim`      | Monitoring & status page          | Persistent      |
+| **hoyolab-auto** | `ghcr.io/torikushiii/hoyolab-auto` | HoYoLab daily check-in            | Persistent      |
+| **mysql-backup** | `mysql:8.4` + restic               | Incremental MySQL backups to B2   | Cron (3 AM UTC) |
+| **Tailscale**    | `tailscale`                        | VPN subnet router                 | Persistent      |
+| **telegram-mcp** | Python + Node                      | Private Telegram MCP backend      | Persistent      |
+| **whatsapp-mcp** | Go + restic                        | Private WhatsApp MCP and backup   | Persistent      |
+| **agentgateway** | `agentgateway:v1.5.0`              | Authenticated MCP entry point     | Persistent      |
+| **keycloak**     | `keycloak:26.7.4`                  | OAuth identity provider           | Persistent      |
+| **keycloak-mcp** | Keycloak MCP 0.4.0                 | Restricted identity inspection    | Persistent      |
+| **ebay-mcp**     | Official eBay API MCP 1.1.0        | Public listing search and details | Persistent      |
 
 ### How services connect
 
@@ -37,16 +38,16 @@ mysql-backup ─────────────┼──▶ uptime-kuma (pu
 Codex, Claude ──▶ agentgateway ──▶ telegram-mcp
                               ├──▶ whatsapp-mcp ──▶ B2 and uptime-kuma
                               ├──▶ keycloak-mcp ──▶ keycloak
+                              ├──▶ ebay-mcp ──▶ eBay public APIs
                               └──▶ keycloak ──▶ mysql
 ```
 
 Inter-service communication is over Railway's private network (`*.railway.internal`).
 
 Native clients authenticate through Keycloak at `mcp.janejeon.dev/auth` and use
-`/telegram`, `/whatsapp`, or `/keycloak` on the gateway. Both messaging clients
-completed read calls after the September 30 cutover. The Mac launchers are
-disabled; preserve their data for rollback. Identity currently uses the
-authorized temporary migration account pending Jane's permanent login setup.
+`/telegram`, `/whatsapp`, `/keycloak`, or `/ebay` on the gateway. Permanent Jane
+username/password authentication serves the native clients. The Mac messaging
+launchers are disabled; preserve their data for rollback.
 
 ## Deployment
 

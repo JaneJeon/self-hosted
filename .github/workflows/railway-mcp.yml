@@ -27,8 +27,10 @@ jobs:
     uses: ./.github/workflows/mcp-transport.yml
   query-policy:
     uses: ./.github/workflows/whatsapp-trial.yml
+  ebay:
+    uses: ./.github/workflows/ebay-mcp.yml
   apply:
-    needs: [backup, transport, query-policy]
+    needs: [backup, transport, query-policy, ebay]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:

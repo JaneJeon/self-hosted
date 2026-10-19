@@ -163,6 +163,31 @@ export default defineRailway(() => {
     }
   })
 
+  const ebay = service('eBay MCP', {
+    build: {
+      builder: 'RAILPACK',
+      buildEnvironment: 'V3',
+      watchPatterns: ['/services/ebay-mcp/**']
+    },
+    deploy: { restartPolicyType: 'ALWAYS' },
+    source: github('JaneJeon/self-hosted', {
+      branch: 'master',
+      checkSuites: true,
+      rootDirectory: '/services/ebay-mcp'
+    }),
+    healthcheck: '/ping',
+    healthcheckTimeout: 180,
+    replicas: { 'us-west2': 1 },
+    env: {
+      PORT: '8080',
+      MCP_URL: 'http://${{RAILWAY_PRIVATE_DOMAIN}}:8080/mcp',
+      EBAY_API_ENV: 'production',
+      EBAY_TOKEN_TYPE: 'application',
+      EBAY_CLIENT_ID: preserve(),
+      EBAY_CLIENT_SECRET: preserve()
+    }
+  })
+
   const gateway = service('agentgateway', {
     build: {
       builder: 'RAILPACK',
@@ -183,6 +208,7 @@ export default defineRailway(() => {
       OIDC_JWKS_URL: identity.env.JWKS_URL,
       KEYCLOAK_HOST: identity.env.PRIVATE_HOST,
       KEYCLOAK_MCP_URL: identityMcp.env.MCP_URL,
+      EBAY_MCP_URL: ebay.env.MCP_URL,
       MCP_ALLOWED_SUB: preserve(),
       AUTH0_ISSUER: preserve(),
       AUTH0_JWKS_URL: preserve(),
@@ -198,6 +224,7 @@ export default defineRailway(() => {
       gateway,
       identity,
       identityMcp,
+      ebay,
       adminNetwork,
       adminRouterData,
       telegramData,
