@@ -85,6 +85,11 @@ EBAY_MCP_TEST_IMAGE=ebay-mcp:test python3 services/ebay-mcp/tests/test-container
 
 The container suite checks placeholder encoding, startup gating, whitespace
 rejection and enforced production application mode without real credentials.
+On October 19, 2026, the Linux AMD64 image also passed real official-tool
+discovery, three listing prices and raw-placeholder details through the edited
+gateway. The same session returned details after a backend restart, with the
+gateway unchanged. Five invalid-token cases returned the expected 401/403, and
+backend logs contained zero exact matches for the configured credentials.
 Before release, also prove official-tool discovery, real listing search and
 details, gateway rejection policies, and a backend restart through the same
 gateway session. Verify real reads in each requested native client.
