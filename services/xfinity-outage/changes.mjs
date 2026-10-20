@@ -2,19 +2,7 @@
 // the notification. Kept separate from monitor.mjs so tests can import it
 // without running a real monitor pass (the same reason retry.mjs is separate).
 
-import { buildingChanges } from './building.mjs'
-
-// Xfinity's "Technician in your area" record. On 2026-10-20 it replaced the
-// outage at 12:31 PDT, 14 minutes after Home Assistant was reachable again:
-// outageType Informational, Low Impact, no estimate, and text saying work in
-// the area may cause brief interruptions. It reports work nearby, not an
-// outage.
-export function isNotice(msg) {
-  return (
-    typeof msg?.outageType === 'string' &&
-    msg.outageType.trim().toLowerCase() === 'informational'
-  )
-}
+import { buildingChanges, isNotice } from './building.mjs'
 
 function textOf(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null

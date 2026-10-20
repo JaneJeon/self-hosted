@@ -3,6 +3,18 @@
 // is shared or only at the home address. Pure functions: monitor.mjs does the
 // fetching, changes.mjs words the messages. Evidence: the Craft note in README.
 
+// Xfinity's "Technician in your area" record. On 2026-10-20 it replaced the
+// outage at 12:31 PDT, 14 minutes after Home Assistant was reachable again:
+// outageType Informational, Low Impact, no estimate, and text saying work in
+// the area may cause brief interruptions. It reports work nearby, not an
+// outage.
+export function isNotice(msg) {
+  return (
+    typeof msg?.outageType === 'string' &&
+    msg.outageType.trim().toLowerCase() === 'informational'
+  )
+}
+
 // Neighbors checked per run, at one status call each.
 export const MAX_NEIGHBORS = 5
 // Neighbors on one unplanned outage ID before a building alert goes out. The
@@ -125,6 +137,9 @@ export function neighborResult(data) {
   if (outageId === null) return { status: 'error', reason: 'bad body' }
   if (!msg || typeof msg !== 'object')
     return { status: 'error', reason: 'bad body' }
+  // A notice is no outage: it neither starts a building alert nor keeps one
+  // open.
+  if (isNotice(msg)) return { status: 'notice' }
   return {
     status: 'outage',
     outageId,
@@ -145,11 +160,12 @@ export function neighborError(err) {
 
 // The building's state this run, or null when the run gives no evidence:
 // a failed lookup, or no neighbor that answered. `homeIds` is every outage ID
-// the home address lists.
+// the home address lists. A neighbor with only a notice answered, with no
+// outage.
 export function summarizeBuilding(results, homeIds = []) {
   if (results.some(r => r.status === 'error')) return null
   const answered = results.filter(
-    r => r.status === 'outage' || r.status === 'clear'
+    r => r.status === 'outage' || r.status === 'clear' || r.status === 'notice'
   )
   if (answered.length === 0) return null
   const ids = Object.create(null)
