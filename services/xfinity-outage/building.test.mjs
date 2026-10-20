@@ -687,3 +687,19 @@ test('a building outage whose records turn into notices is cleared', () => {
   assert.equal(sent[2], '')
   assert.match(sent[3], /Building outage cleared/)
 })
+
+// Review 4: a notice at home with the building outage's ID once closed the
+// building alert without a word, and its all-clear never came.
+test('a notice at home keeps a building alert open until the neighbors clear', () => {
+  assert.deepEqual(homeOutageIds(noticePayload()), [])
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [out(), out(), out()]],
+    [noticePayload(), [out(), out(), out()]],
+    [noticePayload(), [clear(), clear(), clear()]]
+  ])
+  assert.match(sent[1], /Outage in your building/)
+  assert.match(sent[2], /a notice, not an outage\.$/)
+  assert.doesNotMatch(sent[2], /building/i)
+  assert.match(sent[3], /Building outage cleared/)
+})

@@ -115,10 +115,12 @@ function outageIdOf(entry) {
 }
 
 // Every outage ID the home address lists. The home messages describe only the
-// first entry, but any listed ID makes that outage the home's.
+// first entry, but any listed ID makes that outage the home's. A notice is not
+// an outage: a building alert stays open through one, and an outage the home
+// listed before its notice is already in homeSeen.
 export function homeOutageIds(data) {
   const list = data?.outageInfoResponseList
-  if (!Array.isArray(list)) return []
+  if (!Array.isArray(list) || isNotice(data?.customerMessage)) return []
   return [...new Set(list.map(outageIdOf).filter(id => id !== null))]
 }
 
