@@ -2,6 +2,8 @@
 
 Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent. Does not re-notify for the same ongoing outage.
 
+Xfinity also lists notices that are not outages: `outageType` `Informational`, such as "Technician in your area … you could experience brief interruptions". An outage that turns into a notice counts as cleared, and the all-clear quotes the notice. A notice on its own gets one message in Xfinity's words, and a notice going away sends nothing.
+
 Why it handles a clearing outage and the building check this way, the 2026-10-19 and 2026-10-20 evidence behind them, and what is still unknown: Craft, `Workspace/Xfinity outage monitor cleared-outage message — 2026-10-19`.
 
 Runs externally on Railway (not from Home Assistant) because the whole point is monitoring home internet — if the internet is down, a local check can't reach external APIs.

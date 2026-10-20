@@ -4,6 +4,22 @@
 
 import { buildingChanges } from './building.mjs'
 
+// Xfinity's "Technician in your area" record. On 2026-10-20 it replaced the
+// outage at 12:31 PDT, 14 minutes after Home Assistant was reachable again:
+// outageType Informational, Low Impact, no estimate, and text saying work in
+// the area may cause brief interruptions. It reports work nearby, not an
+// outage.
+export function isNotice(msg) {
+  return (
+    typeof msg?.outageType === 'string' &&
+    msg.outageType.trim().toLowerCase() === 'informational'
+  )
+}
+
+function textOf(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
 export function extractState(data, now = new Date()) {
   const outages = data.outageInfoResponseList ?? []
   const msg = data.customerMessage ?? null
@@ -11,6 +27,7 @@ export function extractState(data, now = new Date()) {
   if (!outages.length || !msg) {
     return {
       hasOutage: false,
+      notice: false,
       outageId: null,
       outageType: null,
       planned: null,
@@ -19,6 +36,7 @@ export function extractState(data, now = new Date()) {
       etr: null,
       etrDisplay: null,
       shortDescription: null,
+      noticeText: null,
       impactStyle: null,
       customerFacingText: null,
       checkedAt: now.toISOString()
@@ -26,8 +44,10 @@ export function extractState(data, now = new Date()) {
   }
 
   const outage = outages[0]
+  const notice = isNotice(msg)
   return {
     hasOutage: true,
+    notice,
     outageId: outage.outageId,
     outageType: msg.outageType ?? null,
     planned: msg.planned ?? false,
@@ -36,6 +56,9 @@ export function extractState(data, now = new Date()) {
     etr: msg.etr?.iso ?? null,
     etrDisplay: msg.etrOutputString ?? null,
     shortDescription: msg.messages?.shortDescription ?? null,
+    // Kept only for a notice: an outage's detailedDescription names the
+    // street address.
+    noticeText: notice ? textOf(msg.messages?.detailedDescription) : null,
     impactStyle: msg.impactStyle ?? null,
     customerFacingText: msg.customerFacingText ?? null,
     checkedAt: now.toISOString()
@@ -89,20 +112,45 @@ function compareType(old, next) {
   }
 }
 
+// What the home address lists: nothing, an outage, or a notice.
+function kindOf(state) {
+  if (!state?.hasOutage) return 'none'
+  return state.notice ? 'notice' : 'outage'
+}
+
 function homeChanges(old, next) {
-  if (!old) return next.hasOutage ? [{ type: 'new_outage' }] : []
-  if (!old.hasOutage && next.hasOutage) return [{ type: 'new_outage' }]
-  if (old.hasOutage && !next.hasOutage)
-    return [
-      {
-        type: 'resolved',
-        startTime: old.startTime,
-        planned: old.planned,
-        lastListedAt: old.checkedAt ?? null,
-        goneAt: next.checkedAt
-      }
-    ]
-  if (old.outageId !== next.outageId) return [{ type: 'new_outage' }]
+  const before = kindOf(old)
+  const after = kindOf(next)
+
+  if (after !== 'outage') {
+    // An outage that turns into a notice is over: on 2026-10-20 the notice
+    // appeared after Home Assistant was back, and saying "reclassified,
+    // Internet still down" then was wrong.
+    if (before === 'outage')
+      return [
+        {
+          type: 'resolved',
+          startTime: old.startTime,
+          planned: old.planned,
+          lastListedAt: old.checkedAt ?? null,
+          goneAt: next.checkedAt,
+          notice:
+            after === 'notice'
+              ? { title: next.shortDescription, text: next.noticeText }
+              : null
+        }
+      ]
+    if (
+      after === 'notice' &&
+      (before !== 'notice' || old.outageId !== next.outageId)
+    )
+      return [{ type: 'notice_posted' }]
+    if (before === 'notice' && after === 'none')
+      return [{ type: 'notice_cleared' }]
+    return []
+  }
+  if (before !== 'outage' || old.outageId !== next.outageId)
+    return [{ type: 'new_outage' }]
 
   const changes = []
   const etrChange = compareEtr(old, next)
@@ -130,6 +178,16 @@ function neighborLine(building) {
       } a different outage)`
     : ''
   return `\nNot listed at the ${n} ${others} checked in your building${different}, so it may be only your line.`
+}
+
+// Xfinity's notice in its own words: the short title, then the text.
+function noticeWords(title, text) {
+  const head = textOf(title)
+  const body = textOf(text)
+  const parts = []
+  if (head) parts.push(`<i>${esc(/[.!?]$/.test(head) ? head : head + '.')}</i>`)
+  if (body) parts.push(esc(body))
+  return parts.join(' ')
 }
 
 // Telegram parses these messages as HTML, so text from Xfinity must not be
@@ -239,11 +297,25 @@ export function buildMessage(changes, state) {
           ? ` It was still listed at ${formatTime(c.lastListedAt)}` +
             ` and gone by ${formatTime(c.goneAt)}.`
           : ''
+        const words = c.notice ? noticeWords(c.notice.title, c.notice.text) : ''
+        const instead = !c.notice
+          ? ''
+          : words
+          ? `\n\nXfinity now shows this notice instead:\n${words}`
+          : `\n\nXfinity now shows a notice instead, with no text.`
         parts.push(
           `<b>Xfinity: Internet is back</b>\n\n` +
-            `Xfinity has cleared ${which}.${window}`
+            `Xfinity has cleared ${which}.${window}${instead}`
         )
       }
+    } else if (c.type === 'notice_posted') {
+      const title = textOf(state.shortDescription)
+      const body = textOf(state.noticeText)
+      parts.push(
+        `<b>Xfinity: ${esc(title ?? 'Notice for your address')}</b>\n\n` +
+          (body ? `${esc(body)}\n` : '') +
+          `Xfinity lists this as a notice, not an outage.`
+      )
     } else if (c.type === 'etr_set') {
       const since = formatTime(state.startTime)
       const label = state.planned ? ' (planned maintenance)' : ''
@@ -304,6 +376,7 @@ export function buildMessage(changes, state) {
     // dropped estimate came just before the outage cleared, after service was
     // back. They are still logged, and the all-clear follows when the outage
     // clears. Evidence and the open question: the Craft note in README.
+    // notice_cleared is silent too: a notice going away asks nothing of you.
   }
 
   return parts.join('\n\n')

@@ -291,3 +291,151 @@ test('an estimate without a display string keeps its date', () => {
     /10\/20\/2026, 12:10 AM PDT → 10\/21\/2026, 12:10 AM PDT\./
   )
 })
+
+// 2026-10-20, from the Railway logs. The outage record at 12:17 PDT and the
+// "Technician in your area" notice that replaced it at 12:31 PDT; the street
+// is a stand-in.
+const OUTAGE_1020 = {
+  outageInfoResponseList: [
+    {
+      outageId: 'OUT14101723',
+      services: ['Internet'],
+      startTime: { iso: '2026-10-20T07:32:17-07:00' }
+    }
+  ],
+  customerMessage: {
+    messageType: 'Summary',
+    impactStyle: 'High Impact',
+    outageType: 'Outage',
+    planned: false,
+    customerFacingText: 'Network Damage',
+    etr: { iso: '2026-10-20T18:55:00-07:00' },
+    etrOutputString: '10/20/2026 06:55 PM (Pacific)',
+    messages: {
+      shortDescription: 'Internet outage detected',
+      detailedDescription:
+        'Your Xfinity services at 100 MAIN ST may be unavailable due to an issue with our network.'
+    }
+  }
+}
+const NOTICE_TEXT =
+  "To make sure your XFINITY services are performing optimally, we'll be doing some work in your area today. While we're working, you could experience brief interruptions to your service. We apologize for any inconvenience caused by our work."
+const notice = (extra = {}) => ({
+  outageInfoResponseList: [
+    {
+      outageId: 'OUT14101723',
+      services: ['Internet'],
+      startTime: { iso: '2026-10-20T10:32:00-07:00' }
+    }
+  ],
+  customerMessage: {
+    messageType: 'Summary',
+    impactStyle: 'Low Impact',
+    outageType: 'Informational',
+    planned: false,
+    etr: null,
+    etrOutputString: null,
+    messages: {
+      shortDescription: 'Technician in your area',
+      detailedDescription: NOTICE_TEXT
+    },
+    ...extra
+  }
+})
+
+test('2026-10-20: an outage that turns into a notice is back, in Xfinity words', () => {
+  // The 12:31 run once sent "Outage reclassified: now listed as
+  // Informational. Internet still down since 10:32 AM PDT."
+  const outage = state(OUTAGE_1020, '2026-10-20T19:17:32Z')
+  const tech = state(notice(), '2026-10-20T19:31:12Z')
+  const gone = state(CLEARED, '2026-10-20T19:46:25Z')
+
+  assert.equal(
+    message(outage, tech),
+    '<b>Xfinity: Internet is back</b>\n\n' +
+      'Xfinity has cleared the outage that started at 7:32 AM PDT.' +
+      ' It was still listed at 12:17 PM PDT and gone by 12:31 PM PDT.\n\n' +
+      'Xfinity now shows this notice instead:\n' +
+      '<i>Technician in your area.</i> To make sure your XFINITY services' +
+      " are performing optimally, we'll be doing some work in your area" +
+      " today. While we're working, you could experience brief" +
+      ' interruptions to your service. We apologize for any inconvenience' +
+      ' caused by our work.'
+  )
+  assert.deepEqual(detectChanges(tech, gone), [{ type: 'notice_cleared' }])
+  assert.equal(message(tech, gone), '')
+})
+
+test('a notice with no outage before it is a heads-up, not an outage', () => {
+  const quiet = state(CLEARED, '2026-10-20T19:16:20Z')
+  const tech = state(notice(), '2026-10-20T19:31:20Z')
+  assert.equal(
+    message(quiet, tech),
+    '<b>Xfinity: Technician in your area</b>\n\n' +
+      NOTICE_TEXT +
+      '\nXfinity lists this as a notice, not an outage.'
+  )
+  assert.equal(message(null, tech), message(quiet, tech))
+  assert.equal(message(tech, state(notice(), '2026-10-20T19:46:20Z')), '')
+})
+
+test('a notice that turns into an outage is "Internet is down"', () => {
+  const tech = state(notice(), '2026-10-20T19:31:20Z')
+  const outage = state(OUTAGE_1020, '2026-10-20T19:46:20Z')
+  assert.match(message(tech, outage), /^<b>Xfinity: Internet is down<\/b>/)
+})
+
+test('a notice keeps its text, an outage never stores the street', () => {
+  assert.equal(state(notice(), '2026-10-20T19:31:20Z').noticeText, NOTICE_TEXT)
+  const outage = state(OUTAGE_1020, '2026-10-20T19:17:32Z')
+  assert.equal(outage.noticeText, null)
+  assert.doesNotMatch(JSON.stringify(outage), /MAIN ST/)
+})
+
+test('notice text from Xfinity is escaped, and missing text still reads', () => {
+  const odd = notice({
+    messages: { shortDescription: 'Work <today>', detailedDescription: 'A & B' }
+  })
+  const quiet = state(CLEARED, '2026-10-20T19:16:20Z')
+  assert.equal(
+    message(quiet, state(odd, '2026-10-20T19:31:20Z')),
+    '<b>Xfinity: Work &lt;today&gt;</b>\n\nA &amp; B\n' +
+      'Xfinity lists this as a notice, not an outage.'
+  )
+  const bare = state(notice({ messages: null }), '2026-10-20T19:31:20Z')
+  assert.equal(
+    message(quiet, bare),
+    '<b>Xfinity: Notice for your address</b>\n\n' +
+      'Xfinity lists this as a notice, not an outage.'
+  )
+  const outage = state(OUTAGE_1020, '2026-10-20T19:17:32Z')
+  assert.match(
+    message(outage, bare),
+    /Xfinity now shows a notice instead, with no text\.$/
+  )
+})
+
+test('no transition between outages and notices prints a bad token', () => {
+  const t = '2026-10-20T19:31:20Z'
+  const states = [
+    state(CLEARED, t),
+    state(OUTAGE_1020, t),
+    state(notice(), t),
+    state(notice({ messages: null }), t),
+    state(
+      notice({ messages: { shortDescription: 7, detailedDescription: {} } }),
+      t
+    ),
+    state(listed({ planned: true, start: '2026-10-22T00:00:00-07:00' }), t),
+    state(listed({ start: null }), t)
+  ]
+  for (const a of [null, ...states])
+    for (const b of states) {
+      const text = buildMessage(detectChanges(a, b), b)
+      assert.doesNotMatch(
+        text,
+        /null|undefined|NaN|Invalid Date|\[object|reclassified|still down/,
+        text
+      )
+    }
+})
