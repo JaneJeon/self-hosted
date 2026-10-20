@@ -210,14 +210,17 @@ async function main() {
     logger
   })
   const homeState = extractState(data)
-  // customerMessage is logged whole because the API is undocumented, so the
-  // logs show what Xfinity said at each check, for example when it drops an
-  // estimate.
+  // customerMessage is logged because the API is undocumented, so the logs
+  // show what Xfinity said at each check, for example when it drops an
+  // estimate. Its free-text `messages` is left out: it names the street
+  // address ("Your Xfinity services at <street> may be unavailable"), which
+  // this service otherwise keeps out of its logs.
+  const { messages, ...loggableMessage } = data.customerMessage ?? {}
   logger.info(
     {
       hasOutage: homeState.hasOutage,
       outageType: homeState.outageType,
-      customerMessage: data.customerMessage ?? null
+      customerMessage: data.customerMessage ? loggableMessage : null
     },
     'outage status'
   )
