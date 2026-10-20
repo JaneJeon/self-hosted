@@ -17,14 +17,15 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 
 The API is undocumented, so this is what was observed, once, on 2026-10-19 (times PDT):
 
-| Time   | What happened                                                                     |
-| ------ | --------------------------------------------------------------------------------- |
-| 21:06  | Xfinity's start time for an unplanned outage. First alert sent at 21:15.          |
-| ~22:30 | The Green's DNS-forwarder timeouts stopped: the house was back online.            |
-| 22:45  | The API still listed the same outage, but with the restore estimate set to null.  |
-| 23:00  | The outage was gone: an empty list and a `Summary` message with every field null. |
+| Time   | What happened                                                                                             |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| 21:06  | Xfinity's start time for an unplanned outage. First alert sent at 21:15.                                  |
+| ~22:05 | Jane restarted the gateway from the Xfinity app.                                                          |
+| ~22:30 | The Green's DNS-forwarder timeouts had fallen from 22:08 and stopped by 22:29: the house was back online. |
+| 22:45  | The API still listed the same outage, but with the restore estimate set to null.                          |
+| 23:00  | The outage was gone: an empty list and a `Summary` message with every field null.                         |
 
-Two things follow. First, a null estimate is not a time: the old code compared it as 1970, reported "ETA moved up → null. Internet still down" at 22:45, and was wrong on all three counts. A dropped estimate is now logged and not sent, because the only observed instance was the last check before the outage cleared. The same goes for an outage type that disappears while the outage is still listed, and an estimate that is not a readable time counts as no estimate. Second, Xfinity's record lags the real repair, here by 15 to 30 minutes, so the "back" message reports the last check that still listed the outage and the first that did not, not a downtime the monitor cannot measure.
+Two things follow. First, a null estimate is not a time: the old code compared it as 1970, reported "ETA moved up → null. Internet still down" at 22:45, and was wrong on all three counts. A dropped estimate is now logged and not sent, because the only observed instance was the last check before the outage cleared. The same goes for an outage type that disappears while the outage is still listed, and an estimate that is not a readable time counts as no estimate. Second, the house was back online 15 to 30 minutes before Xfinity cleared its record. It is not known whether Xfinity's record lagged a repair on its side, or the gateway restart brought the house back on its own. Either way the monitor sees only Xfinity's record, so the "back" message reports the last check that still listed the outage and the first that did not, not a downtime it cannot measure.
 
 Whether a null estimate always means "about to clear" is unknown. Every check now logs the whole `customerMessage`, so the next instance shows what else Xfinity said.
 

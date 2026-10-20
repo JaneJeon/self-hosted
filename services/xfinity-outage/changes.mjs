@@ -192,7 +192,8 @@ export function buildMessage(changes, state) {
       } else {
         // The monitor only sees Xfinity's record, at 15-minute checks, so it
         // reports when the record cleared rather than a downtime it cannot
-        // measure. Xfinity can lag the real repair (see README).
+        // measure. On 2026-10-19 the house was back before the record cleared
+        // (see README).
         const which = c.startTime
           ? `the outage that started at ${started}`
           : 'the outage'
