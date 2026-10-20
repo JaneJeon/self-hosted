@@ -526,3 +526,16 @@ test('an outage ID such as __proto__ cannot touch shared objects', () => {
   assert.equal({}.listed, undefined)
   assert.equal(summary.ids['__proto__'].listed, 2)
 })
+
+// Review 3, N2 and N2b: an outage ID of "" passed as an ID.
+test('a neighbor entry without a usable ID, or with several outages, is a failed lookup', () => {
+  for (const id of ['', '  ', {}, [X], true])
+    assert.equal(neighborResult(outagePayload(id)).status, 'error')
+  const two = outagePayload(X)
+  two.outageInfoResponseList.push({ outageId: Y })
+  assert.deepEqual(neighborResult(two), {
+    status: 'error',
+    reason: 'several outages'
+  })
+  assert.equal(neighborResult(outagePayload(42)).outageId, '42')
+})

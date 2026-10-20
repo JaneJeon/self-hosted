@@ -90,24 +90,35 @@ export function neighborParam(address) {
   return encodeURIComponent(address).replace(/%20/g, '+')
 }
 
+// An entry's outage ID as a string, or null when it has none: a missing,
+// empty or non-scalar ID cannot be matched to anything.
+function outageIdOf(entry) {
+  const id = entry && typeof entry === 'object' ? entry.outageId : null
+  if (typeof id !== 'string' && typeof id !== 'number') return null
+  const text = String(id)
+  return text.trim() ? text : null
+}
+
 // One neighbor's status call, reduced to what the comparison needs. Anything
-// that is not a clear list or a whole outage entry is a failed lookup, so
-// it can never read as an all-clear.
+// that is not a clear list or one whole outage entry is a failed lookup, so
+// it can never read as an all-clear or start an alert.
 export function neighborResult(data) {
   const list = data?.outageInfoResponseList
   if (!Array.isArray(list)) return { status: 'error', reason: 'bad body' }
   if (list.length === 0) return { status: 'clear' }
-  const outage = list[0]
+  // Never observed. The address has one customerMessage, so with several
+  // entries it is unknown which one is planned or has the estimate.
+  if (list.length > 1) return { status: 'error', reason: 'several outages' }
+  const outageId = outageIdOf(list[0])
   const msg = data.customerMessage
-  if (!outage || typeof outage !== 'object' || outage.outageId == null)
-    return { status: 'error', reason: 'bad body' }
+  if (outageId === null) return { status: 'error', reason: 'bad body' }
   if (!msg || typeof msg !== 'object')
     return { status: 'error', reason: 'bad body' }
   return {
     status: 'outage',
-    outageId: String(outage.outageId),
+    outageId,
     planned: msg.planned === true,
-    startTime: outage.startTime?.iso ?? null,
+    startTime: list[0].startTime?.iso ?? null,
     etr: msg.etr?.iso ?? null,
     etrDisplay: msg.etrOutputString ?? null
   }
