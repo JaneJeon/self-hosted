@@ -52,7 +52,9 @@ function readableTime(iso) {
 
 // Xfinity's restore estimate as words, or null when Xfinity gives none.
 function etrText(state) {
-  if (state.etrDisplay) return state.etrDisplay
+  // Xfinity's display string, when it is one, or else the date.
+  if (typeof state.etrDisplay === 'string' && state.etrDisplay.trim())
+    return state.etrDisplay
   if (readableTime(state.etr) !== null) return formatDateTime(state.etr)
   return null
 }

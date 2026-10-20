@@ -131,7 +131,8 @@ export function neighborResult(data) {
     planned: msg.planned === true,
     startTime: list[0].startTime?.iso ?? null,
     etr: msg.etr?.iso ?? null,
-    etrDisplay: msg.etrOutputString ?? null
+    etrDisplay:
+      typeof msg.etrOutputString === 'string' ? msg.etrOutputString : null
   }
 }
 

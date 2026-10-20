@@ -625,3 +625,23 @@ test('a home outage without a usable ID sends no building alert', () => {
   assert.match(sent[1], /Internet is down/)
   assert.doesNotMatch(sent[1], /building|apartment/i)
 })
+
+// Review 3, issue 6: "restoration by [object Object]".
+test('estimate text that is not a string is not printed', () => {
+  for (const shown of [{}, 123, true, ['a', 'b']]) {
+    const r = neighborResult(outagePayload(X, { etrOutputString: shown }))
+    assert.equal(r.etrDisplay, null)
+    const building = sequence([
+      [clearPayload, [clear()]],
+      [clearPayload, [r, r]]
+    ])
+    assert.match(building[1], /restoration by/)
+    assert.doesNotMatch(building[1], /\[object|123|true|a,b/)
+    const home = sequence([
+      [clearPayload, [clear()]],
+      [outagePayload(X, { etrOutputString: shown }), [clear()]]
+    ])
+    assert.match(home[1], /Internet is down/)
+    assert.doesNotMatch(home[1], /\[object|123|true|a,b/)
+  }
+})
