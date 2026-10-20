@@ -8,7 +8,19 @@ function textOf(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
-export function extractState(data, now = new Date()) {
+// A notice's words are quoted in messages and kept in state. An outage's text
+// names the street, so in case a notice ever does, the home street (`street`,
+// from HOME_ADDRESS) is replaced, whatever its case or spacing.
+function maskStreet(text, street) {
+  const words = textOf(street)?.split(/\s+/)
+  if (text == null || !words) return text
+  const pattern = words
+    .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('\\s+')
+  return String(text).replace(new RegExp(pattern, 'gi'), 'your address')
+}
+
+export function extractState(data, now = new Date(), street = null) {
   const outages = data.outageInfoResponseList ?? []
   const msg = data.customerMessage ?? null
 
@@ -43,10 +55,14 @@ export function extractState(data, now = new Date()) {
     startTime: outage.startTime?.iso ?? null,
     etr: msg.etr?.iso ?? null,
     etrDisplay: msg.etrOutputString ?? null,
-    shortDescription: msg.messages?.shortDescription ?? null,
+    shortDescription: notice
+      ? maskStreet(msg.messages?.shortDescription ?? null, street)
+      : msg.messages?.shortDescription ?? null,
     // Kept only for a notice: an outage's detailedDescription names the
     // street address.
-    noticeText: notice ? textOf(msg.messages?.detailedDescription) : null,
+    noticeText: notice
+      ? maskStreet(textOf(msg.messages?.detailedDescription), street)
+      : null,
     impactStyle: msg.impactStyle ?? null,
     customerFacingText: msg.customerFacingText ?? null,
     checkedAt: now.toISOString()

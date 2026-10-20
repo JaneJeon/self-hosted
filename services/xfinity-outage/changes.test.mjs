@@ -830,3 +830,19 @@ test('maintenance ahead that turns into a notice is removed, and the notice is n
     ['', '', '']
   )
 })
+
+// Review 4, finding 7: a notice that names the street.
+test('the home street is masked in a notice, whatever its case and spacing', () => {
+  const named = notice({
+    messages: {
+      shortDescription: 'Work at 100 main st',
+      detailedDescription: 'We will be working near 100  Main St today.'
+    }
+  })
+  const masked = extractState(named, at('2026-10-20T19:31:20Z'), '100 MAIN ST')
+  assert.equal(masked.shortDescription, 'Work at your address')
+  assert.equal(masked.noticeText, 'We will be working near your address today.')
+  assert.doesNotMatch(JSON.stringify(masked), /main\s+st/i)
+  const plain = extractState(named, at('2026-10-20T19:31:20Z'))
+  assert.equal(plain.noticeText, 'We will be working near 100  Main St today.')
+})

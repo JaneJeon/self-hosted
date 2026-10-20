@@ -22,6 +22,7 @@ import {
   attachBuilding,
   buildingQuery,
   homeOutageIds,
+  homeParts,
   neighborError,
   neighborParam,
   neighborResult,
@@ -282,7 +283,8 @@ async function main() {
     label: 'outage status',
     logger
   })
-  const homeState = extractState(data)
+  // The street, to mask in a notice's words: see maskStreet.
+  const homeState = extractState(data, new Date(), homeParts(address)?.street)
   const homeIds = homeOutageIds(data)
   // customerMessage is logged because the API is undocumented, so the logs
   // show what Xfinity said at each check, for example when it drops an
