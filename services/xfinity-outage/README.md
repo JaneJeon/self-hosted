@@ -1,6 +1,8 @@
 ## Xfinity Outage Monitor
 
-Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent. Does not re-notify for the same ongoing outage.
+Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent. Does not re-notify for the same ongoing outage. Messages keep naming the start time the first alert gave, even when Xfinity moves it while the outage lasts; a start still ahead, such as rescheduled maintenance, follows Xfinity.
+
+Xfinity also lists notices that are not outages: `outageType` `Informational`, such as "Technician in your area … you could experience brief interruptions". When an outage turns into a notice, the message takes Xfinity's title and quotes the notice, without saying the internet is back, and "Internet is back" comes once Xfinity lists nothing at all. A notice on its own gets one message in Xfinity's words, and a notice going away sends nothing. On 2026-10-20 Home Assistant's heartbeat was back 14 minutes before the notice appeared, but the notice itself warns of interruptions, so it is not taken as the all-clear. A notice's words are kept and sent with the home street masked, in case one ever names it.
 
 Why it handles a clearing outage and the building check this way, the 2026-10-19 and 2026-10-20 evidence behind them, and what is still unknown: Craft, `Workspace/Xfinity outage monitor cleared-outage message — 2026-10-19`.
 
@@ -12,22 +14,30 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 2. Queries outage status for the configured address
 3. Checks up to 5 other apartments in the same building (see [Building check](#building-check))
 4. Compares against the last known state (persisted via the configured store)
-5. If the state changed in a way worth telling you, sends a Telegram message describing what happened. A dropped estimate or outage type is logged, not sent
+5. If the state changed in a way worth telling you, sends a Telegram message describing what happened. A dropped estimate or outage type is logged, not sent. When a home outage comes on or goes off, also posts to Slack (see [Slack](#slack))
 6. Saves the new state
-7. Pings Uptime Kuma on success (missed pings trigger an alert)
+7. Pings Uptime Kuma once the state is saved (missed pings trigger an alert)
 
 ### Building check
 
 Xfinity attaches the same outage ID to every affected unit, so neighbors show whether an outage is shared or only at the home address.
 
 - Neighbors come from Xfinity's address typeahead, queried with `HOME_ADDRESS` minus its unit number. Only `APT` units with a unit number such as `816` or `3B`, on the same street, city, state and ZIP, count: business lines such as `UNIT HMOFC` or `APT 710-HMOFC`, duplicates and the home unit are dropped. At most 5 are checked. The unit must be written as a separate `Apt`, `Unit` or `#` word; an address without one turns the check off. There is no setting.
-- A neighbor's 404 ("Xfinity service is not found") means no Xfinity there, so it is not counted. A failed lookup, a malformed answer, an entry without a usable outage ID, a neighbor listing several outages at once (never seen so far) or no neighbor answering means no building decision that run, and the reason is logged.
+- A neighbor's 404 ("Xfinity service is not found") means no Xfinity there, so it is not counted. A neighbor showing only an `Informational` notice answered, with no outage. A failed lookup, a malformed answer, an entry without a usable outage ID, a neighbor listing several outages at once (never seen so far) or no neighbor answering means no building decision that run, and the reason is logged.
 - An "Outage in your building" alert goes out when 2 or more neighbors list one unplanned outage ID that the home address has not listed. Each such outage is tracked separately and gets "Building outage cleared" once no neighbor lists it. Planned entries keep an alert open but cannot start one.
 - An outage the home address has listed, anywhere in its list, stays the home's, because its records often clear unit by unit: for 6 hours after the home last listed it, and past that for as long as a neighbor still lists it or no run has shown otherwise, up to 7 days. Runs that fail are not saved, so this is measured in time, not runs.
-- When the home address lists an alerted outage, the alert closes without a message and the home messages cover the rest. Turning the check off drops its alerts without a message. Runs without evidence change nothing.
+- When the home address lists an alerted outage, the alert closes without a message and the home messages cover the rest. A notice at the home address is not its outage, so an alert stays open through one. Turning the check off drops its alerts without a message. Runs without evidence change nothing.
 - The unplanned "Internet is down" message says how many neighbors share the outage, when that run's check had evidence.
 - One attempt per call and a 20-second budget for the whole check; the Telegram send has a 15-second limit.
-- The logs and the state file hold counts, outage IDs, and Xfinity's start and estimate times and estimate text, never a neighbor address. The logged `customerMessage` leaves out its free-text `messages`, whose `detailedDescription` names the street, and a body that is not JSON is never quoted in an error.
+- The logs and the state file hold counts, outage IDs, Xfinity's start and estimate times and estimate text, and a notice's words with the home street masked, never a neighbor address. The logged `customerMessage` leaves out its free-text `messages`, whose `detailedDescription` names the street, and a body that is not JSON is never quoted in an error.
+
+### Slack
+
+When `SLACK_WEBHOOK_URL` is set, a post goes to Slack when a home outage comes on and when it goes off, with the Telegram titles "Internet is down" and "Internet is back". The webhook is for `#infra-homeassistant-incidents`, where PagerDuty posts Home Assistant's incidents, so the alerts between the two posts read as that outage. Expect the first PagerDuty alert just before the first post: on 2026-10-19 and 2026-10-20 Home Assistant dropped 20 to 44 minutes before Xfinity's listed start.
+
+The two posts follow whether an outage is on, not the Telegram messages, so they always pair. An outage is on while Xfinity lists one that has started, and through a notice that replaced it. Estimate changes, a notice, a new outage ID while one is on, and building messages post nothing; maintenance posts once its start passes.
+
+The post is one attempt with a 10-second limit, after the Telegram send. A failed post is logged without the URL and the run exits non-zero, but the state is still saved, so that post is not retried. Without the variable nothing is posted.
 
 ### Upstream flakiness and retries
 
@@ -82,7 +92,7 @@ two consecutive misses, so these show as yellow bars and correctly do not page.
 
 ### Tests
 
-`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. `retry.test.mjs` covers the retry policy, including a real HTTP 500 retried over a socket. `building.test.mjs` covers the neighbor filter, the 404 and malformed-body rules, the building transitions the three reviews found (flapping, staged clearing, takeover on a run without evidence, two outages at once, a different home outage, planned reclassification, saved runs 6 or more hours apart, a home list with several outages, an empty outage ID), HTML escaping, estimate text that is not a string, and the first run on state saved before the check existed. `changes.test.mjs` covers every restore-estimate and outage-type transition, the 2026-10-19 sequence end to end, and checks that a missing or unreadable estimate or type never shows as `null`, `Invalid Date` or `unknown time`. A missing start time is not covered: messages other than "back" still say "unknown time" for it.
+`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. `retry.test.mjs` covers the retry policy, including a real HTTP 500 retried over a socket. `building.test.mjs` covers the neighbor filter, the 404 and malformed-body rules, neighbors showing a notice, a notice at home during a building alert, the building transitions the three reviews found (flapping, staged clearing, takeover on a run without evidence, two outages at once, a different home outage, planned reclassification, saved runs 6 or more hours apart, a home list with several outages, an empty outage ID), HTML escaping, estimate text that is not a string, and the first run on state saved before the check existed. `changes.test.mjs` covers every restore-estimate and outage-type transition, the 2026-10-19 sequence end to end, the 2026-10-20 outage turning into a "Technician in your area" notice and back, a notice on its own, the start time the first alert gave, rescheduled maintenance, state saved by older code, the Slack pair over every sequence the fourth review found, the street masked in a notice, and checks that a missing or unreadable estimate or type never shows as `null`, `Invalid Date` or `unknown time`. A missing start time is not covered: messages other than "back" still say "unknown time" for it.
 
 ### Environment variables
 
@@ -92,6 +102,7 @@ two consecutive misses, so these show as yellow bars and correctly do not page.
 | `TELEGRAM_BOT_TOKEN` | Yes      | Telegram Bot API token                      |
 | `TELEGRAM_CHAT_ID`   | Yes      | Telegram chat ID for notifications          |
 | `HEARTBEAT_URL`      | No       | Uptime Kuma push monitor URL                |
+| `SLACK_WEBHOOK_URL`  | No       | Slack incoming webhook, see [Slack](#slack) |
 
 ### Volume
 

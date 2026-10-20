@@ -645,3 +645,61 @@ test('estimate text that is not a string is not printed', () => {
     assert.doesNotMatch(home[1], /\[object|123|true|a,b/)
   }
 })
+
+// 2026-10-20 12:31 PDT: the outage record became an Informational notice,
+// "Technician in your area", 14 minutes after Home Assistant was back.
+const noticePayload = (id = X) =>
+  outagePayload(id, {
+    outageType: 'Informational',
+    impactStyle: 'Low Impact',
+    etr: null,
+    etrOutputString: null
+  })
+
+test("a neighbor's notice is no outage", () => {
+  assert.deepEqual(neighborResult(noticePayload()), { status: 'notice' })
+  const summary = summarizeBuilding(
+    [neighborResult(noticePayload()), out(), clear()],
+    [X]
+  )
+  assert.equal(summary.checked, 3)
+  assert.equal(summary.withOutage, 1)
+  assert.equal(summary.sameAsHome, 1)
+  const note = () => neighborResult(noticePayload())
+  assert.deepEqual(
+    sequence([
+      [clearPayload, [clear()]],
+      [clearPayload, [note(), note(), note()]]
+    ]),
+    ['', '']
+  )
+})
+
+test('a building outage whose records turn into notices is cleared', () => {
+  const note = () => neighborResult(noticePayload())
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [out(), out()]],
+    [clearPayload, [note(), out()]],
+    [clearPayload, [note(), note()]]
+  ])
+  assert.match(sent[1], /Outage in your building/)
+  assert.equal(sent[2], '')
+  assert.match(sent[3], /Building outage cleared/)
+})
+
+// Review 4: a notice at home with the building outage's ID once closed the
+// building alert without a word, and its all-clear never came.
+test('a notice at home keeps a building alert open until the neighbors clear', () => {
+  assert.deepEqual(homeOutageIds(noticePayload()), [])
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [out(), out(), out()]],
+    [noticePayload(), [out(), out(), out()]],
+    [noticePayload(), [clear(), clear(), clear()]]
+  ])
+  assert.match(sent[1], /Outage in your building/)
+  assert.match(sent[2], /a notice, not an outage\.$/)
+  assert.doesNotMatch(sent[2], /building/i)
+  assert.match(sent[3], /Building outage cleared/)
+})
