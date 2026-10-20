@@ -117,10 +117,12 @@ function upcoming(state) {
   )
 }
 
-// What the home address lists: nothing, an outage, or a notice.
+// What the home address lists: nothing, an outage, or a notice. State saved
+// before notices were recognized has no `notice` field, only the type.
 function kindOf(state) {
   if (!state?.hasOutage) return 'none'
-  return state.notice ? 'notice' : 'outage'
+  const notice = state.notice ?? isNotice({ outageType: state.outageType })
+  return notice ? 'notice' : 'outage'
 }
 
 // Whether a home outage is on: an outage listed and not merely scheduled, or

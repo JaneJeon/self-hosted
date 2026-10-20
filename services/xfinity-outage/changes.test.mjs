@@ -735,6 +735,22 @@ test('rescheduled maintenance names the start it actually had', () => {
   )
 })
 
+// Review 4, finding 3: a notice saved before notices were recognized.
+test('a notice saved by older code is still a notice', () => {
+  const legacy = { ...state(notice(), '2026-10-20T19:31:20Z') }
+  delete legacy.notice
+  delete legacy.noticeText
+  const next = carryOver(legacy, state(OUTAGE_1020, '2026-10-20T19:46:20Z'))
+  assert.deepEqual(
+    detectChanges(legacy, next).map(c => c.type),
+    ['new_outage']
+  )
+  assert.match(
+    slack(legacy, next),
+    /^:red_circle: \*Xfinity: Internet is down\*/
+  )
+})
+
 // Review 4, finding 4: the Slack lines did not always pair.
 test('Slack lines always pair: one start and one clear per stretch of outage', () => {
   const other = listed({ id: 'OUTAGE-2', start: '2026-10-20T08:00:00-07:00' })
