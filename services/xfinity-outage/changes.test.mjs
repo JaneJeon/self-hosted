@@ -169,3 +169,54 @@ test('no message ever shows null, undefined or "unknown time"', () => {
       assert.doesNotMatch(text, /null|undefined|unknown time/, text)
     }
 })
+
+test('2026-10-19 end to end: one alert down, none at 22:45, one alert back', () => {
+  // The four runs that mattered, in order. Before this fix the sequence sent
+  // "Internet is down", then "ETA moved up → null", then "back after ~1h 55m".
+  const runs = [
+    state(CLEARED, '2026-10-20T04:00:20Z'),
+    state(
+      listed({ etr: ETR, etrDisplay: ETR_DISPLAY }),
+      '2026-10-20T04:15:20Z'
+    ),
+    state(
+      listed({ etr: ETR, etrDisplay: ETR_DISPLAY }),
+      '2026-10-20T05:30:20Z'
+    ),
+    state(listed(), '2026-10-20T05:45:20Z'),
+    state(CLEARED, '2026-10-20T06:00:20Z')
+  ]
+  const sent = runs
+    .slice(1)
+    .map((next, i) => message(runs[i], next))
+    .filter(Boolean)
+
+  assert.equal(sent.length, 2)
+  assert.match(sent[0], /Xfinity: Internet is down/)
+  assert.match(sent[0], /9:06 PM PDT/)
+  assert.equal(
+    sent[1],
+    '<b>Xfinity: Internet is back</b>\n\n' +
+      'Xfinity has cleared the outage that started at 9:06 PM PDT.' +
+      ' It was still listed at 10:45 PM PDT and gone by 11:00 PM PDT.'
+  )
+})
+
+test('planned maintenance removed before it starts reports no downtime', () => {
+  // The old message measured "downtime" from a future start, printing ~-4004m.
+  const scheduled = state(
+    listed({ planned: true, start: '2026-10-22T00:00:00-07:00' }),
+    '2026-10-20T04:15:20Z'
+  )
+  const gone = state(CLEARED, '2026-10-20T04:30:20Z')
+  const text = message(scheduled, gone)
+  assert.match(text, /Planned maintenance removed/)
+  assert.match(text, /scheduled for 12:00 AM PDT/)
+  assert.doesNotMatch(text, /Internet is back|downtime|-\d/)
+})
+
+test('planned maintenance that ran and finished reads as back', () => {
+  const running = state(listed({ planned: true }), '2026-10-20T04:15:20Z')
+  const gone = state(CLEARED, '2026-10-20T04:30:20Z')
+  assert.match(message(running, gone), /Xfinity: Internet is back/)
+})

@@ -70,7 +70,15 @@ export function detectChanges(old, next) {
   if (!old) return next.hasOutage ? [{ type: 'new_outage' }] : []
   if (!old.hasOutage && next.hasOutage) return [{ type: 'new_outage' }]
   if (old.hasOutage && !next.hasOutage)
-    return [{ type: 'resolved', startTime: old.startTime }]
+    return [
+      {
+        type: 'resolved',
+        startTime: old.startTime,
+        planned: old.planned,
+        lastListedAt: old.checkedAt ?? null,
+        goneAt: next.checkedAt
+      }
+    ]
   if (old.outageId !== next.outageId) return [{ type: 'new_outage' }]
 
   const changes = []
@@ -96,14 +104,6 @@ export function formatTime(isoString) {
     hour12: true,
     timeZoneName: 'short'
   })
-}
-
-function timeSince(isoString) {
-  const mins = Math.round((Date.now() - new Date(isoString).getTime()) / 60_000)
-  if (mins < 60) return `~${mins}m`
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return m ? `~${h}h ${m}m` : `~${h}h`
 }
 
 // Returns '' when no change is worth a notification.
@@ -144,12 +144,31 @@ export function buildMessage(changes, state) {
         )
       }
     } else if (c.type === 'resolved') {
-      const downtime = c.startTime ? timeSince(c.startTime) : null
-      parts.push(
-        `<b>Xfinity: Internet is back</b>\n\n` +
-          `The outage has been resolved.` +
-          (downtime ? ` Total downtime: ${downtime}.` : '')
-      )
+      const started = formatTime(c.startTime)
+      const scheduledAhead =
+        c.planned &&
+        c.startTime &&
+        new Date(c.startTime).getTime() > new Date(c.goneAt).getTime()
+      if (scheduledAhead) {
+        // It never started, so there is no downtime to report. Measuring
+        // "downtime" from a future start time once printed ~-4004m.
+        parts.push(
+          `<b>Xfinity: Planned maintenance removed</b>\n\n` +
+            `Xfinity no longer lists the maintenance scheduled for ${started}.`
+        )
+      } else {
+        // The monitor only sees Xfinity's record, at 15-minute checks, so it
+        // reports when the record cleared rather than a downtime it cannot
+        // measure. Xfinity can lag the real repair (see README).
+        const window = c.lastListedAt
+          ? ` It was still listed at ${formatTime(c.lastListedAt)}` +
+            ` and gone by ${formatTime(c.goneAt)}.`
+          : ''
+        parts.push(
+          `<b>Xfinity: Internet is back</b>\n\n` +
+            `Xfinity has cleared the outage that started at ${started}.${window}`
+        )
+      }
     } else if (c.type === 'etr_set') {
       const since = formatTime(state.startTime)
       const label = state.planned ? ' (planned maintenance)' : ''
