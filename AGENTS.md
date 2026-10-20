@@ -29,6 +29,16 @@ other one. If you have not done the Craft boot, do it before working.
 
 What belongs here is only what is specific to this repo:
 
+### Incident notes go in Craft; the README points there
+
+A service README holds what someone needs to run or change the code: what
+it does, its settings, how to test it. Incident timelines, evidence,
+decisions with their reasons, and open questions go in that session's Craft
+Workspace note, and the README names the note. A copy here drifts from the
+Craft one: on 2026-10-19 a README copy of an xfinity-outage incident needed
+its own correcting PR within the hour, and Jane asked why it was in the repo
+at all rather than a pointer to Craft.
+
 ### Use direnv, not ad-hoc secret reads
 
 Once `swarp secrets refresh` has run, use `direnv exec . <command>` (or

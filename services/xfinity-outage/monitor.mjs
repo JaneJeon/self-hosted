@@ -150,9 +150,9 @@ async function main() {
     logger
   })
   const newState = extractState(data)
-  // customerMessage is logged whole because the API is undocumented: on
-  // 2026-10-19 the estimate went null one check before the outage cleared,
-  // and nothing recorded what else the message said at that moment.
+  // customerMessage is logged whole because the API is undocumented, so the
+  // logs show what Xfinity said at each check, for example when it drops an
+  // estimate.
   logger.info(
     {
       hasOutage: newState.hasOutage,
