@@ -11,6 +11,17 @@ import { dirname } from 'node:path'
 import pino from 'pino'
 import { httpError, withRetry } from './retry.mjs'
 import { buildMessage, detectChanges, extractState } from './changes.mjs'
+import {
+  BUILDING_OFF,
+  attachBuilding,
+  buildingQuery,
+  homeOutageIds,
+  neighborError,
+  neighborParam,
+  neighborResult,
+  pickNeighbors,
+  summarizeBuilding
+} from './building.mjs'
 
 const logger = pino()
 
@@ -73,7 +84,22 @@ async function getSessionToken() {
   return token
 }
 
-async function fetchOutageStatus(token, address) {
+// Parses a JSON body without ever quoting it: a parse error's message quotes
+// the body, and Xfinity's bodies can name an address.
+async function readJson(resp, label) {
+  const text = await resp.text()
+  try {
+    return JSON.parse(text)
+  } catch {
+    const err = new Error(
+      `${label} returned a body that is not JSON (${text.length} bytes)`
+    )
+    err.name = 'NonJsonBody'
+    throw err
+  }
+}
+
+async function fetchOutageStatus(token, address, timeoutMs = HTTP_TIMEOUT_MS) {
   const url =
     `https://api.sc.xfinity.com/outage/consolidated/lob/v3` +
     `?includeIdealOutage=true&tokenizeDateTime=true&address=${address}`
@@ -84,18 +110,99 @@ async function fetchOutageStatus(token, address) {
       Referer: XFINITY_ORIGIN + '/',
       'User-Agent': UA
     },
-    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
+    signal: AbortSignal.timeout(timeoutMs)
   })
   if (!resp.ok)
     throw httpError(`Outage API returned HTTP ${resp.status}`, resp.status)
-  return resp.json()
+  return readJson(resp, 'Outage API')
+}
+
+async function fetchTypeahead(token, query, timeoutMs) {
+  const url =
+    `https://api.sc.xfinity.com/address/typeahead` +
+    `?address=${encodeURIComponent(query)}&origins=eloc&tokenized=false`
+  const resp = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Origin: XFINITY_ORIGIN,
+      Referer: XFINITY_ORIGIN + '/',
+      'User-Agent': UA
+    },
+    signal: AbortSignal.timeout(timeoutMs)
+  })
+  if (!resp.ok)
+    throw httpError(`Typeahead API returned HTTP ${resp.status}`, resp.status)
+  return readJson(resp, 'Typeahead API')
+}
+
+// The whole building check gets one 20-second budget, one attempt per call,
+// each call cut off at whatever budget is left. It runs before the state
+// save and the heartbeat, and the Kuma window leaves 60 seconds of slack over
+// the 15-minute cron, so it must never push the heartbeat late.
+const BUILDING_BUDGET_MS = 20_000
+
+// Returns a building summary, BUILDING_OFF when the home address has no
+// unit, or null with a logged reason when this run gives no evidence.
+async function checkBuilding(token, homeAddress, homeIds) {
+  const query = buildingQuery(homeAddress)
+  if (!query) return BUILDING_OFF
+  const deadline = Date.now() + BUILDING_BUDGET_MS
+  const left = () => Math.min(HTTP_TIMEOUT_MS, deadline - Date.now())
+
+  let typeahead
+  try {
+    typeahead = await fetchTypeahead(token, query, Math.max(1, left()))
+  } catch (err) {
+    logger.warn(
+      { reason: err.status ?? err.name },
+      'building check: typeahead failed'
+    )
+    return null
+  }
+  const neighbors = pickNeighbors(typeahead, homeAddress)
+  const results = []
+  for (const neighbor of neighbors) {
+    if (left() <= 0) {
+      results.push({ status: 'error', reason: 'budget' })
+      break
+    }
+    try {
+      const data = await fetchOutageStatus(
+        token,
+        neighborParam(neighbor),
+        Math.max(1, left())
+      )
+      results.push(neighborResult(data))
+    } catch (err) {
+      results.push(neighborError(err))
+    }
+  }
+  const summary = summarizeBuilding(results, homeIds)
+  const tally = {}
+  for (const r of results) {
+    const key = r.status === 'error' ? `error:${r.reason}` : r.status
+    tally[key] = (tally[key] ?? 0) + 1
+  }
+  if (!summary)
+    logger.warn(
+      { picked: neighbors.length, tally },
+      'building check: no evidence this run'
+    )
+  else
+    logger.info(
+      { picked: neighbors.length, tally, building: summary },
+      'building check'
+    )
+  return summary
 }
 
 async function sendTelegram(token, chatId, text) {
   const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    // Without a limit a hung send would hold the state save and heartbeat.
+    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
   })
   if (!resp.ok) {
     const body = await resp.text().catch(() => '')
@@ -149,20 +256,38 @@ async function main() {
     label: 'outage status',
     logger
   })
-  const newState = extractState(data)
-  // customerMessage is logged whole because the API is undocumented, so the
-  // logs show what Xfinity said at each check, for example when it drops an
-  // estimate.
+  const homeState = extractState(data)
+  const homeIds = homeOutageIds(data)
+  // customerMessage is logged because the API is undocumented, so the logs
+  // show what Xfinity said at each check, for example when it drops an
+  // estimate. Its free-text `messages` is left out: it names the street
+  // address ("Your Xfinity services at <street> may be unavailable"), which
+  // this service otherwise keeps out of its logs.
+  const { messages, ...loggableMessage } = data.customerMessage ?? {}
   logger.info(
     {
-      hasOutage: newState.hasOutage,
-      outageType: newState.outageType,
-      customerMessage: data.customerMessage ?? null
+      hasOutage: homeState.hasOutage,
+      outageType: homeState.outageType,
+      customerMessage: data.customerMessage ? loggableMessage : null
     },
     'outage status'
   )
 
+  // Neighbor addresses never reach the logs or the state file, only counts
+  // and outage IDs. A failure here leaves the home check untouched.
+  let building = null
+  try {
+    building = await checkBuilding(token, address, homeIds)
+  } catch (err) {
+    // Only the error's type: its message could quote a body.
+    logger.warn(
+      { reason: err?.name },
+      'building check failed, keeping the previous result'
+    )
+  }
+
   const oldState = store.load()
+  const newState = attachBuilding(oldState, homeState, building, homeIds)
   const changes = detectChanges(oldState, newState)
 
   // Built only when something changed, so a malformed field can break at

@@ -2,6 +2,8 @@
 // the notification. Kept separate from monitor.mjs so tests can import it
 // without running a real monitor pass (the same reason retry.mjs is separate).
 
+import { buildingChanges } from './building.mjs'
+
 export function extractState(data, now = new Date()) {
   const outages = data.outageInfoResponseList ?? []
   const msg = data.customerMessage ?? null
@@ -50,7 +52,9 @@ function readableTime(iso) {
 
 // Xfinity's restore estimate as words, or null when Xfinity gives none.
 function etrText(state) {
-  if (state.etrDisplay) return state.etrDisplay
+  // Xfinity's display string, when it is one, or else the date.
+  if (typeof state.etrDisplay === 'string' && state.etrDisplay.trim())
+    return state.etrDisplay
   if (readableTime(state.etr) !== null) return formatDateTime(state.etr)
   return null
 }
@@ -85,7 +89,7 @@ function compareType(old, next) {
   }
 }
 
-export function detectChanges(old, next) {
+function homeChanges(old, next) {
   if (!old) return next.hasOutage ? [{ type: 'new_outage' }] : []
   if (!old.hasOutage && next.hasOutage) return [{ type: 'new_outage' }]
   if (old.hasOutage && !next.hasOutage)
@@ -106,6 +110,41 @@ export function detectChanges(old, next) {
   const typeChange = compareType(old, next)
   if (typeChange) changes.push(typeChange)
   return changes
+}
+
+export function detectChanges(old, next) {
+  return [...homeChanges(old, next), ...buildingChanges(old, next)]
+}
+
+// One line on the other apartments checked, for the unplanned home outage
+// message. Empty when the check is off or gave no evidence this run.
+function neighborLine(building) {
+  if (!building || building.off || !building.checked) return ''
+  const n = building.checked
+  const others = n === 1 ? 'other apartment' : 'other apartments'
+  if (building.sameAsHome > 0)
+    return `\nSame outage at ${building.sameAsHome} of ${n} ${others} checked in your building.`
+  const different = building.withOutage
+    ? ` (${building.withOutage} ${
+        building.withOutage === 1 ? 'lists' : 'list'
+      } a different outage)`
+    : ''
+  return `\nNot listed at the ${n} ${others} checked in your building${different}, so it may be only your line.`
+}
+
+// Telegram parses these messages as HTML, so text from Xfinity must not be
+// able to open a tag. A stray "<" or "&" once meant a 400 and a failed run.
+function esc(text) {
+  if (text == null) return text
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+// A clock time, or null when the timestamp is missing or unreadable.
+function readableClock(iso) {
+  return readableTime(iso) === null ? null : formatTime(iso)
 }
 
 // Displays time in Pacific — this service monitors a California address.
@@ -139,8 +178,8 @@ function formatDateTime(isoString) {
 // Returns '' when no change is worth a notification.
 export function buildMessage(changes, state) {
   const parts = []
-  const svc = (state.services ?? ['Internet']).join(', ')
-  const etr = etrText(state)
+  const svc = esc((state.services ?? ['Internet']).join(', '))
+  const etr = esc(etrText(state))
   const now = new Date(state.checkedAt ?? Date.now())
 
   for (const c of changes) {
@@ -170,7 +209,8 @@ export function buildMessage(changes, state) {
             `An unplanned outage started at ${since} affecting ${svc} service.\n` +
             (etr
               ? `Xfinity estimates restoration by ${etr}.`
-              : `Xfinity has not given a restore time yet.`)
+              : `Xfinity has not given a restore time yet.`) +
+            neighborLine(state.building)
         )
       }
     } else if (c.type === 'resolved') {
@@ -209,7 +249,7 @@ export function buildMessage(changes, state) {
       const label = state.planned ? ' (planned maintenance)' : ''
       parts.push(
         `<b>Xfinity: Outage ETA posted</b>\n\n` +
-          `Xfinity now estimates restoration by ${c.newEtr}.\n` +
+          `Xfinity now estimates restoration by ${esc(c.newEtr)}.\n` +
           `Internet still down since ${since}${label}.`
       )
     } else if (c.type === 'etr_pushed') {
@@ -217,7 +257,7 @@ export function buildMessage(changes, state) {
       const label = state.planned ? ' (planned maintenance)' : ''
       parts.push(
         `<b>Xfinity: Outage ETA pushed back</b>\n\n` +
-          `Estimated restore changed: ${c.oldEtr} → ${c.newEtr}.\n` +
+          `Estimated restore changed: ${esc(c.oldEtr)} → ${esc(c.newEtr)}.\n` +
           `Internet still down since ${since}${label}.`
       )
     } else if (c.type === 'etr_earlier') {
@@ -225,19 +265,39 @@ export function buildMessage(changes, state) {
       const label = state.planned ? ' (planned maintenance)' : ''
       parts.push(
         `<b>Xfinity: Outage ETA moved up</b>\n\n` +
-          `Estimated restore changed: ${c.oldEtr} → ${c.newEtr}.\n` +
+          `Estimated restore changed: ${esc(c.oldEtr)} → ${esc(c.newEtr)}.\n` +
           `Internet still down since ${since}${label}.`
       )
     } else if (c.type === 'type_changed') {
       const since = formatTime(state.startTime)
       const was = c.oldType
-        ? `Previously reported as ${c.oldType}, now listed as ${c.newType}.`
-        : `Xfinity now lists it as ${c.newType}.`
+        ? `Previously reported as ${esc(c.oldType)}, now listed as ${esc(
+            c.newType
+          )}.`
+        : `Xfinity now lists it as ${esc(c.newType)}.`
       parts.push(
         `<b>Xfinity: Outage reclassified</b>\n\n` +
           `${was}\n` +
           `Internet still down since ${since}.` +
           (etr ? ` ETA: ${etr}.` : '')
+      )
+    } else if (c.type === 'building_outage') {
+      const b = c
+      const started = readableClock(b.startTime)
+      const since = started ? `, started at ${started}` : ''
+      const restore = esc(etrText(b))
+      parts.push(
+        `<b>Xfinity: Outage in your building</b>\n\n` +
+          `Xfinity lists an outage at ${b.count} of ${b.checked} other apartments checked in your building${since}. ` +
+          `It is not listed at your address.` +
+          (restore ? `\nXfinity estimates restoration by ${restore}.` : '')
+      )
+    } else if (c.type === 'building_cleared') {
+      const started = readableClock(c.startTime)
+      const since = started ? ` that started at ${started}` : ''
+      parts.push(
+        `<b>Xfinity: Building outage cleared</b>\n\n` +
+          `Xfinity no longer lists the outage${since} at the other apartments checked in your building.`
       )
     }
     // etr_cleared and type_cleared are deliberately silent: the one observed
