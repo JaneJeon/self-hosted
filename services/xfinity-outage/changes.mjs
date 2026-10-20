@@ -57,8 +57,7 @@ function etrText(state) {
 
 // A missing estimate is not a time, so it is never "earlier" or "later" than
 // one. Comparing them as dates (null as epoch 0) once reported a dropped
-// estimate as "ETA moved up → null. Internet still down", fifteen minutes
-// after service had come back (2026-10-19, see README).
+// estimate as "ETA moved up → null. Internet still down".
 function compareEtr(old, next) {
   const before = readableTime(old.etr)
   const after = readableTime(next.etr)
@@ -74,8 +73,8 @@ function compareEtr(old, next) {
 }
 
 // Same rule for the outage type: a type that disappears while the outage is
-// still listed is not a new type. Printing it once would have read "now
-// listed as null. Internet still down", the 2026-10-19 fall again.
+// still listed is not a new type, and printing it would read "now listed as
+// null. Internet still down".
 function compareType(old, next) {
   if (old.outageType === next.outageType) return null
   if (!next.outageType) return { type: 'type_cleared', oldType: old.outageType }
@@ -192,8 +191,7 @@ export function buildMessage(changes, state) {
       } else {
         // The monitor only sees Xfinity's record, at 15-minute checks, so it
         // reports when the record cleared rather than a downtime it cannot
-        // measure. On 2026-10-19 the house was back before the record cleared
-        // (see README).
+        // measure.
         const which = c.startTime
           ? `the outage that started at ${started}`
           : 'the outage'
@@ -242,11 +240,10 @@ export function buildMessage(changes, state) {
           (etr ? ` ETA: ${etr}.` : '')
       )
     }
-    // etr_cleared and type_cleared are deliberately silent. The one observed
-    // dropped estimate was the last check before Xfinity cleared the outage,
-    // after service was already back, so a message there says nothing true
-    // and useful. The change is still logged, and the resolution message
-    // follows when the outage clears.
+    // etr_cleared and type_cleared are deliberately silent: the one observed
+    // dropped estimate came just before the outage cleared, after service was
+    // back. They are still logged, and the all-clear follows when the outage
+    // clears. Evidence and the open question: the Craft note in README.
   }
 
   return parts.join('\n\n')
