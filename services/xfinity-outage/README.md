@@ -1,6 +1,6 @@
 ## Xfinity Outage Monitor
 
-Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage resolved, ETR shifted, or outage type reclassified. Does not re-notify for the same ongoing outage.
+Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent (see [How an outage clears](#how-an-outage-clears)). Does not re-notify for the same ongoing outage.
 
 Runs externally on Railway (not from Home Assistant) because the whole point is monitoring home internet — if the internet is down, a local check can't reach external APIs.
 
@@ -9,9 +9,24 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 1. Gets a session token from the Xfinity outage API (unauthenticated, no login needed)
 2. Queries outage status for the configured address
 3. Compares against the last known state (persisted via the configured store)
-4. If the state changed, sends a Telegram message describing what happened
+4. If the state changed in a way worth telling you, sends a Telegram message describing what happened. A dropped estimate or outage type is logged, not sent
 5. Saves the new state
 6. Pings Uptime Kuma on success (missed pings trigger an alert)
+
+### How an outage clears
+
+The API is undocumented, so this is what was observed, once, on 2026-10-19 (times PDT):
+
+| Time   | What happened                                                                     |
+| ------ | --------------------------------------------------------------------------------- |
+| 21:06  | Xfinity's start time for an unplanned outage. First alert sent at 21:15.          |
+| ~22:30 | The Green's DNS-forwarder timeouts stopped: the house was back online.            |
+| 22:45  | The API still listed the same outage, but with the restore estimate set to null.  |
+| 23:00  | The outage was gone: an empty list and a `Summary` message with every field null. |
+
+Two things follow. First, a null estimate is not a time: the old code compared it as 1970, reported "ETA moved up → null. Internet still down" at 22:45, and was wrong on all three counts. A dropped estimate is now logged and not sent, because the only observed instance was the last check before the outage cleared. The same goes for an outage type that disappears while the outage is still listed, and an estimate that is not a readable time counts as no estimate. Second, Xfinity's record lags the real repair, here by 15 to 30 minutes, so the "back" message reports the last check that still listed the outage and the first that did not, not a downtime the monitor cannot measure.
+
+Whether a null estimate always means "about to clear" is unknown. Every check now logs the whole `customerMessage`, so the next instance shows what else Xfinity said.
 
 ### Upstream flakiness and retries
 
@@ -66,7 +81,7 @@ two consecutive misses, so these show as yellow bars and correctly do not page.
 
 ### Tests
 
-`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. Covers the retry policy, including a real HTTP 500 retried over a socket.
+`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. `retry.test.mjs` covers the retry policy, including a real HTTP 500 retried over a socket. `changes.test.mjs` covers every restore-estimate and outage-type transition, the 2026-10-19 sequence end to end, and checks that a missing or unreadable estimate or type never shows as `null`, `Invalid Date` or `unknown time`. A missing start time is not covered: messages other than "back" still say "unknown time" for it.
 
 ### Environment variables
 
