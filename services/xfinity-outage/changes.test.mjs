@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   buildMessage,
+  buildSlack,
   carryStart,
   detectChanges,
   extractState
@@ -496,4 +497,97 @@ test('the first-reported start falls back, and resets for a new outage', () => {
   const other = listed({ id: 'OUTAGE-2' })
   assert.equal(carryStart(legacy, state(other, t)).reportedStart, START)
   assert.equal(carryStart(legacy, state(notice(), t)).reportedStart, null)
+})
+
+const slack = (old, next) => buildSlack(detectChanges(old, next), next)
+
+test('Slack gets one line when the home outage starts and one when it clears', () => {
+  const quiet = state(CLEARED, '2026-10-20T14:30:20Z')
+  const down = {
+    ...state(OUTAGE_1020, '2026-10-20T14:45:57Z'),
+    building: { checked: 5, withOutage: 5, sameAsHome: 5 }
+  }
+  assert.equal(
+    slack(quiet, down),
+    ':red_circle: *Xfinity outage at home* since 7:32 AM PDT, affecting' +
+      ' Internet. Xfinity estimates restoration by 10/20/2026 06:55 PM' +
+      ' (Pacific). Same outage at 5 of 5 other apartments checked in your' +
+      ' building.'
+  )
+  const tech = state(notice(), '2026-10-20T19:31:12Z')
+  assert.equal(
+    slack(down, tech),
+    ':large_green_circle: *Xfinity outage at home cleared*. It started at' +
+      ' 7:32 AM PDT, was still listed at 7:45 AM PDT and gone by 12:31 PM' +
+      ' PDT. Xfinity now shows a notice instead: "Technician in your area".'
+  )
+  assert.equal(
+    slack(down, state(CLEARED, '2026-10-20T19:31:12Z')),
+    ':large_green_circle: *Xfinity outage at home cleared*. It started at' +
+      ' 7:32 AM PDT, was still listed at 7:45 AM PDT and gone by 12:31 PM PDT.'
+  )
+})
+
+test('Slack gets nothing for estimates, notices, building news or maintenance ahead', () => {
+  const t = '2026-10-20T19:31:20Z'
+  const quiet = state(CLEARED, t)
+  const tech = state(notice(), t)
+  const before = state(listed({ etr: ETR, etrDisplay: ETR_DISPLAY }), t)
+  const later = state(listed({ etr: '2026-10-20T02:00:00-07:00' }), t)
+  const ahead = state(
+    listed({ planned: true, start: '2026-10-22T00:00:00-07:00' }),
+    '2026-10-20T04:15:20Z'
+  )
+  assert.equal(slack(quiet, tech), '')
+  assert.equal(slack(tech, quiet), '')
+  assert.equal(slack(before, later), '')
+  assert.equal(slack(quiet, ahead), '')
+  assert.equal(slack(ahead, state(CLEARED, '2026-10-20T04:30:20Z')), '')
+  assert.equal(
+    buildSlack(
+      [
+        { type: 'building_outage', count: 2, checked: 5 },
+        { type: 'building_cleared' }
+      ],
+      quiet
+    ),
+    ''
+  )
+})
+
+test('Slack text escapes Xfinity text and never prints a bad token', () => {
+  const t = '2026-10-20T19:31:20Z'
+  const odd = {
+    ...OUTAGE_1020,
+    outageInfoResponseList: [
+      { outageId: 'X', services: ['TV & <Internet>'], startTime: null }
+    ],
+    customerMessage: {
+      ...OUTAGE_1020.customerMessage,
+      etr: null,
+      etrOutputString: null
+    }
+  }
+  const quiet = state(CLEARED, t)
+  const text = slack(quiet, state(odd, t))
+  assert.match(
+    text,
+    /affecting TV &amp; &lt;Internet&gt;\. Xfinity has not given/
+  )
+  const states = [
+    quiet,
+    state(OUTAGE_1020, t),
+    state(odd, t),
+    state(notice(), t),
+    state(notice({ messages: null }), t),
+    state(listed({ planned: true }), t),
+    state(listed({ start: null }), t)
+  ]
+  for (const a of [null, ...states])
+    for (const b of states)
+      assert.doesNotMatch(
+        slack(a, b),
+        /null|undefined|NaN|Invalid Date|\[object|unknown time/,
+        slack(a, b)
+      )
 })

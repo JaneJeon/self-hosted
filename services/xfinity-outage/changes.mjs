@@ -390,3 +390,60 @@ export function buildMessage(changes, state) {
 
   return parts.join('\n\n')
 }
+
+// The Slack post for #infra-homeassistant-incidents, where PagerDuty posts
+// Home Assistant's incidents: one line when the home outage starts and one
+// when it clears, so those incidents can be read against it. Every other
+// change posts nothing. Slack mrkdwn needs only &, < and > escaped, which esc
+// does. Returns '' when there is nothing to post.
+export function buildSlack(changes, state) {
+  const lines = []
+  const now = new Date(state.checkedAt ?? Date.now())
+  for (const c of changes) {
+    if (c.type === 'new_outage') {
+      const upcoming =
+        state.startTime && new Date(state.startTime).getTime() > now.getTime()
+      if (state.planned && upcoming) continue
+      const what = state.planned ? 'planned maintenance' : 'outage'
+      const svc = esc((state.services ?? ['Internet']).join(', '))
+      const etr = esc(etrText(state))
+      const building = neighborLine(state.building).trim()
+      const since = readableClock(state.startTime)
+      lines.push(
+        `:red_circle: *Xfinity ${what} at home*` +
+          (since ? ` since ${since}` : '') +
+          `, affecting ${svc}. ` +
+          (etr
+            ? `Xfinity estimates restoration by ${etr}.`
+            : `Xfinity has not given a restore time yet.`) +
+          (building ? ` ${building}` : '')
+      )
+    } else if (c.type === 'resolved') {
+      const scheduledAhead =
+        c.planned &&
+        c.startTime &&
+        new Date(c.startTime).getTime() > new Date(c.goneAt).getTime()
+      if (scheduledAhead) continue
+      const start = c.reportedStart ?? c.startTime
+      const clock = readableClock(start)
+      const started = clock ? ` It started at ${clock}` : ''
+      const window = c.lastListedAt
+        ? `${started ? ',' : ' It'} was still listed at ${formatTime(
+            c.lastListedAt
+          )} and gone by ${formatTime(c.goneAt)}.`
+        : started
+        ? '.'
+        : ''
+      const title = textOf(c.notice?.title)
+      const notice = !c.notice
+        ? ''
+        : title
+        ? ` Xfinity now shows a notice instead: "${esc(title)}".`
+        : ` Xfinity now shows a notice instead.`
+      lines.push(
+        `:large_green_circle: *Xfinity outage at home cleared*.${started}${window}${notice}`
+      )
+    }
+  }
+  return lines.join('\n')
+}

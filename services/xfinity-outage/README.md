@@ -14,7 +14,7 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 2. Queries outage status for the configured address
 3. Checks up to 5 other apartments in the same building (see [Building check](#building-check))
 4. Compares against the last known state (persisted via the configured store)
-5. If the state changed in a way worth telling you, sends a Telegram message describing what happened. A dropped estimate or outage type is logged, not sent
+5. If the state changed in a way worth telling you, sends a Telegram message describing what happened. A dropped estimate or outage type is logged, not sent. When the home outage starts or clears, also posts to Slack (see [Slack](#slack))
 6. Saves the new state
 7. Pings Uptime Kuma on success (missed pings trigger an alert)
 
@@ -30,6 +30,12 @@ Xfinity attaches the same outage ID to every affected unit, so neighbors show wh
 - The unplanned "Internet is down" message says how many neighbors share the outage, when that run's check had evidence.
 - One attempt per call and a 20-second budget for the whole check; the Telegram send has a 15-second limit.
 - The logs and the state file hold counts, outage IDs, and Xfinity's start and estimate times and estimate text, never a neighbor address. The logged `customerMessage` leaves out its free-text `messages`, whose `detailedDescription` names the street, and a body that is not JSON is never quoted in an error.
+
+### Slack
+
+When `SLACK_WEBHOOK_URL` is set, the home outage's start and its all-clear also go to Slack, one line each. The webhook is for `#infra-homeassistant-incidents`, where PagerDuty posts Home Assistant's incidents, so those incidents can be read against the outage. Estimate changes, notices, maintenance scheduled ahead and building messages stay on Telegram only.
+
+The post is one attempt with a 10-second limit, after the Telegram send. A failed post is logged without the URL and the run exits non-zero, but the state is still saved, so that post is not retried. Without the variable nothing is posted.
 
 ### Upstream flakiness and retries
 
@@ -94,6 +100,7 @@ two consecutive misses, so these show as yellow bars and correctly do not page.
 | `TELEGRAM_BOT_TOKEN` | Yes      | Telegram Bot API token                      |
 | `TELEGRAM_CHAT_ID`   | Yes      | Telegram chat ID for notifications          |
 | `HEARTBEAT_URL`      | No       | Uptime Kuma push monitor URL                |
+| `SLACK_WEBHOOK_URL`  | No       | Slack incoming webhook, see [Slack](#slack) |
 
 ### Volume
 

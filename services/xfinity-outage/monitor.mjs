@@ -12,6 +12,7 @@ import pino from 'pino'
 import { httpError, withRetry } from './retry.mjs'
 import {
   buildMessage,
+  buildSlack,
   carryStart,
   detectChanges,
   extractState
@@ -215,6 +216,23 @@ async function sendTelegram(token, chatId, text) {
   }
 }
 
+// One attempt with its own short limit: a Slack post is a convenience next to
+// PagerDuty's incidents, and must not push the heartbeat past Kuma's slack.
+const SLACK_TIMEOUT_MS = 10_000
+
+// Posts to a Slack incoming webhook. The URL is a secret, so neither it nor
+// the response body is ever logged or put in an error.
+async function sendSlack(webhookUrl, text) {
+  const resp = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+    signal: AbortSignal.timeout(SLACK_TIMEOUT_MS)
+  })
+  if (!resp.ok)
+    throw httpError(`Slack webhook returned HTTP ${resp.status}`, resp.status)
+}
+
 async function main() {
   logger.info('starting')
 
@@ -241,7 +259,8 @@ async function main() {
         HOME_ADDRESS: !!process.env.HOME_ADDRESS,
         TELEGRAM_BOT_TOKEN: !!process.env.TELEGRAM_BOT_TOKEN,
         TELEGRAM_CHAT_ID: !!process.env.TELEGRAM_CHAT_ID,
-        HEARTBEAT_URL: !!process.env.HEARTBEAT_URL
+        HEARTBEAT_URL: !!process.env.HEARTBEAT_URL,
+        SLACK_WEBHOOK_URL: !!process.env.SLACK_WEBHOOK_URL
       }
     },
     'diagnostics'
@@ -251,6 +270,8 @@ async function main() {
   const tgToken = requireEnv('TELEGRAM_BOT_TOKEN')
   const tgChatId = requireEnv('TELEGRAM_CHAT_ID')
   const heartbeatUrl = process.env.HEARTBEAT_URL
+  // Optional. Trimmed: a stray space in a secret once cost a night (AGENTS.md).
+  const slackUrl = process.env.SLACK_WEBHOOK_URL?.trim() || null
 
   const store = createFileStore(STATE_PATH)
 
@@ -311,6 +332,21 @@ async function main() {
     logger.info({ changes }, 'change recorded, nothing to notify')
   } else {
     logger.info('no change detected')
+  }
+
+  // After Telegram: a failed Telegram send fails the run before this, and the
+  // next run sends both. A failed Slack post is recorded and the run goes on,
+  // so the state is saved and that post is not retried.
+  const slackText =
+    slackUrl && changes.length > 0 ? buildSlack(changes, newState) : ''
+  if (slackText) {
+    try {
+      await sendSlack(slackUrl, slackText)
+      logger.info('slack post sent')
+    } catch (err) {
+      logger.error({ reason: err.status ?? err.name }, 'slack post failed')
+      process.exitCode = 1
+    }
   }
 
   store.save(newState)
