@@ -9,9 +9,12 @@ export const MAX_NEIGHBORS = 5
 // alert then lasts until no neighbor lists that ID, so a count hovering at
 // the threshold does not flap.
 export const SHARED_MIN = 2
-// An outage the home address listed this recently is the home's, whatever the
-// neighbors show: its records often clear unit by unit.
+// An outage the home address has listed is the home's, whatever the neighbors
+// show: its records often clear unit by unit. It is remembered for 6 hours
+// after the home last listed it, and past that for as long as a neighbor
+// still lists it or no run has shown otherwise, up to 7 days.
 export const HOME_SEEN_MS = 6 * 60 * 60 * 1000
+export const HOME_SEEN_MAX_MS = 7 * 24 * 60 * 60 * 1000
 
 function decodeHome(homeAddress) {
   const raw = String(homeAddress ?? '').replace(/\+/g, ' ')
@@ -184,10 +187,16 @@ export const BUILDING_OFF = Object.freeze({ off: true })
 // closed, and `homeSeen`, when the home address last listed each outage ID.
 export function attachBuilding(old, next, summary, homeIds) {
   const now = Date.parse(next.checkedAt)
+  const evidence = summary && !summary.off ? summary : null
 
   const homeSeen = Object.create(null)
-  for (const [id, at] of Object.entries(old?.homeSeen ?? {}))
-    if (now - Date.parse(at) < HOME_SEEN_MS) homeSeen[id] = at
+  for (const [id, at] of Object.entries(old?.homeSeen ?? {})) {
+    const age = now - Date.parse(at)
+    // Without evidence, a neighbor may still list it.
+    const stillListed = evidence ? (evidence.ids[id]?.listed ?? 0) > 0 : true
+    if (age < HOME_SEEN_MS || (stillListed && age < HOME_SEEN_MAX_MS))
+      homeSeen[id] = at
+  }
   for (const id of homeIds) homeSeen[id] = next.checkedAt
   // State saved before this check existed has no homeSeen: its home outage
   // counts as seen at its last check.
@@ -211,9 +220,9 @@ export function attachBuilding(old, next, summary, homeIds) {
   // the home check, so it holds on runs without neighbor evidence too.
   for (const id of homeIds) delete alerts[id]
 
-  if (summary) {
+  if (evidence) {
     for (const [id, alert] of Object.entries(alerts)) {
-      const current = summary.ids[id]
+      const current = evidence.ids[id]
       if (!current?.listed) {
         delete alerts[id]
         events.push({ type: 'building_cleared', outageId: id, ...alert })
@@ -221,17 +230,17 @@ export function attachBuilding(old, next, summary, homeIds) {
         alerts[id] = {
           ...alert,
           count: current.listed,
-          checked: summary.checked,
+          checked: evidence.checked,
           etr: current.etr,
           etrDisplay: current.etrDisplay
         }
       }
     }
-    for (const [id, entry] of Object.entries(summary.ids)) {
+    for (const [id, entry] of Object.entries(evidence.ids)) {
       if (alerts[id] || homeSeen[id] || entry.unplanned < SHARED_MIN) continue
       alerts[id] = {
         count: entry.listed,
-        checked: summary.checked,
+        checked: evidence.checked,
         startTime: entry.startTime,
         etr: entry.etr,
         etrDisplay: entry.etrDisplay

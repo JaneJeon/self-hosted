@@ -457,11 +457,55 @@ test('an outage the home listed in the last 6 hours is never announced as the bu
   assert.equal(rising[3], '')
 })
 
-test('after 6 hours the same ID can be announced as the building', () => {
-  let state = run(null, outagePayload(), [out(), out()], 0).next
+// Review 3, N4: the home took over a building alert and came back, and the
+// neighbors still listed the outage more than 6 hours later.
+test('an outage the home listed stays its own while a neighbor lists it, past 6 hours', () => {
+  let state = run(null, clearPayload, [clear()], 0).next
   state = run(state, clearPayload, [out(), out()], 15).next
-  const later = run(state, clearPayload, [out(), out()], 15 + 6 * 60 + 15)
-  assert.match(later.text, /Outage in your building/)
+  state = run(state, outagePayload(), [out(), out()], 30).next
+  state = run(state, clearPayload, [out(), out()], 45).next
+  const later = run(state, clearPayload, [out(), out()], 45 + 6 * 60 + 15)
+  assert.equal(later.text, '')
+  const gone = run(
+    later.next,
+    clearPayload,
+    [clear(), clear()],
+    45 + 6 * 60 + 30
+  )
+  assert.equal(gone.text, '')
+})
+
+// Review 3, N1b: a run that fails is not saved, so the next saved run can
+// come hours after the last one.
+test('6 hours or more between saved runs: the home outage is not announced as the building', () => {
+  let state = run(null, clearPayload, [clear()], 0).next
+  state = run(state, outagePayload(), [out(), out()], 15).next
+  const later = run(state, clearPayload, [out(), out(), clear()], 15 + 375)
+  assert.match(later.text, /Internet is back/)
+  assert.doesNotMatch(later.text, /building/i)
+})
+
+test('once no neighbor lists it, the home outage is forgotten 6 hours on', () => {
+  let state = run(null, clearPayload, [clear()], 0).next
+  state = run(state, outagePayload(), [out(), out()], 15).next
+  state = run(state, clearPayload, [clear(), clear()], 30).next
+  assert.ok(X in state.homeSeen)
+  state = run(state, clearPayload, [clear(), clear()], 15 + 6 * 60).next
+  assert.equal(X in state.homeSeen, false)
+  // Records that come back after that read as a building outage.
+  const back = run(state, clearPayload, [out(), out()], 15 + 6 * 60 + 15)
+  assert.match(back.text, /Outage in your building/)
+})
+
+test('without neighbor evidence the home outage is kept past 6 hours, up to 7 days', () => {
+  let state = run(null, clearPayload, [clear()], 0).next
+  state = run(state, outagePayload(), [out(), out()], 15).next
+  state = run(state, clearPayload, null, 15 + 7 * 60).next
+  assert.ok(X in state.homeSeen)
+  const evidence = run(state, clearPayload, [out(), out()], 15 + 7 * 60 + 15)
+  assert.equal(evidence.text, '')
+  state = run(evidence.next, clearPayload, null, 15 + 7 * 24 * 60).next
+  assert.equal(X in state.homeSeen, false)
 })
 
 // Review 3, N3: a home list of [Y, X] was read as Y only.
