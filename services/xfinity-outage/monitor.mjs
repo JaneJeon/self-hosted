@@ -218,7 +218,9 @@ async function sendTelegram(token, chatId, text) {
 }
 
 // One attempt with its own short limit: a Slack post is a convenience next to
-// PagerDuty's incidents, and must not push the heartbeat past Kuma's slack.
+// PagerDuty's incidents. It adds at most 10 seconds, on the runs that post.
+// Runs with slow Xfinity calls could already pass Kuma's 60 seconds of slack;
+// one late beat shows as Pending and does not page.
 const SLACK_TIMEOUT_MS = 10_000
 
 // Posts to a Slack incoming webhook. The URL is a secret, so neither it nor
@@ -261,7 +263,7 @@ async function main() {
         TELEGRAM_BOT_TOKEN: !!process.env.TELEGRAM_BOT_TOKEN,
         TELEGRAM_CHAT_ID: !!process.env.TELEGRAM_CHAT_ID,
         HEARTBEAT_URL: !!process.env.HEARTBEAT_URL,
-        SLACK_WEBHOOK_URL: !!process.env.SLACK_WEBHOOK_URL
+        SLACK_WEBHOOK_URL: !!process.env.SLACK_WEBHOOK_URL?.trim()
       }
     },
     'diagnostics'
@@ -345,7 +347,11 @@ async function main() {
       await sendSlack(slackUrl, slackText)
       logger.info('slack post sent')
     } catch (err) {
-      logger.error({ reason: err.status ?? err.name }, 'slack post failed')
+      // The cause's code (ENOTFOUND, ECONNRESET) names no URL.
+      logger.error(
+        { reason: err.status ?? err.name, code: err.cause?.code },
+        'slack post failed'
+      )
       process.exitCode = 1
     }
   }
