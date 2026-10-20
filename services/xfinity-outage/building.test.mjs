@@ -4,6 +4,7 @@ import {
   BUILDING_OFF,
   attachBuilding,
   buildingQuery,
+  homeOutageIds,
   homeParts,
   neighborError,
   neighborParam,
@@ -56,13 +57,14 @@ const at = iso => new Date(iso)
 function run(old, homePayload, results, minute) {
   const iso = new Date(Date.parse('2026-10-20T14:00:20Z') + minute * 60_000)
   const home = extractState(homePayload, iso)
+  const homeIds = homeOutageIds(homePayload)
   const summary =
     results === BUILDING_OFF
       ? BUILDING_OFF
       : results
-      ? summarizeBuilding(results, home.outageId)
+      ? summarizeBuilding(results, homeIds)
       : null
-  const next = attachBuilding(old, home, summary)
+  const next = attachBuilding(old, home, summary, homeIds)
   const changes = detectChanges(old, next)
   return { next, changes, text: buildMessage(changes, next) }
 }
@@ -462,6 +464,35 @@ test('after 6 hours the same ID can be announced as the building', () => {
   assert.match(later.text, /Outage in your building/)
 })
 
+// Review 3, N3: a home list of [Y, X] was read as Y only.
+test('an outage anywhere in the home list is the home outage', () => {
+  const both = outagePayload(Y)
+  both.outageInfoResponseList.push({
+    outageId: X,
+    services: ['Internet'],
+    startTime: { iso: START }
+  })
+  assert.deepEqual(homeOutageIds(both), [Y, X])
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [both, [out(X), out(X)]]
+  ])
+  assert.match(sent[1], /Internet is down/)
+  assert.match(sent[1], /Same outage at 2 of 2 other apartments/)
+  assert.doesNotMatch(sent[1], /Outage in your building/)
+  // Review 2, F2: the home lists X with no customerMessage, so the home side
+  // reads no outage, but X is still listed at the home address.
+  const bare = {
+    outageInfoResponseList: [{ outageId: X, startTime: { iso: START } }],
+    customerMessage: null
+  }
+  const quiet = sequence([
+    [clearPayload, [clear()]],
+    [bare, [out(), out()]]
+  ])
+  assert.equal(quiet[1], '')
+})
+
 test('the home starting the outage as the neighbors clear sends no building all-clear', () => {
   const sent = sequence([
     [clearPayload, [clear()]],
@@ -538,4 +569,15 @@ test('a neighbor entry without a usable ID, or with several outages, is a failed
     reason: 'several outages'
   })
   assert.equal(neighborResult(outagePayload(42)).outageId, '42')
+})
+
+test('a home outage without a usable ID sends no building alert', () => {
+  const blank = () => neighborResult(outagePayload(''))
+  assert.deepEqual(homeOutageIds(outagePayload('')), [])
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [outagePayload(''), [blank(), blank(), clear()]]
+  ])
+  assert.match(sent[1], /Internet is down/)
+  assert.doesNotMatch(sent[1], /building|apartment/i)
 })

@@ -99,6 +99,14 @@ function outageIdOf(entry) {
   return text.trim() ? text : null
 }
 
+// Every outage ID the home address lists. The home messages describe only the
+// first entry, but any listed ID makes that outage the home's.
+export function homeOutageIds(data) {
+  const list = data?.outageInfoResponseList
+  if (!Array.isArray(list)) return []
+  return [...new Set(list.map(outageIdOf).filter(id => id !== null))]
+}
+
 // One neighbor's status call, reduced to what the comparison needs. Anything
 // that is not a clear list or one whole outage entry is a failed lookup, so
 // it can never read as an all-clear or start an alert.
@@ -132,8 +140,9 @@ export function neighborError(err) {
 }
 
 // The building's state this run, or null when the run gives no evidence:
-// a failed lookup, or no neighbor that answered.
-export function summarizeBuilding(results, homeOutageId = null) {
+// a failed lookup, or no neighbor that answered. `homeIds` is every outage ID
+// the home address lists.
+export function summarizeBuilding(results, homeIds = []) {
   if (results.some(r => r.status === 'error')) return null
   const answered = results.filter(
     r => r.status === 'outage' || r.status === 'clear'
@@ -152,11 +161,12 @@ export function summarizeBuilding(results, homeOutageId = null) {
     entry.listed++
     if (!r.planned) entry.unplanned++
   }
-  const home = homeOutageId == null ? null : String(homeOutageId)
+  const home = new Set(homeIds)
+  const listing = answered.filter(r => r.status === 'outage')
   return {
     checked: answered.length,
-    withOutage: answered.filter(r => r.status === 'outage').length,
-    sameAsHome: home ? ids[home]?.listed ?? 0 : 0,
+    withOutage: listing.length,
+    sameAsHome: listing.filter(r => home.has(r.outageId)).length,
     ids
   }
 }
@@ -169,21 +179,20 @@ export const BUILDING_OFF = Object.freeze({ off: true })
 // an outage that ended from one the home address took over.
 //
 // `summary` is a summary, null for a run without evidence, or BUILDING_OFF.
+// `homeIds` is every outage ID the home address lists this run.
 // State kept: `buildingAlerts`, the building outages announced and not yet
 // closed, and `homeSeen`, when the home address last listed each outage ID.
-export function attachBuilding(old, next, summary) {
+export function attachBuilding(old, next, summary, homeIds) {
   const now = Date.parse(next.checkedAt)
-  const homeId =
-    next.hasOutage && next.outageId != null ? String(next.outageId) : null
 
   const homeSeen = Object.create(null)
   for (const [id, at] of Object.entries(old?.homeSeen ?? {}))
     if (now - Date.parse(at) < HOME_SEEN_MS) homeSeen[id] = at
-  if (homeId) homeSeen[homeId] = next.checkedAt
+  for (const id of homeIds) homeSeen[id] = next.checkedAt
   // State saved before this check existed has no homeSeen: its home outage
   // counts as seen at its last check.
-  if (!old?.homeSeen && old?.hasOutage && old.outageId != null)
-    homeSeen[String(old.outageId)] ??= old.checkedAt ?? next.checkedAt
+  const legacyId = !old?.homeSeen && old?.hasOutage ? outageIdOf(old) : null
+  if (legacyId !== null) homeSeen[legacyId] ??= old.checkedAt ?? next.checkedAt
 
   const alerts = Object.create(null)
   Object.assign(alerts, old?.buildingAlerts ?? {})
@@ -200,7 +209,7 @@ export function attachBuilding(old, next, summary) {
   // The home address now lists an announced outage: its own messages cover
   // the rest, so the building alert closes without a word. This needs only
   // the home check, so it holds on runs without neighbor evidence too.
-  if (homeId) delete alerts[homeId]
+  for (const id of homeIds) delete alerts[id]
 
   if (summary) {
     for (const [id, alert] of Object.entries(alerts)) {

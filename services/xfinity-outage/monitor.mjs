@@ -15,6 +15,7 @@ import {
   BUILDING_OFF,
   attachBuilding,
   buildingQuery,
+  homeOutageIds,
   neighborError,
   neighborParam,
   neighborResult,
@@ -142,7 +143,7 @@ const BUILDING_BUDGET_MS = 20_000
 
 // Returns a building summary, BUILDING_OFF when the home address has no
 // unit, or null with a logged reason when this run gives no evidence.
-async function checkBuilding(token, homeAddress, homeOutageId) {
+async function checkBuilding(token, homeAddress, homeIds) {
   const query = buildingQuery(homeAddress)
   if (!query) return BUILDING_OFF
   const deadline = Date.now() + BUILDING_BUDGET_MS
@@ -176,7 +177,7 @@ async function checkBuilding(token, homeAddress, homeOutageId) {
       results.push(neighborError(err))
     }
   }
-  const summary = summarizeBuilding(results, homeOutageId)
+  const summary = summarizeBuilding(results, homeIds)
   const tally = {}
   for (const r of results) {
     const key = r.status === 'error' ? `error:${r.reason}` : r.status
@@ -256,6 +257,7 @@ async function main() {
     logger
   })
   const homeState = extractState(data)
+  const homeIds = homeOutageIds(data)
   // customerMessage is logged because the API is undocumented, so the logs
   // show what Xfinity said at each check, for example when it drops an
   // estimate. Its free-text `messages` is left out: it names the street
@@ -275,7 +277,7 @@ async function main() {
   // and outage IDs. A failure here leaves the home check untouched.
   let building = null
   try {
-    building = await checkBuilding(token, address, homeState.outageId)
+    building = await checkBuilding(token, address, homeIds)
   } catch (err) {
     // Only the error's type: its message could quote a body.
     logger.warn(
@@ -285,7 +287,7 @@ async function main() {
   }
 
   const oldState = store.load()
-  const newState = attachBuilding(oldState, homeState, building)
+  const newState = attachBuilding(oldState, homeState, building, homeIds)
   const changes = detectChanges(oldState, newState)
 
   // Built only when something changed, so a malformed field can break at
