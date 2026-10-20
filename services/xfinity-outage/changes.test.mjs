@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {
   buildMessage,
   buildSlack,
-  carryStart,
+  carryOver,
   detectChanges,
   extractState
 } from './changes.mjs'
@@ -349,182 +349,298 @@ const notice = (extra = {}) => ({
   }
 })
 
-test('2026-10-20: an outage that turns into a notice is back, in Xfinity words', () => {
-  // The 12:31 run once sent "Outage reclassified: now listed as
-  // Informational. Internet still down since 10:32 AM PDT."
-  const outage = state(OUTAGE_1020, '2026-10-20T19:17:32Z')
-  const tech = state(notice(), '2026-10-20T19:31:12Z')
-  const gone = state(CLEARED, '2026-10-20T19:46:25Z')
+// Runs payloads through the monitor's state steps and returns, per run, the
+// Telegram text and the Slack text.
+function replay(runs, start = null) {
+  let old = start
+  return runs.map(([payload, t]) => {
+    const next = carryOver(old, state(payload, t))
+    const changes = detectChanges(old, next)
+    const out = {
+      telegram: buildMessage(changes, next),
+      slack: buildSlack(old, next),
+      types: changes.map(c => c.type)
+    }
+    old = next
+    return out
+  })
+}
 
+const MOVED_1020 = {
+  ...OUTAGE_1020,
+  outageInfoResponseList: [
+    {
+      ...OUTAGE_1020.outageInfoResponseList[0],
+      startTime: { iso: '2026-10-20T10:32:00-07:00' }
+    }
+  ]
+}
+
+test('2026-10-20 end to end: down, the notice in Xfinity words, back when nothing is listed', () => {
+  // The 12:31 run once sent "Outage reclassified: now listed as
+  // Informational. Internet still down since 10:32 AM PDT", and the 12:46 run
+  // "Internet is back … started at 10:32 AM PDT". Home Assistant's heartbeat
+  // was back at 12:17, but the notice itself warned of interruptions.
+  const [quiet, down, moved, tech, gone] = replay([
+    [CLEARED, '2026-10-20T14:30:20Z'],
+    [OUTAGE_1020, '2026-10-20T14:45:57Z'],
+    [MOVED_1020, '2026-10-20T19:17:32Z'],
+    [notice(), '2026-10-20T19:31:12Z'],
+    [CLEARED, '2026-10-20T19:46:25Z']
+  ])
+  assert.equal(quiet.telegram, '')
+  assert.match(down.telegram, /^<b>Xfinity: Internet is down<\/b>/)
+  assert.match(down.telegram, /started at 7:32 AM PDT/)
+  assert.equal(moved.telegram, '')
   assert.equal(
-    message(outage, tech),
-    '<b>Xfinity: Internet is back</b>\n\n' +
-      'Xfinity has cleared the outage that started at 7:32 AM PDT.' +
-      ' It was still listed at 12:17 PM PDT and gone by 12:31 PM PDT.\n\n' +
-      'Xfinity now shows this notice instead:\n' +
-      '<i>Technician in your area.</i> To make sure your XFINITY services' +
-      " are performing optimally, we'll be doing some work in your area" +
-      " today. While we're working, you could experience brief" +
-      ' interruptions to your service. We apologize for any inconvenience' +
-      ' caused by our work.'
+    tech.telegram,
+    '<b>Xfinity: Technician in your area</b>\n\n' +
+      'Xfinity no longer lists the outage that started at 7:32 AM PDT.' +
+      ' It was still listed at 12:17 PM PDT, and by 12:31 PM PDT Xfinity' +
+      ' showed this notice instead:\n' +
+      NOTICE_TEXT
   )
-  assert.deepEqual(detectChanges(tech, gone), [{ type: 'notice_cleared' }])
-  assert.equal(message(tech, gone), '')
+  assert.equal(
+    gone.telegram,
+    '<b>Xfinity: Internet is back</b>\n\n' +
+      'Xfinity has cleared the outage that started at 7:32 AM PDT and the' +
+      ' "Technician in your area" notice after it. The notice was still' +
+      ' listed at 12:31 PM PDT and gone by 12:46 PM PDT.'
+  )
+  // Slack: only the two ends, so the PagerDuty alerts in between read as
+  // this outage.
+  assert.deepEqual(
+    [quiet, down, moved, tech, gone].map(r => r.slack.split('\n')[0]),
+    [
+      '',
+      ':red_circle: *Xfinity: Internet is down*',
+      '',
+      '',
+      ':large_green_circle: *Xfinity: Internet is back*'
+    ]
+  )
+  assert.equal(gone.slack.split('\n')[1], gone.telegram.split('\n\n')[1])
 })
 
-test('a notice with no outage before it is a heads-up, not an outage', () => {
-  const quiet = state(CLEARED, '2026-10-20T19:16:20Z')
-  const tech = state(notice(), '2026-10-20T19:31:20Z')
+test('a notice with no outage before it is a heads-up, and leaves quietly', () => {
+  const [, tech, again, gone] = replay([
+    [CLEARED, '2026-10-20T19:16:20Z'],
+    [notice(), '2026-10-20T19:31:20Z'],
+    [notice(), '2026-10-20T19:46:20Z'],
+    [CLEARED, '2026-10-20T20:01:20Z']
+  ])
   assert.equal(
-    message(quiet, tech),
+    tech.telegram,
     '<b>Xfinity: Technician in your area</b>\n\n' +
       NOTICE_TEXT +
       '\nXfinity lists this as a notice, not an outage.'
   )
-  assert.equal(message(null, tech), message(quiet, tech))
-  assert.equal(message(tech, state(notice(), '2026-10-20T19:46:20Z')), '')
+  assert.equal(again.telegram, '')
+  assert.deepEqual(gone.types, ['notice_cleared'])
+  assert.equal(gone.telegram, '')
+  assert.deepEqual([tech.slack, gone.slack], ['', ''])
+  assert.equal(
+    replay([[notice(), '2026-10-20T19:31:20Z']])[0].telegram,
+    tech.telegram
+  )
 })
 
-test('a notice that turns into an outage is "Internet is down"', () => {
-  const tech = state(notice(), '2026-10-20T19:31:20Z')
-  const outage = state(OUTAGE_1020, '2026-10-20T19:46:20Z')
-  assert.match(message(tech, outage), /^<b>Xfinity: Internet is down<\/b>/)
+test('a notice that turns back into an outage is "Internet is down" again', () => {
+  const runs = replay([
+    [CLEARED, '2026-10-20T19:01:20Z'],
+    [OUTAGE_1020, '2026-10-20T19:16:20Z'],
+    [notice(), '2026-10-20T19:31:20Z'],
+    [OUTAGE_1020, '2026-10-20T19:46:20Z'],
+    [CLEARED, '2026-10-20T20:01:20Z']
+  ])
+  assert.deepEqual(
+    runs.map(r => r.types),
+    [[], ['new_outage'], ['outage_to_notice'], ['new_outage'], ['resolved']]
+  )
+  assert.match(runs[3].telegram, /^<b>Xfinity: Internet is down<\/b>/)
+  assert.match(
+    runs[4].telegram,
+    /^<b>Xfinity: Internet is back<\/b>\n\nXfinity has cleared the outage that started at 7:32 AM PDT\. It was still listed/
+  )
+  // The Slack pair spans the whole stretch, the flip included.
+  assert.equal(runs.filter(r => r.slack).length, 2)
+})
+
+test('the outage carries through a change of notice, and state saved before it', () => {
+  const other = notice()
+  other.outageInfoResponseList = [
+    { ...other.outageInfoResponseList[0], outageId: 'OUT99999999' }
+  ]
+  const runs = replay([
+    [OUTAGE_1020, '2026-10-20T19:16:20Z'],
+    [notice(), '2026-10-20T19:31:20Z'],
+    [other, '2026-10-20T19:46:20Z'],
+    [CLEARED, '2026-10-20T20:01:20Z']
+  ])
+  assert.match(runs[2].telegram, /^<b>Xfinity: Technician in your area<\/b>/)
+  assert.match(
+    runs[3].telegram,
+    /cleared the outage that started at 7:32 AM PDT and the "Technician in your area" notice after it/
+  )
+  // A notice saved by code without followsOutage ends quietly.
+  const legacy = state(notice(), '2026-10-20T19:31:20Z')
+  assert.deepEqual(
+    detectChanges(
+      legacy,
+      carryOver(legacy, state(CLEARED, '2026-10-20T19:46:20Z'))
+    ),
+    [{ type: 'notice_cleared' }]
+  )
 })
 
 test('a notice keeps its text, an outage never stores the street', () => {
   assert.equal(state(notice(), '2026-10-20T19:31:20Z').noticeText, NOTICE_TEXT)
   const outage = state(OUTAGE_1020, '2026-10-20T19:17:32Z')
   assert.equal(outage.noticeText, null)
-  assert.doesNotMatch(JSON.stringify(outage), /MAIN ST/)
+  const runs = []
+  let old = null
+  for (const [p, t] of [
+    [OUTAGE_1020, '2026-10-20T19:16:20Z'],
+    [notice(), '2026-10-20T19:31:20Z'],
+    [CLEARED, '2026-10-20T19:46:20Z']
+  ]) {
+    old = carryOver(old, state(p, t))
+    runs.push(JSON.stringify(old))
+  }
+  for (const saved of runs) assert.doesNotMatch(saved, /MAIN ST/)
 })
 
 test('notice text from Xfinity is escaped, and missing text still reads', () => {
   const odd = notice({
     messages: { shortDescription: 'Work <today>', detailedDescription: 'A & B' }
   })
-  const quiet = state(CLEARED, '2026-10-20T19:16:20Z')
   assert.equal(
-    message(quiet, state(odd, '2026-10-20T19:31:20Z')),
+    replay([[odd, '2026-10-20T19:31:20Z']])[0].telegram,
     '<b>Xfinity: Work &lt;today&gt;</b>\n\nA &amp; B\n' +
       'Xfinity lists this as a notice, not an outage.'
   )
-  const bare = state(notice({ messages: null }), '2026-10-20T19:31:20Z')
+  const bare = notice({ messages: null })
+  const runs = replay([
+    [CLEARED, '2026-10-20T19:16:20Z'],
+    [bare, '2026-10-20T19:31:20Z']
+  ])
   assert.equal(
-    message(quiet, bare),
+    runs[1].telegram,
     '<b>Xfinity: Notice for your address</b>\n\n' +
       'Xfinity lists this as a notice, not an outage.'
   )
-  const outage = state(OUTAGE_1020, '2026-10-20T19:17:32Z')
+  const after = replay([
+    [OUTAGE_1020, '2026-10-20T19:16:20Z'],
+    [bare, '2026-10-20T19:31:20Z'],
+    [CLEARED, '2026-10-20T19:46:20Z']
+  ])
+  assert.match(after[1].telegram, /^<b>Xfinity: Notice for your address<\/b>/)
+  assert.match(after[1].telegram, /this notice instead, with no text\.$/)
   assert.match(
-    message(outage, bare),
-    /Xfinity now shows a notice instead, with no text\.$/
+    after[2].telegram,
+    /and the notice after it\. The notice was still listed/
   )
+  const quoted = replay([
+    [OUTAGE_1020, '2026-10-20T19:16:20Z'],
+    [odd, '2026-10-20T19:31:20Z'],
+    [CLEARED, '2026-10-20T19:46:20Z']
+  ])
+  assert.match(
+    quoted[2].telegram,
+    /and the "Work &lt;today&gt;" notice after it/
+  )
+  assert.match(quoted[2].slack, /and the "Work &lt;today&gt;" notice after it/)
 })
 
-test('no transition between outages and notices prints a bad token', () => {
-  const t = '2026-10-20T19:31:20Z'
-  const states = [
-    state(CLEARED, t),
-    state(OUTAGE_1020, t),
-    state(notice(), t),
-    state(notice({ messages: null }), t),
-    state(
-      notice({ messages: { shortDescription: 7, detailedDescription: {} } }),
-      t
-    ),
-    state(listed({ planned: true, start: '2026-10-22T00:00:00-07:00' }), t),
-    state(listed({ start: null }), t)
+test('no sequence of outages and notices prints a bad token', () => {
+  const t0 = Date.parse('2026-10-20T19:01:20Z')
+  const payloads = [
+    CLEARED,
+    OUTAGE_1020,
+    MOVED_1020,
+    notice(),
+    notice({ messages: null }),
+    notice({ messages: { shortDescription: 7, detailedDescription: {} } }),
+    listed({ planned: true, start: '2026-10-22T00:00:00-07:00' }),
+    listed({ planned: true }),
+    listed({ start: null })
   ]
-  for (const a of [null, ...states])
-    for (const b of states) {
-      const text = buildMessage(detectChanges(a, b), b)
-      assert.doesNotMatch(
-        text,
-        /null|undefined|NaN|Invalid Date|\[object|reclassified|still down/,
-        text
-      )
-    }
+  for (const a of payloads)
+    for (const b of payloads)
+      for (const c of payloads) {
+        const runs = replay(
+          [a, b, c, CLEARED].map((p, i) => [
+            p,
+            new Date(t0 + i * 900_000).toISOString()
+          ])
+        )
+        for (const r of runs)
+          for (const text of [r.telegram, r.slack])
+            assert.doesNotMatch(
+              text,
+              /null|undefined|NaN|Invalid Date|\[object|reclassified|still down/,
+              text
+            )
+      }
 })
 
 test('2026-10-20: the all-clear names the start the first alert gave', () => {
   // Xfinity moved the start from 7:32 to 10:32 AM while the outage lasted,
   // and the all-clear once said "the outage that started at 10:32 AM".
-  const moved = {
-    ...OUTAGE_1020,
-    outageInfoResponseList: [
-      {
-        ...OUTAGE_1020.outageInfoResponseList[0],
-        startTime: { iso: '2026-10-20T10:32:00-07:00' }
-      }
-    ]
-  }
-  const runs = [
+  const runs = replay([
     [CLEARED, '2026-10-20T14:30:20Z'],
     [OUTAGE_1020, '2026-10-20T14:45:57Z'],
-    [moved, '2026-10-20T19:17:32Z'],
+    [MOVED_1020, '2026-10-20T19:17:32Z'],
     [CLEARED, '2026-10-20T19:31:12Z']
-  ]
-  let old = null
-  const sent = runs.map(([payload, t]) => {
-    const next = carryStart(old, state(payload, t))
-    const text = message(old, next)
-    old = next
-    return text
-  })
-  assert.match(sent[1], /started at 7:32 AM PDT/)
-  assert.equal(sent[2], '')
-  assert.match(sent[3], /cleared the outage that started at 7:32 AM PDT\./)
-  assert.equal(old.reportedStart, null)
+  ])
+  assert.match(runs[1].telegram, /started at 7:32 AM PDT/)
+  assert.equal(runs[2].telegram, '')
+  assert.match(
+    runs[3].telegram,
+    /cleared the outage that started at 7:32 AM PDT\./
+  )
 })
 
 test('the first-reported start falls back, and resets for a new outage', () => {
   const t = '2026-10-20T19:17:32Z'
   const legacy = state(OUTAGE_1020, t)
-  delete legacy.reportedStart
-  const moved = {
-    ...OUTAGE_1020,
-    outageInfoResponseList: [
-      {
-        ...OUTAGE_1020.outageInfoResponseList[0],
-        startTime: { iso: '2026-10-20T10:32:00-07:00' }
-      }
-    ]
-  }
   assert.equal(
-    carryStart(legacy, state(moved, t)).reportedStart,
+    carryOver(legacy, state(MOVED_1020, t)).reportedStart,
     '2026-10-20T07:32:17-07:00'
   )
   const other = listed({ id: 'OUTAGE-2' })
-  assert.equal(carryStart(legacy, state(other, t)).reportedStart, START)
-  assert.equal(carryStart(legacy, state(notice(), t)).reportedStart, null)
+  assert.equal(carryOver(legacy, state(other, t)).reportedStart, START)
+  const tech = carryOver(legacy, state(notice(), t))
+  assert.equal(tech.reportedStart, null)
+  assert.equal(tech.followsOutage.reportedStart, '2026-10-20T07:32:17-07:00')
+  assert.equal(carryOver(tech, state(CLEARED, t)).followsOutage, null)
 })
 
-const slack = (old, next) => buildSlack(detectChanges(old, next), next)
+const slack = (old, next) => buildSlack(old, next)
 
-test('Slack gets one line when the home outage starts and one when it clears', () => {
+test('Slack: the start and the all-clear, with the Telegram titles', () => {
   const quiet = state(CLEARED, '2026-10-20T14:30:20Z')
   const down = {
-    ...state(OUTAGE_1020, '2026-10-20T14:45:57Z'),
+    ...carryOver(quiet, state(OUTAGE_1020, '2026-10-20T14:45:57Z')),
     building: { checked: 5, withOutage: 5, sameAsHome: 5 }
   }
   assert.equal(
     slack(quiet, down),
-    ':red_circle: *Xfinity outage at home* since 7:32 AM PDT, affecting' +
-      ' Internet. Xfinity estimates restoration by 10/20/2026 06:55 PM' +
-      ' (Pacific). Same outage at 5 of 5 other apartments checked in your' +
-      ' building.'
-  )
-  const tech = state(notice(), '2026-10-20T19:31:12Z')
-  assert.equal(
-    slack(down, tech),
-    ':large_green_circle: *Xfinity outage at home cleared*. It started at' +
-      ' 7:32 AM PDT, was still listed at 7:45 AM PDT and gone by 12:31 PM' +
-      ' PDT. Xfinity now shows a notice instead: "Technician in your area".'
+    ':red_circle: *Xfinity: Internet is down*\n' +
+      'An unplanned outage started at 7:32 AM PDT, affecting Internet.' +
+      ' Xfinity estimates restoration by 10/20/2026 06:55 PM (Pacific).' +
+      ' Same outage at 5 of 5 other apartments checked in your building.'
   )
   assert.equal(
-    slack(down, state(CLEARED, '2026-10-20T19:31:12Z')),
-    ':large_green_circle: *Xfinity outage at home cleared*. It started at' +
-      ' 7:32 AM PDT, was still listed at 7:45 AM PDT and gone by 12:31 PM PDT.'
+    slack(down, carryOver(down, state(CLEARED, '2026-10-20T19:31:12Z'))),
+    ':large_green_circle: *Xfinity: Internet is back*\n' +
+      'Xfinity has cleared the outage that started at 7:32 AM PDT.' +
+      ' It was still listed at 7:45 AM PDT and gone by 12:31 PM PDT.'
+  )
+  const planned = state(listed({ planned: true }), '2026-10-20T04:15:20Z')
+  assert.match(
+    slack(state(CLEARED, '2026-10-20T04:00:20Z'), planned),
+    /^:red_circle: \*Xfinity: Internet is down \(planned maintenance\)\*\nPlanned maintenance started at 9:06 PM PDT/
   )
 })
 
@@ -543,19 +659,16 @@ test('Slack gets nothing for estimates, notices, building news or maintenance ah
   assert.equal(slack(before, later), '')
   assert.equal(slack(quiet, ahead), '')
   assert.equal(slack(ahead, state(CLEARED, '2026-10-20T04:30:20Z')), '')
-  assert.equal(
-    buildSlack(
-      [
-        { type: 'building_outage', count: 2, checked: 5 },
-        { type: 'building_cleared' }
-      ],
-      quiet
-    ),
-    ''
-  )
+  const down = carryOver(null, state(OUTAGE_1020, t))
+  assert.equal(slack(down, carryOver(down, tech)), '')
+  const alert = {
+    ...quiet,
+    buildingEvents: [{ type: 'building_outage', count: 2, checked: 5 }]
+  }
+  assert.equal(slack(quiet, alert), '')
 })
 
-test('Slack text escapes Xfinity text and never prints a bad token', () => {
+test('Slack text escapes Xfinity text and leaves out a missing start', () => {
   const t = '2026-10-20T19:31:20Z'
   const odd = {
     ...OUTAGE_1020,
@@ -568,26 +681,90 @@ test('Slack text escapes Xfinity text and never prints a bad token', () => {
       etrOutputString: null
     }
   }
-  const quiet = state(CLEARED, t)
-  const text = slack(quiet, state(odd, t))
-  assert.match(
-    text,
-    /affecting TV &amp; &lt;Internet&gt;\. Xfinity has not given/
+  assert.equal(
+    slack(state(CLEARED, t), state(odd, t)),
+    ':red_circle: *Xfinity: Internet is down*\n' +
+      'An unplanned outage is affecting TV &amp; &lt;Internet&gt;.' +
+      ' Xfinity has not given a restore time yet.'
   )
-  const states = [
-    quiet,
-    state(OUTAGE_1020, t),
-    state(odd, t),
-    state(notice(), t),
-    state(notice({ messages: null }), t),
-    state(listed({ planned: true }), t),
-    state(listed({ start: null }), t)
+})
+
+// Review 4, finding 4: the Slack lines did not always pair.
+test('Slack lines always pair: one start and one clear per stretch of outage', () => {
+  const other = listed({ id: 'OUTAGE-2', start: '2026-10-20T08:00:00-07:00' })
+  const ahead = listed({
+    id: 'MAINT-2',
+    planned: true,
+    start: '2026-10-25T00:00:00-07:00'
+  })
+  const sequences = [
+    [OUTAGE_1020, other, CLEARED],
+    [OUTAGE_1020, ahead, CLEARED],
+    [OUTAGE_1020, notice(), OUTAGE_1020, notice(), CLEARED],
+    [ahead, notice(), CLEARED, OUTAGE_1020, CLEARED],
+    [notice(), OUTAGE_1020, CLEARED]
   ]
-  for (const a of [null, ...states])
-    for (const b of states)
-      assert.doesNotMatch(
-        slack(a, b),
-        /null|undefined|NaN|Invalid Date|\[object|unknown time/,
-        slack(a, b)
-      )
+  const t0 = Date.parse('2026-10-20T15:00:20Z')
+  for (const seq of sequences) {
+    const runs = replay(
+      [CLEARED, ...seq].map((p, i) => [
+        p,
+        new Date(t0 + i * 900_000).toISOString()
+      ])
+    )
+    const posts = runs.map(r => r.slack.split('\n')[0]).filter(Boolean)
+    assert.deepEqual(
+      posts,
+      [
+        ':red_circle: *Xfinity: Internet is down*',
+        ':large_green_circle: *Xfinity: Internet is back*'
+      ],
+      JSON.stringify(seq.map(p => p.customerMessage?.outageType ?? 'none'))
+    )
+  }
+})
+
+// Review 4, finding 5: a notice between two listings of the same outage.
+test('an outage that flips through a notice keeps its first start', () => {
+  const runs = replay([
+    [CLEARED, '2026-10-20T14:30:20Z'],
+    [OUTAGE_1020, '2026-10-20T14:45:57Z'],
+    [notice(), '2026-10-20T19:31:12Z'],
+    [MOVED_1020, '2026-10-20T19:46:12Z'],
+    [notice(), '2026-10-20T20:01:12Z'],
+    [CLEARED, '2026-10-20T20:16:12Z']
+  ])
+  assert.match(
+    runs[3].telegram,
+    /^<b>Xfinity: Internet is down<\/b>\n\nAn unplanned outage started at 7:32 AM PDT/
+  )
+  assert.match(
+    runs[4].telegram,
+    /no longer lists the outage that started at 7:32 AM PDT/
+  )
+  assert.match(
+    runs[5].telegram,
+    /cleared the outage that started at 7:32 AM PDT and the/
+  )
+  assert.equal(runs.filter(r => r.slack).length, 2)
+})
+
+// Review 4, finding 6: maintenance scheduled ahead that turns into a notice.
+test('maintenance ahead that turns into a notice is removed, and the notice is news', () => {
+  const ahead = listed({ planned: true, start: '2026-10-25T00:00:00-07:00' })
+  const runs = replay([
+    [ahead, '2026-10-20T19:16:20Z'],
+    [notice(), '2026-10-20T19:31:20Z'],
+    [CLEARED, '2026-10-20T19:46:20Z']
+  ])
+  assert.match(
+    runs[1].telegram,
+    /^<b>Xfinity: Planned maintenance removed<\/b>/
+  )
+  assert.match(runs[1].telegram, /<b>Xfinity: Technician in your area<\/b>/)
+  assert.equal(runs[2].telegram, '')
+  assert.deepEqual(
+    runs.map(r => r.slack),
+    ['', '', '']
+  )
 })

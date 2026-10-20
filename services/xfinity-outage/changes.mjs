@@ -100,23 +100,13 @@ function compareType(old, next) {
   }
 }
 
-// Xfinity can move an outage's start while it lasts: on 2026-10-20 the
-// outage first reported as starting at 7:32 AM later listed 10:32 AM, and the
-// all-clear named 10:32. `reportedStart` keeps the start the first alert gave,
-// for as long as the same outage is listed. State saved without it falls back
-// to its start time.
-export function carryStart(old, next) {
-  if (!next.hasOutage || next.notice) return { ...next, reportedStart: null }
-  const same = old?.hasOutage && !old.notice && old.outageId === next.outageId
-  const reportedStart = same
-    ? old.reportedStart ?? old.startTime ?? next.startTime
-    : next.startTime
-  return { ...next, reportedStart }
-}
-
-// The start time messages name: the first one reported.
-function startOf(state) {
-  return state.reportedStart ?? state.startTime
+// Maintenance listed with a start still ahead of the check.
+function upcoming(state) {
+  const start = readableTime(state.startTime)
+  const check = readableTime(state.checkedAt)
+  return (
+    Boolean(state.planned) && start !== null && check !== null && start > check
+  )
 }
 
 // What the home address lists: nothing, an outage, or a notice.
@@ -125,36 +115,107 @@ function kindOf(state) {
   return state.notice ? 'notice' : 'outage'
 }
 
+// Whether a home outage is on: an outage listed and not merely scheduled, or
+// a notice that replaced one. Its start and end are the Slack pair and the
+// "Internet is down" / "Internet is back" ends.
+function isOn(state) {
+  const kind = kindOf(state)
+  if (kind === 'notice') return Boolean(state.followsOutage)
+  return kind === 'outage' && !upcoming(state)
+}
+
+// Xfinity can move an outage's start while it lasts: on 2026-10-20 the
+// outage first reported as starting at 7:32 AM later listed 10:32 AM, and the
+// all-clear named 10:32. `reportedStart` keeps the start the alerts gave, for
+// as long as the same outage is listed, a notice in between included. State
+// saved without it falls back to its start time.
+//
+// A notice that replaces an outage carries it in `followsOutage`, so the
+// all-clear waits until Xfinity lists nothing at all. On 2026-10-20 the notice
+// that replaced the outage warned of brief interruptions, so it did not say
+// the internet was back.
+export function carryOver(old, next) {
+  const before = kindOf(old)
+  const after = kindOf(next)
+  if (after === 'outage') {
+    const prior =
+      before === 'outage' && old.outageId === next.outageId
+        ? { start: old.reportedStart ?? old.startTime }
+        : before === 'notice' && old.followsOutage?.outageId === next.outageId
+        ? { start: old.followsOutage.reportedStart }
+        : null
+    const reportedStart = prior?.start ?? next.startTime
+    return { ...next, reportedStart, followsOutage: null }
+  }
+  if (after === 'notice') {
+    const followsOutage =
+      before === 'outage' && isOn(old)
+        ? {
+            outageId: old.outageId,
+            startTime: old.startTime,
+            reportedStart: startOf(old),
+            planned: old.planned ?? false
+          }
+        : before === 'notice'
+        ? old.followsOutage ?? null
+        : null
+    return { ...next, reportedStart: null, followsOutage }
+  }
+  return { ...next, reportedStart: null, followsOutage: null }
+}
+
+// The start time messages name: the first one reported.
+function startOf(state) {
+  return state.reportedStart ?? state.startTime
+}
+
+// The all-clear for an outage that was on in `old`, or for maintenance that
+// never started.
+function clearedFrom(old, next) {
+  const after = kindOf(old) === 'notice' ? old.followsOutage : null
+  return {
+    type: 'resolved',
+    startTime: after ? after.startTime ?? null : old.startTime,
+    reportedStart: after
+      ? after.reportedStart ?? after.startTime ?? null
+      : startOf(old),
+    planned: after ? after.planned ?? false : old.planned,
+    lastListedAt: old.checkedAt ?? null,
+    goneAt: next.checkedAt,
+    notice: after ? { title: old.shortDescription } : null
+  }
+}
+
 function homeChanges(old, next) {
   const before = kindOf(old)
   const after = kindOf(next)
 
-  if (after !== 'outage') {
-    // An outage that turns into a notice is over: on 2026-10-20 the notice
-    // appeared after Home Assistant was back, and saying "reclassified,
-    // Internet still down" then was wrong.
-    if (before === 'outage')
-      return [
-        {
-          type: 'resolved',
-          startTime: old.startTime,
-          reportedStart: startOf(old),
-          planned: old.planned,
-          lastListedAt: old.checkedAt ?? null,
-          goneAt: next.checkedAt,
-          notice:
-            after === 'notice'
-              ? { title: next.shortDescription, text: next.noticeText }
-              : null
-        }
-      ]
-    if (
-      after === 'notice' &&
-      (before !== 'notice' || old.outageId !== next.outageId)
-    )
+  if (after === 'notice') {
+    if (before === 'outage') {
+      // Not an outage, and not the all-clear either: Xfinity says work nearby
+      // may still interrupt service. The old code called this "reclassified,
+      // Internet still down".
+      if (isOn(old))
+        return [
+          {
+            type: 'outage_to_notice',
+            startTime: old.startTime,
+            reportedStart: startOf(old),
+            lastListedAt: old.checkedAt ?? null
+          }
+        ]
+      // Maintenance that never started is gone, and the notice is news.
+      return [clearedFrom(old, next), { type: 'notice_posted' }]
+    }
+    if (before === 'none' || old.outageId !== next.outageId)
       return [{ type: 'notice_posted' }]
-    if (before === 'notice' && after === 'none')
-      return [{ type: 'notice_cleared' }]
+    return []
+  }
+  if (after === 'none') {
+    // An outage, or a notice that replaced one, is gone: the all-clear.
+    if (before === 'outage' || (before === 'notice' && old.followsOutage))
+      return [clearedFrom(old, next)]
+    if (before === 'notice') return [{ type: 'notice_cleared' }]
     return []
   }
   if (before !== 'outage' || old.outageId !== next.outageId)
@@ -188,14 +249,25 @@ function neighborLine(building) {
   return `\nNot listed at the ${n} ${others} checked in your building${different}, so it may be only your line.`
 }
 
-// Xfinity's notice in its own words: the short title, then the text.
-function noticeWords(title, text) {
-  const head = textOf(title)
-  const body = textOf(text)
-  const parts = []
-  if (head) parts.push(`<i>${esc(/[.!?]$/.test(head) ? head : head + '.')}</i>`)
-  if (body) parts.push(esc(body))
-  return parts.join(' ')
+// The all-clear's sentence, for Telegram and Slack alike. The monitor only
+// sees Xfinity's record, at 15-minute checks, so it says when the record
+// cleared rather than a downtime it cannot measure. When a notice followed
+// the outage, the record cleared when the notice went.
+function clearedSentence(c) {
+  const start = readableClock(c.reportedStart ?? c.startTime)
+  const which = start ? `the outage that started at ${start}` : 'the outage'
+  const title = textOf(c.notice?.title)
+  const after = !c.notice
+    ? ''
+    : title
+    ? ` and the "${esc(title)}" notice after it`
+    : ' and the notice after it'
+  const subject = c.notice ? 'The notice' : 'It'
+  const window = c.lastListedAt
+    ? ` ${subject} was still listed at ${formatTime(c.lastListedAt)}` +
+      ` and gone by ${formatTime(c.goneAt)}.`
+    : ''
+  return `Xfinity has cleared ${which}${after}.${window}`
 }
 
 // Telegram parses these messages as HTML, so text from Xfinity must not be
@@ -246,14 +318,12 @@ export function buildMessage(changes, state) {
   const parts = []
   const svc = esc((state.services ?? ['Internet']).join(', '))
   const etr = esc(etrText(state))
-  const now = new Date(state.checkedAt ?? Date.now())
 
   for (const c of changes) {
     if (c.type === 'new_outage') {
-      const since = formatTime(state.startTime)
-      const upcoming =
-        state.startTime && new Date(state.startTime).getTime() > now.getTime()
-      if (state.planned && upcoming) {
+      const ahead = upcoming(state)
+      const since = formatTime(ahead ? state.startTime : startOf(state))
+      if (ahead) {
         parts.push(
           `<b>Xfinity: Planned maintenance scheduled</b>\n\n` +
             `Xfinity has scheduled maintenance that may affect your ${svc} service.\n` +
@@ -280,7 +350,6 @@ export function buildMessage(changes, state) {
         )
       }
     } else if (c.type === 'resolved') {
-      const started = formatTime(c.reportedStart ?? c.startTime)
       const scheduledAhead =
         c.planned &&
         c.startTime &&
@@ -295,28 +364,22 @@ export function buildMessage(changes, state) {
             )}.`
         )
       } else {
-        // The monitor only sees Xfinity's record, at 15-minute checks, so it
-        // reports when the record cleared rather than a downtime it cannot
-        // measure.
-        const which =
-          c.reportedStart ?? c.startTime
-            ? `the outage that started at ${started}`
-            : 'the outage'
-        const window = c.lastListedAt
-          ? ` It was still listed at ${formatTime(c.lastListedAt)}` +
-            ` and gone by ${formatTime(c.goneAt)}.`
-          : ''
-        const words = c.notice ? noticeWords(c.notice.title, c.notice.text) : ''
-        const instead = !c.notice
-          ? ''
-          : words
-          ? `\n\nXfinity now shows this notice instead:\n${words}`
-          : `\n\nXfinity now shows a notice instead, with no text.`
-        parts.push(
-          `<b>Xfinity: Internet is back</b>\n\n` +
-            `Xfinity has cleared ${which}.${window}${instead}`
-        )
+        parts.push(`<b>Xfinity: Internet is back</b>\n\n${clearedSentence(c)}`)
       }
+    } else if (c.type === 'outage_to_notice') {
+      const title = textOf(state.shortDescription)
+      const body = textOf(state.noticeText)
+      const start = readableClock(c.reportedStart ?? c.startTime)
+      const which = start ? `the outage that started at ${start}` : 'the outage'
+      const by = c.lastListedAt
+        ? ` It was still listed at ${formatTime(c.lastListedAt)}, and by ` +
+          `${formatTime(state.checkedAt)} Xfinity showed`
+        : ` By ${formatTime(state.checkedAt)} Xfinity showed`
+      parts.push(
+        `<b>Xfinity: ${esc(title ?? 'Notice for your address')}</b>\n\n` +
+          `Xfinity no longer lists ${which}.${by} this notice instead` +
+          (body ? `:\n${esc(body)}` : ', with no text.')
+      )
     } else if (c.type === 'notice_posted') {
       const title = textOf(state.shortDescription)
       const body = textOf(state.noticeText)
@@ -386,64 +449,49 @@ export function buildMessage(changes, state) {
     // back. They are still logged, and the all-clear follows when the outage
     // clears. Evidence and the open question: the Craft note in README.
     // notice_cleared is silent too: a notice going away asks nothing of you.
+    // A notice that followed an outage ends in the all-clear instead.
   }
 
   return parts.join('\n\n')
 }
 
 // The Slack post for #infra-homeassistant-incidents, where PagerDuty posts
-// Home Assistant's incidents: one line when the home outage starts and one
-// when it clears, so those incidents can be read against it. Every other
-// change posts nothing. Slack mrkdwn needs only &, < and > escaped, which esc
-// does. Returns '' when there is nothing to post.
-export function buildSlack(changes, state) {
-  const lines = []
-  const now = new Date(state.checkedAt ?? Date.now())
-  for (const c of changes) {
-    if (c.type === 'new_outage') {
-      const upcoming =
-        state.startTime && new Date(state.startTime).getTime() > now.getTime()
-      if (state.planned && upcoming) continue
-      const what = state.planned ? 'planned maintenance' : 'outage'
-      const svc = esc((state.services ?? ['Internet']).join(', '))
-      const etr = esc(etrText(state))
-      const building = neighborLine(state.building).trim()
-      const since = readableClock(state.startTime)
-      lines.push(
-        `:red_circle: *Xfinity ${what} at home*` +
-          (since ? ` since ${since}` : '') +
-          `, affecting ${svc}. ` +
-          (etr
-            ? `Xfinity estimates restoration by ${etr}.`
-            : `Xfinity has not given a restore time yet.`) +
-          (building ? ` ${building}` : '')
-      )
-    } else if (c.type === 'resolved') {
-      const scheduledAhead =
-        c.planned &&
-        c.startTime &&
-        new Date(c.startTime).getTime() > new Date(c.goneAt).getTime()
-      if (scheduledAhead) continue
-      const start = c.reportedStart ?? c.startTime
-      const clock = readableClock(start)
-      const started = clock ? ` It started at ${clock}` : ''
-      const window = c.lastListedAt
-        ? `${started ? ',' : ' It'} was still listed at ${formatTime(
-            c.lastListedAt
-          )} and gone by ${formatTime(c.goneAt)}.`
-        : started
-        ? '.'
-        : ''
-      const title = textOf(c.notice?.title)
-      const notice = !c.notice
-        ? ''
-        : title
-        ? ` Xfinity now shows a notice instead: "${esc(title)}".`
-        : ` Xfinity now shows a notice instead.`
-      lines.push(
-        `:large_green_circle: *Xfinity outage at home cleared*.${started}${window}${notice}`
-      )
-    }
+// Home Assistant's incidents: one when a home outage comes on and one when it
+// goes off, with the Telegram titles, so the alerts in between read as this
+// outage. It follows isOn rather than the Telegram messages, so the two
+// always pair: a notice replacing the outage, a new outage ID while one is on,
+// estimate changes and building news post nothing, and maintenance posts
+// when its start passes. Slack mrkdwn needs &, < and > escaped, which esc
+// does; *, _ and ~ in Xfinity's text still format. Returns '' when there is
+// nothing to post.
+export function buildSlack(old, next) {
+  const was = isOn(old)
+  const now = isOn(next)
+  if (!was && now) {
+    const etr = esc(etrText(next))
+    const since = readableClock(startOf(next))
+    const what = next.planned ? 'Planned maintenance' : 'An unplanned outage'
+    const building = next.planned ? '' : neighborLine(next.building).trim()
+    return (
+      `:red_circle: *Xfinity: Internet is down${
+        next.planned ? ' (planned maintenance)' : ''
+      }*\n` +
+      (since
+        ? `${what} started at ${since}, affecting ${esc(
+            (next.services ?? ['Internet']).join(', ')
+          )}. `
+        : `${what} is affecting ${esc(
+            (next.services ?? ['Internet']).join(', ')
+          )}. `) +
+      (etr
+        ? `Xfinity estimates restoration by ${etr}.`
+        : `Xfinity has not given a restore time yet.`) +
+      (building ? ` ${building}` : '')
+    )
   }
-  return lines.join('\n')
+  if (was && !now)
+    return `:large_green_circle: *Xfinity: Internet is back*\n${clearedSentence(
+      clearedFrom(old, next)
+    )}`
+  return ''
 }

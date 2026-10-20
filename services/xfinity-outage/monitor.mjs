@@ -13,7 +13,7 @@ import { httpError, withRetry } from './retry.mjs'
 import {
   buildMessage,
   buildSlack,
-  carryStart,
+  carryOver,
   detectChanges,
   extractState
 } from './changes.mjs'
@@ -315,7 +315,7 @@ async function main() {
   const oldState = store.load()
   const newState = attachBuilding(
     oldState,
-    carryStart(oldState, homeState),
+    carryOver(oldState, homeState),
     building,
     homeIds
   )
@@ -337,8 +337,7 @@ async function main() {
   // After Telegram: a failed Telegram send fails the run before this, and the
   // next run sends both. A failed Slack post is recorded and the run goes on,
   // so the state is saved and that post is not retried.
-  const slackText =
-    slackUrl && changes.length > 0 ? buildSlack(changes, newState) : ''
+  const slackText = slackUrl ? buildSlack(oldState, newState) : ''
   if (slackText) {
     try {
       await sendSlack(slackUrl, slackText)
