@@ -280,7 +280,7 @@ export function buildMessage(changes, state) {
           (etr ? ` ETA: ${etr}.` : '')
       )
     } else if (c.type === 'building_outage') {
-      const b = state.buildingOutage
+      const b = c
       const started = readableClock(b.startTime)
       const since = started ? `, started at ${started}` : ''
       const restore = esc(etrText(b))

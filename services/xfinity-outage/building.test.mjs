@@ -6,6 +6,7 @@ import {
   buildingQuery,
   homeParts,
   neighborError,
+  neighborParam,
   neighborResult,
   pickNeighbors,
   residentialUnit,
@@ -151,11 +152,15 @@ test('a 404 means no Xfinity service; a malformed body is a failure', () => {
     assert.equal(neighborResult(bad).status, 'error', JSON.stringify(bad))
 })
 
-test('planned maintenance at a neighbor does not count as an outage', () => {
-  assert.equal(
-    neighborResult(outagePayload(X, { planned: true })).status,
-    'clear'
-  )
+test('planned maintenance at a neighbor cannot start a building alert', () => {
+  const planned = neighborResult(outagePayload(X, { planned: true }))
+  assert.equal(planned.status, 'outage')
+  assert.equal(planned.planned, true)
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [planned, planned, planned]]
+  ])
+  assert.equal(sent[1], '')
 })
 
 test('no evidence is not an all-clear: failures, zero answers and empty lists', () => {
@@ -316,16 +321,19 @@ test('home planned maintenance does not hide a real building outage', () => {
   assert.match(sent[1], /Outage in your building/)
 })
 
-test('a new top outage ID does not re-alert while the first is still listed', () => {
+test('two building outages are tracked and closed separately', () => {
   const sent = sequence([
     [clearPayload, [clear()]],
     [clearPayload, [out(X), out(X), out(Y), out(Y)]],
     [clearPayload, [out(X), out(X), out(Y), out(Y), out(Y)]],
-    [clearPayload, [out(Y), out(Y), out(Y)]]
+    [clearPayload, [out(Y), out(Y), out(Y)]],
+    [clearPayload, [clear(), clear()]]
   ])
-  assert.match(sent[1], /Outage in your building/)
+  assert.equal(sent[1].match(/Outage in your building/g).length, 2)
   assert.equal(sent[2], '')
-  assert.match(sent[3], /Building outage cleared[\s\S]*Outage in your building/)
+  assert.equal(sent[3].match(/Building outage cleared/g).length, 1)
+  assert.doesNotMatch(sent[3], /Outage in your building/)
+  assert.equal(sent[4].match(/Building outage cleared/g).length, 1)
 })
 
 test('turning the check off drops a tracked building outage silently', () => {
@@ -408,4 +416,113 @@ test('no building message shows null, undefined, NaN, Invalid Date or unknown ti
             text
           )
         }
+})
+
+// Second review, 2026-10-20: sequences its enumeration found.
+
+test('a takeover on a run without neighbor evidence still closes the alert silently', () => {
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [out(), out()]],
+    [outagePayload(), null],
+    [clearPayload, [out(), out()]],
+    [clearPayload, [clear(), clear()]]
+  ])
+  assert.match(sent[1], /Outage in your building/)
+  assert.match(sent[2], /^<b>Xfinity: Internet is down<\/b>/)
+  assert.doesNotMatch(sent[2], /apartments/)
+  assert.match(sent[3], /^<b>Xfinity: Internet is back<\/b>/)
+  assert.doesNotMatch(sent[3], /building/i)
+  assert.equal(sent[4], '')
+})
+
+test('an outage the home listed in the last 6 hours is never announced as the building', () => {
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [outagePayload(), null],
+    [clearPayload, null],
+    [clearPayload, [out(), out()]],
+    [clearPayload, [clear(), clear()]]
+  ])
+  assert.match(sent[2], /Internet is back/)
+  assert.deepEqual(sent.slice(3), ['', ''])
+  const rising = sequence([
+    [clearPayload, [clear()]],
+    [outagePayload(), [out(), clear()]],
+    [clearPayload, [out(), clear()]],
+    [clearPayload, [out(), out()]]
+  ])
+  assert.equal(rising[3], '')
+})
+
+test('after 6 hours the same ID can be announced as the building', () => {
+  let state = run(null, outagePayload(), [out(), out()], 0).next
+  state = run(state, clearPayload, [out(), out()], 15).next
+  const later = run(state, clearPayload, [out(), out()], 15 + 6 * 60 + 15)
+  assert.match(later.text, /Outage in your building/)
+})
+
+test('the home starting the outage as the neighbors clear sends no building all-clear', () => {
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [out(), out()]],
+    [outagePayload(), [clear(), clear()]]
+  ])
+  assert.match(sent[2], /^<b>Xfinity: Internet is down<\/b>/)
+  assert.doesNotMatch(sent[2], /Building outage cleared/)
+})
+
+test('a planned reclassification keeps the alert until no neighbor lists it', () => {
+  const planned = neighborResult(outagePayload(X, { planned: true }))
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [clearPayload, [out(), out()]],
+    [clearPayload, [planned, planned]],
+    [clearPayload, [clear(), clear()]]
+  ])
+  assert.equal(sent[2], '')
+  assert.match(sent[3], /Building outage cleared/)
+})
+
+test('entries without an outage ID or a customer message are failed lookups', () => {
+  for (const bad of [
+    {
+      outageInfoResponseList: [{ services: ['Internet'] }],
+      customerMessage: {}
+    },
+    { outageInfoResponseList: [null], customerMessage: {} },
+    { outageInfoResponseList: [{ outageId: X }], customerMessage: null }
+  ])
+    assert.equal(neighborResult(bad).status, 'error', JSON.stringify(bad))
+})
+
+test('numeric outage IDs compare equal to the home one', () => {
+  const numeric = {
+    ...outagePayload(),
+    outageInfoResponseList: [{ outageId: 14101723, startTime: { iso: START } }]
+  }
+  const sent = sequence([
+    [clearPayload, [clear()]],
+    [numeric, [neighborResult(numeric), neighborResult(numeric)]]
+  ])
+  assert.match(sent[1], /Same outage at 2 of 2/)
+  assert.doesNotMatch(sent[1], /Outage in your building/)
+})
+
+test('neighbor addresses are URL-encoded for the status call', () => {
+  assert.equal(
+    neighborParam('1 A&B PLAZA APT 4 CITY CA 94000'),
+    '1+A%26B+PLAZA+APT+4+CITY+CA+94000'
+  )
+  assert.equal(neighborParam('1 MAIN ST APT #4'), '1+MAIN+ST+APT+%234')
+})
+
+test('an outage ID such as __proto__ cannot touch shared objects', () => {
+  const evil = neighborResult({
+    outageInfoResponseList: [{ outageId: '__proto__' }],
+    customerMessage: {}
+  })
+  const summary = summarizeBuilding([evil, evil])
+  assert.equal({}.listed, undefined)
+  assert.equal(summary.ids['__proto__'].listed, 2)
 })

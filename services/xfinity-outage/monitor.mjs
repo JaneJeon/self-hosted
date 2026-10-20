@@ -16,6 +16,7 @@ import {
   attachBuilding,
   buildingQuery,
   neighborError,
+  neighborParam,
   neighborResult,
   pickNeighbors,
   summarizeBuilding
@@ -89,9 +90,11 @@ async function readJson(resp, label) {
   try {
     return JSON.parse(text)
   } catch {
-    throw new Error(
+    const err = new Error(
       `${label} returned a body that is not JSON (${text.length} bytes)`
     )
+    err.name = 'NonJsonBody'
+    throw err
   }
 }
 
@@ -165,7 +168,7 @@ async function checkBuilding(token, homeAddress, homeOutageId) {
     try {
       const data = await fetchOutageStatus(
         token,
-        neighbor.replace(/ /g, '+'),
+        neighborParam(neighbor),
         Math.max(1, left())
       )
       results.push(neighborResult(data))
@@ -196,7 +199,9 @@ async function sendTelegram(token, chatId, text) {
   const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+    // Without a limit a hung send would hold the state save and heartbeat.
+    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
   })
   if (!resp.ok) {
     const body = await resp.text().catch(() => '')

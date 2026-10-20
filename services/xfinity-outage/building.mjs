@@ -5,10 +5,13 @@
 
 // Neighbors checked per run, at one status call each.
 export const MAX_NEIGHBORS = 5
-// Neighbors on one outage ID before a building outage starts. It then lasts
-// until no neighbor lists that ID, so a count hovering at the threshold does
-// not flap between alert and all-clear.
+// Neighbors on one unplanned outage ID before a building alert goes out. The
+// alert then lasts until no neighbor lists that ID, so a count hovering at
+// the threshold does not flap.
 export const SHARED_MIN = 2
+// An outage the home address listed this recently is the home's, whatever the
+// neighbors show: its records often clear unit by unit.
+export const HOME_SEEN_MS = 6 * 60 * 60 * 1000
 
 function decodeHome(homeAddress) {
   const raw = String(homeAddress ?? '').replace(/\+/g, ' ')
@@ -21,6 +24,7 @@ function decodeHome(homeAddress) {
 
 function splitUnit(text) {
   const ws = String(text ?? '')
+    .replace(/,/g, ' ')
     .trim()
     .toUpperCase()
     .split(/\s+/)
@@ -41,7 +45,7 @@ export function homeParts(homeAddress) {
   return splitUnit(decodeHome(homeAddress))
 }
 
-// "250 Main St Apt Springfield CA 94000": the typeahead query for the
+// "250 MAIN ST APT SPRINGFIELD CA 94000": the typeahead query for the
 // building, which is the home address without its unit number.
 export function buildingQuery(homeAddress) {
   const home = homeParts(homeAddress)
@@ -49,9 +53,9 @@ export function buildingQuery(homeAddress) {
   return [home.street, home.marker, home.rest].filter(Boolean).join(' ')
 }
 
-// A residential apartment's unit, "APT 816" giving "816". Null for anything
-// else, such as "UNIT HMOFC" or "APT 710-HMOFC": those read as business
-// lines, which may not share residential service.
+// A residential apartment's unit, "APT 816" giving "816" and "APT 3B" giving
+// "3B". Null for anything else, such as "UNIT HMOFC" or "APT 710-HMOFC":
+// those read as business lines, which may not share residential service.
 export function residentialUnit(address) {
   const parts = splitUnit(address)
   if (!parts || parts.marker !== 'APT') return null
@@ -81,19 +85,28 @@ export function pickNeighbors(typeahead, homeAddress, max = MAX_NEIGHBORS) {
   return picked
 }
 
-// One neighbor's status call, reduced to what the comparison needs. Planned
-// maintenance does not count: the check is for outages Xfinity does not
-// announce. A body without an outage list is a failed lookup, not a clear.
+// The status call's address parameter, in the same form as HOME_ADDRESS.
+export function neighborParam(address) {
+  return encodeURIComponent(address).replace(/%20/g, '+')
+}
+
+// One neighbor's status call, reduced to what the comparison needs. Anything
+// that is not a clear list or a whole outage entry is a failed lookup, so
+// it can never read as an all-clear.
 export function neighborResult(data) {
   const list = data?.outageInfoResponseList
   if (!Array.isArray(list)) return { status: 'error', reason: 'bad body' }
+  if (list.length === 0) return { status: 'clear' }
   const outage = list[0]
-  if (!outage) return { status: 'clear' }
-  const msg = data.customerMessage ?? {}
-  if (msg.planned === true) return { status: 'clear' }
+  const msg = data.customerMessage
+  if (!outage || typeof outage !== 'object' || outage.outageId == null)
+    return { status: 'error', reason: 'bad body' }
+  if (!msg || typeof msg !== 'object')
+    return { status: 'error', reason: 'bad body' }
   return {
     status: 'outage',
-    outageId: outage.outageId ?? null,
+    outageId: String(outage.outageId),
+    planned: msg.planned === true,
     startTime: outage.startTime?.iso ?? null,
     etr: msg.etr?.iso ?? null,
     etrDisplay: msg.etrOutputString ?? null
@@ -108,29 +121,31 @@ export function neighborError(err) {
 }
 
 // The building's state this run, or null when the run gives no evidence:
-// a failed lookup, or no neighbor that answered. A partial or empty count
-// could otherwise read as an all-clear.
+// a failed lookup, or no neighbor that answered.
 export function summarizeBuilding(results, homeOutageId = null) {
   if (results.some(r => r.status === 'error')) return null
   const answered = results.filter(
     r => r.status === 'outage' || r.status === 'clear'
   )
   if (answered.length === 0) return null
-  const ids = {}
+  const ids = Object.create(null)
   for (const r of answered) {
-    if (r.status !== 'outage' || !r.outageId) continue
-    ids[r.outageId] ??= {
-      count: 0,
+    if (r.status !== 'outage') continue
+    const entry = (ids[r.outageId] ??= {
+      listed: 0,
+      unplanned: 0,
       startTime: r.startTime,
       etr: r.etr,
       etrDisplay: r.etrDisplay
-    }
-    ids[r.outageId].count++
+    })
+    entry.listed++
+    if (!r.planned) entry.unplanned++
   }
+  const home = homeOutageId == null ? null : String(homeOutageId)
   return {
     checked: answered.length,
     withOutage: answered.filter(r => r.status === 'outage').length,
-    sameAsHome: homeOutageId ? ids[homeOutageId]?.count ?? 0 : 0,
+    sameAsHome: home ? ids[home]?.listed ?? 0 : 0,
     ids
   }
 }
@@ -138,63 +153,76 @@ export function summarizeBuilding(results, homeOutageId = null) {
 // Marks a run where the home address has no unit, so the check is off.
 export const BUILDING_OFF = Object.freeze({ off: true })
 
-// The building outage being tracked after this run, or null.
-// `announced` is true when a building alert went out for it, so its end is
-// ours to report. When the home address lists the same outage, the home
-// messages cover it from then on.
-function trackBuilding(old, next) {
-  const summary = next.building
-  const tracked = old?.buildingOutage ?? null
-  if (summary === BUILDING_OFF || summary?.off) return null
-  if (!summary) return tracked // no evidence this run: nothing changes
-  const homeLists = id => next.hasOutage && next.outageId === id
-  // The home address listed it at the previous check: its record is
-  // clearing before the neighbors' records, and "Internet is back" covers it.
-  const homeListed = id => old?.hasOutage && old.outageId === id
+// Adds this run's building result to the new state and decides this run's
+// building messages, in one place, because a diff of two states cannot tell
+// an outage that ended from one the home address took over.
+//
+// `summary` is a summary, null for a run without evidence, or BUILDING_OFF.
+// State kept: `buildingAlerts`, the building outages announced and not yet
+// closed, and `homeSeen`, when the home address last listed each outage ID.
+export function attachBuilding(old, next, summary) {
+  const now = Date.parse(next.checkedAt)
+  const homeId =
+    next.hasOutage && next.outageId != null ? String(next.outageId) : null
 
-  if (tracked && summary.ids[tracked.outageId]?.count >= 1) {
-    const now = summary.ids[tracked.outageId]
-    return {
-      ...tracked,
-      count: now.count,
-      checked: summary.checked,
-      etr: now.etr,
-      etrDisplay: now.etrDisplay,
-      announced: tracked.announced && !homeLists(tracked.outageId)
+  const homeSeen = Object.create(null)
+  for (const [id, at] of Object.entries(old?.homeSeen ?? {}))
+    if (now - Date.parse(at) < HOME_SEEN_MS) homeSeen[id] = at
+  if (homeId) homeSeen[homeId] = next.checkedAt
+  // State saved before this check existed has no homeSeen: its home outage
+  // counts as seen at its last check.
+  if (!old?.homeSeen && old?.hasOutage && old.outageId != null)
+    homeSeen[String(old.outageId)] ??= old.checkedAt ?? next.checkedAt
+
+  const alerts = Object.create(null)
+  Object.assign(alerts, old?.buildingAlerts ?? {})
+  const events = []
+  const result = {
+    ...next,
+    building: summary ?? null,
+    homeSeen: { ...homeSeen }
+  }
+
+  // Turned off: nothing was observed ending, so nothing is said.
+  if (summary?.off) return { ...result, buildingAlerts: {}, buildingEvents: [] }
+
+  // The home address now lists an announced outage: its own messages cover
+  // the rest, so the building alert closes without a word. This needs only
+  // the home check, so it holds on runs without neighbor evidence too.
+  if (homeId) delete alerts[homeId]
+
+  if (summary) {
+    for (const [id, alert] of Object.entries(alerts)) {
+      const current = summary.ids[id]
+      if (!current?.listed) {
+        delete alerts[id]
+        events.push({ type: 'building_cleared', outageId: id, ...alert })
+      } else {
+        alerts[id] = {
+          ...alert,
+          count: current.listed,
+          checked: summary.checked,
+          etr: current.etr,
+          etrDisplay: current.etrDisplay
+        }
+      }
+    }
+    for (const [id, entry] of Object.entries(summary.ids)) {
+      if (alerts[id] || homeSeen[id] || entry.unplanned < SHARED_MIN) continue
+      alerts[id] = {
+        count: entry.listed,
+        checked: summary.checked,
+        startTime: entry.startTime,
+        etr: entry.etr,
+        etrDisplay: entry.etrDisplay
+      }
+      events.push({ type: 'building_outage', outageId: id, ...alerts[id] })
     }
   }
 
-  let top = null
-  for (const [outageId, entry] of Object.entries(summary.ids))
-    if (!top || entry.count > top.count) top = { outageId, ...entry }
-  if (!top || top.count < SHARED_MIN) return null
-  return {
-    outageId: top.outageId,
-    count: top.count,
-    checked: summary.checked,
-    startTime: top.startTime,
-    etr: top.etr,
-    etrDisplay: top.etrDisplay,
-    announced: !homeLists(top.outageId) && !homeListed(top.outageId)
-  }
-}
-
-// Adds this run's building summary to the new state. `summary` is a summary,
-// null for a run without evidence, or BUILDING_OFF.
-export function attachBuilding(old, next, summary) {
-  const withSummary = { ...next, building: summary ?? null }
-  return { ...withSummary, buildingOutage: trackBuilding(old, withSummary) }
+  return { ...result, buildingAlerts: { ...alerts }, buildingEvents: events }
 }
 
 export function buildingChanges(old, next) {
-  // Turned off: nothing was observed ending, so nothing is said.
-  if (next.building?.off) return []
-  const before = old?.buildingOutage ?? null
-  const after = next.buildingOutage ?? null
-  if ((before?.outageId ?? null) === (after?.outageId ?? null)) return []
-  const changes = []
-  if (before?.announced)
-    changes.push({ type: 'building_cleared', startTime: before.startTime })
-  if (after?.announced) changes.push({ type: 'building_outage' })
-  return changes
+  return next.buildingEvents ?? []
 }
