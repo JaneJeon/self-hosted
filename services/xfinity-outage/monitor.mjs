@@ -158,10 +158,13 @@ async function main() {
   const oldState = store.load()
   const changes = detectChanges(oldState, newState)
 
-  if (changes.length > 0) {
-    const msg = buildMessage(changes, newState)
+  const msg = buildMessage(changes, newState)
+  if (msg) {
     await sendTelegram(tgToken, tgChatId, msg)
     logger.info({ changes: changes.map(c => c.type) }, 'notification sent')
+  } else if (changes.length > 0) {
+    // Some changes (a dropped restore estimate) are recorded but not sent.
+    logger.info({ changes }, 'change recorded, nothing to notify')
   } else {
     logger.info('no change detected')
   }
