@@ -10,7 +10,12 @@ import {
 import { dirname } from 'node:path'
 import pino from 'pino'
 import { httpError, withRetry } from './retry.mjs'
-import { buildMessage, detectChanges, extractState } from './changes.mjs'
+import {
+  buildMessage,
+  carryStart,
+  detectChanges,
+  extractState
+} from './changes.mjs'
 import {
   BUILDING_OFF,
   attachBuilding,
@@ -287,7 +292,12 @@ async function main() {
   }
 
   const oldState = store.load()
-  const newState = attachBuilding(oldState, homeState, building, homeIds)
+  const newState = attachBuilding(
+    oldState,
+    carryStart(oldState, homeState),
+    building,
+    homeIds
+  )
   const changes = detectChanges(oldState, newState)
 
   // Built only when something changed, so a malformed field can break at

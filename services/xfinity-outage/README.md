@@ -1,6 +1,6 @@
 ## Xfinity Outage Monitor
 
-Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent. Does not re-notify for the same ongoing outage.
+Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent. Does not re-notify for the same ongoing outage. Messages keep naming the start time the first alert gave, even when Xfinity moves it while the outage lasts.
 
 Xfinity also lists notices that are not outages: `outageType` `Informational`, such as "Technician in your area … you could experience brief interruptions". An outage that turns into a notice counts as cleared, and the all-clear quotes the notice. A notice on its own gets one message in Xfinity's words, and a notice going away sends nothing.
 

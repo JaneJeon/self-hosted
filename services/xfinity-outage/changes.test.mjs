@@ -1,6 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildMessage, detectChanges, extractState } from './changes.mjs'
+import {
+  buildMessage,
+  carryStart,
+  detectChanges,
+  extractState
+} from './changes.mjs'
 
 // Fixtures mirror the fields monitor.mjs reads from the Xfinity API. The
 // values are the 2026-10-19 outage: started 9:06 PM PDT, estimate 12:10 AM.
@@ -438,4 +443,57 @@ test('no transition between outages and notices prints a bad token', () => {
         text
       )
     }
+})
+
+test('2026-10-20: the all-clear names the start the first alert gave', () => {
+  // Xfinity moved the start from 7:32 to 10:32 AM while the outage lasted,
+  // and the all-clear once said "the outage that started at 10:32 AM".
+  const moved = {
+    ...OUTAGE_1020,
+    outageInfoResponseList: [
+      {
+        ...OUTAGE_1020.outageInfoResponseList[0],
+        startTime: { iso: '2026-10-20T10:32:00-07:00' }
+      }
+    ]
+  }
+  const runs = [
+    [CLEARED, '2026-10-20T14:30:20Z'],
+    [OUTAGE_1020, '2026-10-20T14:45:57Z'],
+    [moved, '2026-10-20T19:17:32Z'],
+    [CLEARED, '2026-10-20T19:31:12Z']
+  ]
+  let old = null
+  const sent = runs.map(([payload, t]) => {
+    const next = carryStart(old, state(payload, t))
+    const text = message(old, next)
+    old = next
+    return text
+  })
+  assert.match(sent[1], /started at 7:32 AM PDT/)
+  assert.equal(sent[2], '')
+  assert.match(sent[3], /cleared the outage that started at 7:32 AM PDT\./)
+  assert.equal(old.reportedStart, null)
+})
+
+test('the first-reported start falls back, and resets for a new outage', () => {
+  const t = '2026-10-20T19:17:32Z'
+  const legacy = state(OUTAGE_1020, t)
+  delete legacy.reportedStart
+  const moved = {
+    ...OUTAGE_1020,
+    outageInfoResponseList: [
+      {
+        ...OUTAGE_1020.outageInfoResponseList[0],
+        startTime: { iso: '2026-10-20T10:32:00-07:00' }
+      }
+    ]
+  }
+  assert.equal(
+    carryStart(legacy, state(moved, t)).reportedStart,
+    '2026-10-20T07:32:17-07:00'
+  )
+  const other = listed({ id: 'OUTAGE-2' })
+  assert.equal(carryStart(legacy, state(other, t)).reportedStart, START)
+  assert.equal(carryStart(legacy, state(notice(), t)).reportedStart, null)
 })

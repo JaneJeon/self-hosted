@@ -100,6 +100,25 @@ function compareType(old, next) {
   }
 }
 
+// Xfinity can move an outage's start while it lasts: on 2026-10-20 the
+// outage first reported as starting at 7:32 AM later listed 10:32 AM, and the
+// all-clear named 10:32. `reportedStart` keeps the start the first alert gave,
+// for as long as the same outage is listed. State saved without it falls back
+// to its start time.
+export function carryStart(old, next) {
+  if (!next.hasOutage || next.notice) return { ...next, reportedStart: null }
+  const same = old?.hasOutage && !old.notice && old.outageId === next.outageId
+  const reportedStart = same
+    ? old.reportedStart ?? old.startTime ?? next.startTime
+    : next.startTime
+  return { ...next, reportedStart }
+}
+
+// The start time messages name: the first one reported.
+function startOf(state) {
+  return state.reportedStart ?? state.startTime
+}
+
 // What the home address lists: nothing, an outage, or a notice.
 function kindOf(state) {
   if (!state?.hasOutage) return 'none'
@@ -119,6 +138,7 @@ function homeChanges(old, next) {
         {
           type: 'resolved',
           startTime: old.startTime,
+          reportedStart: startOf(old),
           planned: old.planned,
           lastListedAt: old.checkedAt ?? null,
           goneAt: next.checkedAt,
@@ -260,7 +280,7 @@ export function buildMessage(changes, state) {
         )
       }
     } else if (c.type === 'resolved') {
-      const started = formatTime(c.startTime)
+      const started = formatTime(c.reportedStart ?? c.startTime)
       const scheduledAhead =
         c.planned &&
         c.startTime &&
@@ -278,9 +298,10 @@ export function buildMessage(changes, state) {
         // The monitor only sees Xfinity's record, at 15-minute checks, so it
         // reports when the record cleared rather than a downtime it cannot
         // measure.
-        const which = c.startTime
-          ? `the outage that started at ${started}`
-          : 'the outage'
+        const which =
+          c.reportedStart ?? c.startTime
+            ? `the outage that started at ${started}`
+            : 'the outage'
         const window = c.lastListedAt
           ? ` It was still listed at ${formatTime(c.lastListedAt)}` +
             ` and gone by ${formatTime(c.goneAt)}.`
@@ -305,7 +326,7 @@ export function buildMessage(changes, state) {
           `Xfinity lists this as a notice, not an outage.`
       )
     } else if (c.type === 'etr_set') {
-      const since = formatTime(state.startTime)
+      const since = formatTime(startOf(state))
       const label = state.planned ? ' (planned maintenance)' : ''
       parts.push(
         `<b>Xfinity: Outage ETA posted</b>\n\n` +
@@ -313,7 +334,7 @@ export function buildMessage(changes, state) {
           `Internet still down since ${since}${label}.`
       )
     } else if (c.type === 'etr_pushed') {
-      const since = formatTime(state.startTime)
+      const since = formatTime(startOf(state))
       const label = state.planned ? ' (planned maintenance)' : ''
       parts.push(
         `<b>Xfinity: Outage ETA pushed back</b>\n\n` +
@@ -321,7 +342,7 @@ export function buildMessage(changes, state) {
           `Internet still down since ${since}${label}.`
       )
     } else if (c.type === 'etr_earlier') {
-      const since = formatTime(state.startTime)
+      const since = formatTime(startOf(state))
       const label = state.planned ? ' (planned maintenance)' : ''
       parts.push(
         `<b>Xfinity: Outage ETA moved up</b>\n\n` +
@@ -329,7 +350,7 @@ export function buildMessage(changes, state) {
           `Internet still down since ${since}${label}.`
       )
     } else if (c.type === 'type_changed') {
-      const since = formatTime(state.startTime)
+      const since = formatTime(startOf(state))
       const was = c.oldType
         ? `Previously reported as ${esc(c.oldType)}, now listed as ${esc(
             c.newType
