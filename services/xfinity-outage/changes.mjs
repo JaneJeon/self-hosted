@@ -342,10 +342,18 @@ function formatDateTime(isoString) {
   })
 }
 
+// The services an outage lists, or "Internet" when it lists none.
+function servicesOf(state) {
+  const list = Array.isArray(state.services)
+    ? state.services.filter(x => textOf(x))
+    : []
+  return esc((list.length ? list : ['Internet']).join(', '))
+}
+
 // Returns '' when no change is worth a notification.
 export function buildMessage(changes, state) {
   const parts = []
-  const svc = esc((state.services ?? ['Internet']).join(', '))
+  const svc = servicesOf(state)
   const etr = esc(etrText(state))
 
   for (const c of changes) {
@@ -506,12 +514,8 @@ export function buildSlack(old, next) {
         next.planned ? ' (planned maintenance)' : ''
       }*\n` +
       (since
-        ? `${what} started at ${since}, affecting ${esc(
-            (next.services ?? ['Internet']).join(', ')
-          )}. `
-        : `${what} is affecting ${esc(
-            (next.services ?? ['Internet']).join(', ')
-          )}. `) +
+        ? `${what} started at ${since}, affecting ${servicesOf(next)}. `
+        : `${what} is affecting ${servicesOf(next)}. `) +
       (etr
         ? `Xfinity estimates restoration by ${etr}.`
         : `Xfinity has not given a restore time yet.`) +

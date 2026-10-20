@@ -846,3 +846,18 @@ test('the home street is masked in a notice, whatever its case and spacing', () 
   const plain = extractState(named, at('2026-10-20T19:31:20Z'))
   assert.equal(plain.noticeText, 'We will be working near 100  Main St today.')
 })
+
+test('an outage that lists no services says Internet', () => {
+  const none = {
+    ...OUTAGE_1020,
+    outageInfoResponseList: [
+      { ...OUTAGE_1020.outageInfoResponseList[0], services: [] }
+    ]
+  }
+  const runs = replay([
+    [CLEARED, '2026-10-20T14:30:20Z'],
+    [none, '2026-10-20T14:45:57Z']
+  ])
+  assert.match(runs[1].telegram, /affecting Internet service/)
+  assert.match(runs[1].slack, /affecting Internet\./)
+})
