@@ -165,7 +165,9 @@ async function main() {
   const oldState = store.load()
   const changes = detectChanges(oldState, newState)
 
-  const msg = buildMessage(changes, newState)
+  // Built only when something changed, so a malformed field can break at
+  // most the run that has news, not every quiet 15-minute check.
+  const msg = changes.length > 0 ? buildMessage(changes, newState) : ''
   if (msg) {
     await sendTelegram(tgToken, tgChatId, msg)
     logger.info({ changes: changes.map(c => c.type) }, 'notification sent')
