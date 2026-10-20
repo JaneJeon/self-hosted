@@ -2,5 +2,5 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
-COPY monitor.mjs retry.mjs changes.mjs ./
+COPY monitor.mjs retry.mjs changes.mjs building.mjs ./
 CMD ["node", "monitor.mjs"]

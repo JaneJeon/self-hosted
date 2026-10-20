@@ -11,6 +11,14 @@ import { dirname } from 'node:path'
 import pino from 'pino'
 import { httpError, withRetry } from './retry.mjs'
 import { buildMessage, detectChanges, extractState } from './changes.mjs'
+import {
+  attachBuilding,
+  buildingQuery,
+  neighborError,
+  neighborResult,
+  pickNeighbors,
+  summarizeBuilding
+} from './building.mjs'
 
 const logger = pino()
 
@@ -91,6 +99,58 @@ async function fetchOutageStatus(token, address) {
   return resp.json()
 }
 
+async function fetchTypeahead(token, query) {
+  const url =
+    `https://api.sc.xfinity.com/address/typeahead` +
+    `?address=${encodeURIComponent(query)}&origins=eloc&tokenized=false`
+  const resp = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Origin: XFINITY_ORIGIN,
+      Referer: XFINITY_ORIGIN + '/',
+      'User-Agent': UA
+    },
+    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
+  })
+  if (!resp.ok)
+    throw httpError(`Typeahead API returned HTTP ${resp.status}`, resp.status)
+  return resp.json()
+}
+
+// Neighbors are best-effort: at most two attempts each and one minute in
+// total, so a slow upstream cannot hold up the home check's save and
+// heartbeat. Returns null when the check is off or could not finish.
+const NEIGHBOR_BUDGET_MS = 60_000
+
+async function checkBuilding(token, homeAddress, homeOutageId) {
+  const query = buildingQuery(homeAddress)
+  if (!query) return null
+  const typeahead = await withRetry(() => fetchTypeahead(token, query), {
+    label: 'building typeahead',
+    logger,
+    attempts: 2
+  })
+  const neighbors = pickNeighbors(typeahead, homeAddress)
+  const deadline = Date.now() + NEIGHBOR_BUDGET_MS
+  const results = []
+  for (const neighbor of neighbors) {
+    if (Date.now() > deadline) {
+      results.push({ status: 'error' })
+      break
+    }
+    try {
+      const data = await withRetry(
+        () => fetchOutageStatus(token, neighbor.replace(/ /g, '+')),
+        { label: 'neighbor status', logger, attempts: 2 }
+      )
+      results.push(neighborResult(data))
+    } catch (err) {
+      results.push(neighborError(err))
+    }
+  }
+  return summarizeBuilding(results, homeOutageId)
+}
+
 async function sendTelegram(token, chatId, text) {
   const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
@@ -149,20 +209,31 @@ async function main() {
     label: 'outage status',
     logger
   })
-  const newState = extractState(data)
+  const homeState = extractState(data)
   // customerMessage is logged whole because the API is undocumented, so the
   // logs show what Xfinity said at each check, for example when it drops an
   // estimate.
   logger.info(
     {
-      hasOutage: newState.hasOutage,
-      outageType: newState.outageType,
+      hasOutage: homeState.hasOutage,
+      outageType: homeState.outageType,
       customerMessage: data.customerMessage ?? null
     },
     'outage status'
   )
 
+  // Neighbor addresses never reach the logs or the state file, only counts
+  // and outage IDs. A failure here leaves the home check untouched.
+  let building = null
+  try {
+    building = await checkBuilding(token, address, homeState.outageId)
+    logger.info({ building }, 'building check')
+  } catch (err) {
+    logger.warn({ err }, 'building check failed, keeping the previous result')
+  }
+
   const oldState = store.load()
+  const newState = attachBuilding(oldState, homeState, building)
   const changes = detectChanges(oldState, newState)
 
   // Built only when something changed, so a malformed field can break at

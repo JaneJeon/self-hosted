@@ -2,6 +2,8 @@
 // the notification. Kept separate from monitor.mjs so tests can import it
 // without running a real monitor pass (the same reason retry.mjs is separate).
 
+import { buildingChanges } from './building.mjs'
+
 export function extractState(data, now = new Date()) {
   const outages = data.outageInfoResponseList ?? []
   const msg = data.customerMessage ?? null
@@ -85,7 +87,7 @@ function compareType(old, next) {
   }
 }
 
-export function detectChanges(old, next) {
+function homeChanges(old, next) {
   if (!old) return next.hasOutage ? [{ type: 'new_outage' }] : []
   if (!old.hasOutage && next.hasOutage) return [{ type: 'new_outage' }]
   if (old.hasOutage && !next.hasOutage)
@@ -106,6 +108,22 @@ export function detectChanges(old, next) {
   const typeChange = compareType(old, next)
   if (typeChange) changes.push(typeChange)
   return changes
+}
+
+export function detectChanges(old, next) {
+  return [...homeChanges(old, next), ...buildingChanges(old, next)]
+}
+
+// One line on the other apartments checked, for the home outage message.
+function neighborLine(building) {
+  if (!building || building.checked === 0) return ''
+  const n = building.checked
+  const others = n === 1 ? 'other apartment' : 'other apartments'
+  if (building.sameAsHome > 0)
+    return `\nSame outage at ${building.sameAsHome} of ${n} ${others} checked in your building.`
+  if (building.withOutage === 0)
+    return `\nNot listed at the ${n} ${others} checked in your building, so it may be only your line.`
+  return `\nThe ${others} checked in your building show a different outage.`
 }
 
 // Displays time in Pacific — this service monitors a California address.
@@ -154,7 +172,8 @@ export function buildMessage(changes, state) {
             `Xfinity has scheduled maintenance that may affect your ${svc} service.\n` +
             (etr
               ? `Window: ${since} – ${etr}.`
-              : `Starts ${since}. Xfinity has not given an end time.`)
+              : `Starts ${since}. Xfinity has not given an end time.`) +
+            neighborLine(state.building)
         )
       } else if (state.planned) {
         parts.push(
@@ -162,7 +181,8 @@ export function buildMessage(changes, state) {
             `Your internet went down at ${since}.\n` +
             (etr
               ? `Xfinity is doing scheduled network maintenance and expects to restore service by ${etr}.`
-              : `Xfinity is doing scheduled network maintenance and has not given a restore time.`)
+              : `Xfinity is doing scheduled network maintenance and has not given a restore time.`) +
+            neighborLine(state.building)
         )
       } else {
         parts.push(
@@ -170,7 +190,8 @@ export function buildMessage(changes, state) {
             `An unplanned outage started at ${since} affecting ${svc} service.\n` +
             (etr
               ? `Xfinity estimates restoration by ${etr}.`
-              : `Xfinity has not given a restore time yet.`)
+              : `Xfinity has not given a restore time yet.`) +
+            neighborLine(state.building)
         )
       }
     } else if (c.type === 'resolved') {
@@ -238,6 +259,24 @@ export function buildMessage(changes, state) {
           `${was}\n` +
           `Internet still down since ${since}.` +
           (etr ? ` ETA: ${etr}.` : '')
+      )
+    } else if (c.type === 'building_outage') {
+      const b = state.buildingOnly
+      const since = b.startTime ? `, started at ${formatTime(b.startTime)}` : ''
+      const restore = etrText(b)
+      parts.push(
+        `<b>Xfinity: Outage in your building</b>\n\n` +
+          `Xfinity lists an outage at ${b.count} of ${b.checked} other apartments checked in your building${since}. ` +
+          `It is not listed at your address.` +
+          (restore ? `\nXfinity estimates restoration by ${restore}.` : '')
+      )
+    } else if (c.type === 'building_cleared') {
+      const since = c.startTime
+        ? ` that started at ${formatTime(c.startTime)}`
+        : ''
+      parts.push(
+        `<b>Xfinity: Building outage cleared</b>\n\n` +
+          `Xfinity no longer lists the outage${since} at the other apartments checked in your building.`
       )
     }
     // etr_cleared and type_cleared are deliberately silent: the one observed
