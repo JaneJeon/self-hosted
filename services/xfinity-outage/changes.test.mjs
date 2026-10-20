@@ -222,7 +222,7 @@ test('planned maintenance removed before it starts reports no downtime', () => {
   const gone = state(CLEARED, '2026-10-20T04:30:20Z')
   const text = message(scheduled, gone)
   assert.match(text, /Planned maintenance removed/)
-  assert.match(text, /scheduled for 12:00 AM PDT/)
+  assert.match(text, /scheduled for 10\/22\/2026, 12:00 AM PDT\./)
   assert.doesNotMatch(text, /Internet is back|downtime|-\d/)
 })
 
@@ -276,5 +276,18 @@ test('a cleared outage with no start time leaves the start out', () => {
     '<b>Xfinity: Internet is back</b>\n\n' +
       'Xfinity has cleared the outage.' +
       ' It was still listed at 10:45 PM PDT and gone by 11:00 PM PDT.'
+  )
+})
+
+test('an estimate without a display string keeps its date', () => {
+  // Without the date, a whole-day move read "12:10 AM PDT → 12:10 AM PDT".
+  const today = state(listed({ etr: ETR }), '2026-10-20T04:30:20Z')
+  const tomorrow = state(
+    listed({ etr: '2026-10-21T00:10:00-07:00' }),
+    '2026-10-20T04:45:20Z'
+  )
+  assert.match(
+    message(today, tomorrow),
+    /10\/20\/2026, 12:10 AM PDT → 10\/21\/2026, 12:10 AM PDT\./
   )
 })

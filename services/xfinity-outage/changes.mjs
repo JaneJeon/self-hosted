@@ -51,7 +51,7 @@ function readableTime(iso) {
 // Xfinity's restore estimate as words, or null when Xfinity gives none.
 function etrText(state) {
   if (state.etrDisplay) return state.etrDisplay
-  if (readableTime(state.etr) !== null) return formatTime(state.etr)
+  if (readableTime(state.etr) !== null) return formatDateTime(state.etr)
   return null
 }
 
@@ -121,6 +121,22 @@ export function formatTime(isoString) {
   })
 }
 
+// With the date, for times that can be days away: an estimate without
+// Xfinity's own display string, or maintenance scheduled ahead. Without it, an
+// estimate moved by a whole day read "12:10 AM PDT → 12:10 AM PDT".
+function formatDateTime(isoString) {
+  return new Date(isoString).toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles',
+    month: 'numeric',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short'
+  })
+}
+
 // Returns '' when no change is worth a notification.
 export function buildMessage(changes, state) {
   const parts = []
@@ -169,7 +185,9 @@ export function buildMessage(changes, state) {
         // "downtime" from a future start time once printed ~-4004m.
         parts.push(
           `<b>Xfinity: Planned maintenance removed</b>\n\n` +
-            `Xfinity no longer lists the maintenance scheduled for ${started}.`
+            `Xfinity no longer lists the maintenance scheduled for ${formatDateTime(
+              c.startTime
+            )}.`
         )
       } else {
         // The monitor only sees Xfinity's record, at 15-minute checks, so it
