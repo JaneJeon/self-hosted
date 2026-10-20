@@ -150,8 +150,15 @@ async function main() {
     logger
   })
   const newState = extractState(data)
+  // customerMessage is logged whole because the API is undocumented: on
+  // 2026-10-19 the estimate went null one check before the outage cleared,
+  // and nothing recorded what else the message said at that moment.
   logger.info(
-    { hasOutage: newState.hasOutage, outageType: newState.outageType },
+    {
+      hasOutage: newState.hasOutage,
+      outageType: newState.outageType,
+      customerMessage: data.customerMessage ?? null
+    },
     'outage status'
   )
 
