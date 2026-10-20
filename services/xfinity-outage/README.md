@@ -10,7 +10,7 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 
 1. Gets a session token from the Xfinity outage API (unauthenticated, no login needed)
 2. Queries outage status for the configured address
-3. Checks up to 6 other apartments in the same building (see [Building check](#building-check))
+3. Checks up to 5 other apartments in the same building (see [Building check](#building-check))
 4. Compares against the last known state (persisted via the configured store)
 5. If the state changed in a way worth telling you, sends a Telegram message describing what happened. A dropped estimate or outage type is logged, not sent
 6. Saves the new state
@@ -20,11 +20,12 @@ Runs externally on Railway (not from Home Assistant) because the whole point is 
 
 Xfinity attaches the same outage ID to every affected unit, so neighbors show whether an outage is shared or only at the home address.
 
-- Neighbors come from Xfinity's address typeahead, queried with `HOME_ADDRESS` minus its unit number. Only plain `APT <number>` units count: business lines such as `UNIT HMOFC` or `APT 710-HMOFC`, duplicates, other buildings and the home unit are dropped. At most 6 are checked. An address without a unit turns the check off. There is no setting.
-- A neighbor's 404 ("Xfinity service is not found") means no Xfinity there, so it is not counted. Two or more neighbors on one outage ID make a building outage.
-- The home "Internet is down" message says how many neighbors share the outage. When the home address lists nothing but neighbors share one, an "Outage in your building" alert goes out, then an all-clear.
-- It is best-effort: two attempts per lookup and one minute in total. Any failed lookup means no building decision that run, and the last one stands. It never stops the home check, the state save or the heartbeat.
-- Neighbor addresses never go into the logs or the state file, only counts and outage IDs. The logged `customerMessage` leaves out its free-text `messages`, which name the street address.
+- Neighbors come from Xfinity's address typeahead, queried with `HOME_ADDRESS` minus its unit number. Only plain `APT <number>` units on the same street, city, state and ZIP count: business lines such as `UNIT HMOFC` or `APT 710-HMOFC`, duplicates and the home unit are dropped. At most 5 are checked. An address without a unit turns the check off. There is no setting.
+- A neighbor's 404 ("Xfinity service is not found") means no Xfinity there, so it is not counted. Planned maintenance does not count as an outage.
+- A building outage starts when 2 or more neighbors list one outage ID, and lasts until none do, so a count at the threshold does not flap.
+- The home "Internet is down" message says how many neighbors share the outage. When the home address lists nothing but neighbors share one, "Outage in your building" goes out, then "Building outage cleared". When the home address lists the same outage, now or at the previous check, the home messages cover it and no building message is sent.
+- It is best-effort: one attempt per call and a 20-second budget for the whole check, so the heartbeat is never late. A failed lookup, a malformed answer or no neighbor answering means no building decision that run, and the reason is logged.
+- Neighbor addresses never go into the logs or the state file, only counts and outage IDs. The logged `customerMessage` leaves out its free-text `messages`, which name the street address, and a body that is not JSON is never quoted in an error.
 
 ### Upstream flakiness and retries
 
@@ -79,7 +80,7 @@ two consecutive misses, so these show as yellow bars and correctly do not page.
 
 ### Tests
 
-`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. `retry.test.mjs` covers the retry policy, including a real HTTP 500 retried over a socket. `building.test.mjs` covers the neighbor filter, the 404 rule, every building transition and the first run on state saved before the check existed. `changes.test.mjs` covers every restore-estimate and outage-type transition, the 2026-10-19 sequence end to end, and checks that a missing or unreadable estimate or type never shows as `null`, `Invalid Date` or `unknown time`. A missing start time is not covered: messages other than "back" still say "unknown time" for it.
+`npm test` (or `node --test`) — no dependencies beyond Node's built-in test runner. `retry.test.mjs` covers the retry policy, including a real HTTP 500 retried over a socket. `building.test.mjs` covers the neighbor filter, the 404 and malformed-body rules, every building transition including flapping, staged clearing and a different home outage, HTML escaping, and the first run on state saved before the check existed. `changes.test.mjs` covers every restore-estimate and outage-type transition, the 2026-10-19 sequence end to end, and checks that a missing or unreadable estimate or type never shows as `null`, `Invalid Date` or `unknown time`. A missing start time is not covered: messages other than "back" still say "unknown time" for it.
 
 ### Environment variables
 

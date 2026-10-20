@@ -12,6 +12,7 @@ import pino from 'pino'
 import { httpError, withRetry } from './retry.mjs'
 import { buildMessage, detectChanges, extractState } from './changes.mjs'
 import {
+  BUILDING_OFF,
   attachBuilding,
   buildingQuery,
   neighborError,
@@ -81,7 +82,20 @@ async function getSessionToken() {
   return token
 }
 
-async function fetchOutageStatus(token, address) {
+// Parses a JSON body without ever quoting it: a parse error's message quotes
+// the body, and Xfinity's bodies can name an address.
+async function readJson(resp, label) {
+  const text = await resp.text()
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error(
+      `${label} returned a body that is not JSON (${text.length} bytes)`
+    )
+  }
+}
+
+async function fetchOutageStatus(token, address, timeoutMs = HTTP_TIMEOUT_MS) {
   const url =
     `https://api.sc.xfinity.com/outage/consolidated/lob/v3` +
     `?includeIdealOutage=true&tokenizeDateTime=true&address=${address}`
@@ -92,14 +106,14 @@ async function fetchOutageStatus(token, address) {
       Referer: XFINITY_ORIGIN + '/',
       'User-Agent': UA
     },
-    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
+    signal: AbortSignal.timeout(timeoutMs)
   })
   if (!resp.ok)
     throw httpError(`Outage API returned HTTP ${resp.status}`, resp.status)
-  return resp.json()
+  return readJson(resp, 'Outage API')
 }
 
-async function fetchTypeahead(token, query) {
+async function fetchTypeahead(token, query, timeoutMs) {
   const url =
     `https://api.sc.xfinity.com/address/typeahead` +
     `?address=${encodeURIComponent(query)}&origins=eloc&tokenized=false`
@@ -110,45 +124,72 @@ async function fetchTypeahead(token, query) {
       Referer: XFINITY_ORIGIN + '/',
       'User-Agent': UA
     },
-    signal: AbortSignal.timeout(HTTP_TIMEOUT_MS)
+    signal: AbortSignal.timeout(timeoutMs)
   })
   if (!resp.ok)
     throw httpError(`Typeahead API returned HTTP ${resp.status}`, resp.status)
-  return resp.json()
+  return readJson(resp, 'Typeahead API')
 }
 
-// Neighbors are best-effort: at most two attempts each and one minute in
-// total, so a slow upstream cannot hold up the home check's save and
-// heartbeat. Returns null when the check is off or could not finish.
-const NEIGHBOR_BUDGET_MS = 60_000
+// The whole building check gets one 20-second budget, one attempt per call,
+// each call cut off at whatever budget is left. It runs before the state
+// save and the heartbeat, and the Kuma window leaves 60 seconds of slack over
+// the 15-minute cron, so it must never push the heartbeat late.
+const BUILDING_BUDGET_MS = 20_000
 
+// Returns a building summary, BUILDING_OFF when the home address has no
+// unit, or null with a logged reason when this run gives no evidence.
 async function checkBuilding(token, homeAddress, homeOutageId) {
   const query = buildingQuery(homeAddress)
-  if (!query) return null
-  const typeahead = await withRetry(() => fetchTypeahead(token, query), {
-    label: 'building typeahead',
-    logger,
-    attempts: 2
-  })
+  if (!query) return BUILDING_OFF
+  const deadline = Date.now() + BUILDING_BUDGET_MS
+  const left = () => Math.min(HTTP_TIMEOUT_MS, deadline - Date.now())
+
+  let typeahead
+  try {
+    typeahead = await fetchTypeahead(token, query, Math.max(1, left()))
+  } catch (err) {
+    logger.warn(
+      { reason: err.status ?? err.name },
+      'building check: typeahead failed'
+    )
+    return null
+  }
   const neighbors = pickNeighbors(typeahead, homeAddress)
-  const deadline = Date.now() + NEIGHBOR_BUDGET_MS
   const results = []
   for (const neighbor of neighbors) {
-    if (Date.now() > deadline) {
-      results.push({ status: 'error' })
+    if (left() <= 0) {
+      results.push({ status: 'error', reason: 'budget' })
       break
     }
     try {
-      const data = await withRetry(
-        () => fetchOutageStatus(token, neighbor.replace(/ /g, '+')),
-        { label: 'neighbor status', logger, attempts: 2 }
+      const data = await fetchOutageStatus(
+        token,
+        neighbor.replace(/ /g, '+'),
+        Math.max(1, left())
       )
       results.push(neighborResult(data))
     } catch (err) {
       results.push(neighborError(err))
     }
   }
-  return summarizeBuilding(results, homeOutageId)
+  const summary = summarizeBuilding(results, homeOutageId)
+  const tally = {}
+  for (const r of results) {
+    const key = r.status === 'error' ? `error:${r.reason}` : r.status
+    tally[key] = (tally[key] ?? 0) + 1
+  }
+  if (!summary)
+    logger.warn(
+      { picked: neighbors.length, tally },
+      'building check: no evidence this run'
+    )
+  else
+    logger.info(
+      { picked: neighbors.length, tally, building: summary },
+      'building check'
+    )
+  return summary
 }
 
 async function sendTelegram(token, chatId, text) {
@@ -230,9 +271,12 @@ async function main() {
   let building = null
   try {
     building = await checkBuilding(token, address, homeState.outageId)
-    logger.info({ building }, 'building check')
   } catch (err) {
-    logger.warn({ err }, 'building check failed, keeping the previous result')
+    // Only the error's type: its message could quote a body.
+    logger.warn(
+      { reason: err?.name },
+      'building check failed, keeping the previous result'
+    )
   }
 
   const oldState = store.load()
