@@ -40,10 +40,18 @@ export function extractState(data, now = new Date()) {
   }
 }
 
+// Milliseconds for a timestamp, or null when it is missing or unreadable.
+// Anything that is not a readable time is treated as no estimate at all.
+function readableTime(iso) {
+  if (!iso) return null
+  const ms = new Date(iso).getTime()
+  return Number.isNaN(ms) ? null : ms
+}
+
 // Xfinity's restore estimate as words, or null when Xfinity gives none.
 function etrText(state) {
   if (state.etrDisplay) return state.etrDisplay
-  if (state.etr) return formatTime(state.etr)
+  if (readableTime(state.etr) !== null) return formatTime(state.etr)
   return null
 }
 
@@ -52,18 +60,30 @@ function etrText(state) {
 // estimate as "ETA moved up → null. Internet still down", fifteen minutes
 // after service had come back (2026-10-19, see README).
 function compareEtr(old, next) {
-  if (old.etr === next.etr) return null
-  if (old.etr && next.etr) {
-    const diff = new Date(next.etr) - new Date(old.etr)
-    if (diff === 0) return null
+  const before = readableTime(old.etr)
+  const after = readableTime(next.etr)
+  if (before === after) return null
+  if (before !== null && after !== null)
     return {
-      type: diff > 0 ? 'etr_pushed' : 'etr_earlier',
+      type: after > before ? 'etr_pushed' : 'etr_earlier',
       oldEtr: etrText(old),
       newEtr: etrText(next)
     }
-  }
-  if (next.etr) return { type: 'etr_set', newEtr: etrText(next) }
+  if (after !== null) return { type: 'etr_set', newEtr: etrText(next) }
   return { type: 'etr_cleared', oldEtr: etrText(old) }
+}
+
+// Same rule for the outage type: a type that disappears while the outage is
+// still listed is not a new type. Printing it once would have read "now
+// listed as null. Internet still down", the 2026-10-19 fall again.
+function compareType(old, next) {
+  if (old.outageType === next.outageType) return null
+  if (!next.outageType) return { type: 'type_cleared', oldType: old.outageType }
+  return {
+    type: 'type_changed',
+    oldType: old.outageType ?? null,
+    newType: next.outageType
+  }
 }
 
 export function detectChanges(old, next) {
@@ -84,13 +104,8 @@ export function detectChanges(old, next) {
   const changes = []
   const etrChange = compareEtr(old, next)
   if (etrChange) changes.push(etrChange)
-  if (old.outageType !== next.outageType) {
-    changes.push({
-      type: 'type_changed',
-      oldType: old.outageType,
-      newType: next.outageType
-    })
-  }
+  const typeChange = compareType(old, next)
+  if (typeChange) changes.push(typeChange)
   return changes
 }
 
@@ -160,13 +175,16 @@ export function buildMessage(changes, state) {
         // The monitor only sees Xfinity's record, at 15-minute checks, so it
         // reports when the record cleared rather than a downtime it cannot
         // measure. Xfinity can lag the real repair (see README).
+        const which = c.startTime
+          ? `the outage that started at ${started}`
+          : 'the outage'
         const window = c.lastListedAt
           ? ` It was still listed at ${formatTime(c.lastListedAt)}` +
             ` and gone by ${formatTime(c.goneAt)}.`
           : ''
         parts.push(
           `<b>Xfinity: Internet is back</b>\n\n` +
-            `Xfinity has cleared the outage that started at ${started}.${window}`
+            `Xfinity has cleared ${which}.${window}`
         )
       }
     } else if (c.type === 'etr_set') {
@@ -195,17 +213,21 @@ export function buildMessage(changes, state) {
       )
     } else if (c.type === 'type_changed') {
       const since = formatTime(state.startTime)
+      const was = c.oldType
+        ? `Previously reported as ${c.oldType}, now listed as ${c.newType}.`
+        : `Xfinity now lists it as ${c.newType}.`
       parts.push(
         `<b>Xfinity: Outage reclassified</b>\n\n` +
-          `Previously reported as ${c.oldType}, now listed as ${c.newType}.\n` +
+          `${was}\n` +
           `Internet still down since ${since}.` +
           (etr ? ` ETA: ${etr}.` : '')
       )
     }
-    // etr_cleared is deliberately silent. The one observed instance was the
-    // last check before Xfinity cleared the outage, after service was already
-    // back, so a message there says nothing true and useful. The change is
-    // still logged, and the resolution message follows when the outage clears.
+    // etr_cleared and type_cleared are deliberately silent. The one observed
+    // dropped estimate was the last check before Xfinity cleared the outage,
+    // after service was already back, so a message there says nothing true
+    // and useful. The change is still logged, and the resolution message
+    // follows when the outage clears.
   }
 
   return parts.join('\n\n')

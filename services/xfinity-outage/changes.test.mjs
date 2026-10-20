@@ -149,7 +149,10 @@ test('a reclassified outage without an estimate omits the ETA', () => {
   assert.doesNotMatch(text, /ETA/)
 })
 
-test('no message ever shows null, undefined or "unknown time"', () => {
+// Covers missing and unreadable estimates and outage types, and every
+// transition between these states. A missing start time is not covered: the
+// messages other than "back" still say "unknown time" for it.
+test('a missing value never shows as null, undefined, NaN or Invalid Date', () => {
   const t = '2026-10-20T04:15:20Z'
   const states = [
     state(CLEARED, t),
@@ -161,12 +164,20 @@ test('no message ever shows null, undefined or "unknown time"', () => {
     state(listed({ planned: true }), t),
     state(listed({ planned: true, etr: ETR }), t),
     state(listed({ planned: true, start: '2026-10-22T00:00:00-07:00' }), t),
-    state(listed({ id: 'OUTAGE-2' }), t)
+    state(listed({ id: 'OUTAGE-2' }), t),
+    state(listed({ outageType: null }), t),
+    state(listed({ outageType: null, etr: ETR }), t),
+    state(listed({ etr: 'TBD' }), t),
+    state(listed({ etr: 'ASAP', outageType: 'Network' }), t)
   ]
   for (const a of [null, ...states])
     for (const b of states) {
       const text = buildMessage(detectChanges(a, b), b)
-      assert.doesNotMatch(text, /null|undefined|unknown time/, text)
+      assert.doesNotMatch(
+        text,
+        /null|undefined|NaN|Invalid Date|unknown time/,
+        text
+      )
     }
 })
 
@@ -219,4 +230,51 @@ test('planned maintenance that ran and finished reads as back', () => {
   const running = state(listed({ planned: true }), '2026-10-20T04:15:20Z')
   const gone = state(CLEARED, '2026-10-20T04:30:20Z')
   assert.match(message(running, gone), /Xfinity: Internet is back/)
+})
+
+test('an outage type that disappears while listed sends nothing', () => {
+  // The variant of 2026-10-19 the review found: the outage stays listed but
+  // the message loses its type. It once read "now listed as null. Internet
+  // still down".
+  const before = state(
+    listed({ etr: ETR, etrDisplay: ETR_DISPLAY }),
+    '2026-10-20T05:30:20Z'
+  )
+  const after = state(listed({ outageType: null }), '2026-10-20T05:45:20Z')
+  assert.deepEqual(
+    detectChanges(before, after).map(c => c.type),
+    ['etr_cleared', 'type_cleared']
+  )
+  assert.equal(message(before, after), '')
+})
+
+test('an outage type that appears is reported without "null"', () => {
+  const before = state(listed({ outageType: null }), '2026-10-20T04:15:20Z')
+  const after = state(listed({ outageType: 'Network' }), '2026-10-20T04:30:20Z')
+  assert.match(message(before, after), /Xfinity now lists it as Network\./)
+})
+
+test('an unreadable estimate counts as no estimate', () => {
+  const quiet = state(CLEARED, '2026-10-20T04:00:20Z')
+  const tbd = state(listed({ etr: 'TBD' }), '2026-10-20T04:15:20Z')
+  const asap = state(listed({ etr: 'ASAP' }), '2026-10-20T04:30:20Z')
+  const timed = state(
+    listed({ etr: ETR, etrDisplay: ETR_DISPLAY }),
+    '2026-10-20T04:45:20Z'
+  )
+  assert.match(message(quiet, tbd), /has not given a restore time yet/)
+  assert.deepEqual(detectChanges(tbd, asap), [])
+  assert.equal(detectChanges(asap, timed)[0].type, 'etr_set')
+  assert.equal(detectChanges(timed, tbd)[0].type, 'etr_cleared')
+})
+
+test('a cleared outage with no start time leaves the start out', () => {
+  const before = state(listed({ start: null }), '2026-10-20T05:45:20Z')
+  const gone = state(CLEARED, '2026-10-20T06:00:20Z')
+  assert.equal(
+    message(before, gone),
+    '<b>Xfinity: Internet is back</b>\n\n' +
+      'Xfinity has cleared the outage.' +
+      ' It was still listed at 10:45 PM PDT and gone by 11:00 PM PDT.'
+  )
 })
