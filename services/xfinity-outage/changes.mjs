@@ -100,6 +100,14 @@ function compareType(old, next) {
   }
 }
 
+// Whether a start time had passed by a check. Only a start that had passed
+// was reported as the start; one still ahead is maintenance scheduled.
+function startedBy(iso, at) {
+  const start = readableTime(iso)
+  const check = readableTime(at)
+  return start !== null && check !== null && start <= check
+}
+
 // Maintenance listed with a start still ahead of the check.
 function upcoming(state) {
   const start = readableTime(state.startTime)
@@ -127,7 +135,8 @@ function isOn(state) {
 // Xfinity can move an outage's start while it lasts: on 2026-10-20 the
 // outage first reported as starting at 7:32 AM later listed 10:32 AM, and the
 // all-clear named 10:32. `reportedStart` keeps the start the alerts gave, for
-// as long as the same outage is listed, a notice in between included. State
+// as long as the same outage is listed, a notice in between included. A start
+// still ahead is not kept, so rescheduled maintenance follows Xfinity. State
 // saved without it falls back to its start time.
 //
 // A notice that replaces an outage carries it in `followsOutage`, so the
@@ -140,11 +149,12 @@ export function carryOver(old, next) {
   if (after === 'outage') {
     const prior =
       before === 'outage' && old.outageId === next.outageId
-        ? { start: old.reportedStart ?? old.startTime }
+        ? { start: old.reportedStart ?? old.startTime, at: old.checkedAt }
         : before === 'notice' && old.followsOutage?.outageId === next.outageId
-        ? { start: old.followsOutage.reportedStart }
+        ? { start: old.followsOutage.reportedStart, at: old.followsOutage.at }
         : null
-    const reportedStart = prior?.start ?? next.startTime
+    const reportedStart =
+      prior && startedBy(prior.start, prior.at) ? prior.start : next.startTime
     return { ...next, reportedStart, followsOutage: null }
   }
   if (after === 'notice') {
@@ -154,7 +164,8 @@ export function carryOver(old, next) {
             outageId: old.outageId,
             startTime: old.startTime,
             reportedStart: startOf(old),
-            planned: old.planned ?? false
+            planned: old.planned ?? false,
+            at: old.checkedAt
           }
         : before === 'notice'
         ? old.followsOutage ?? null

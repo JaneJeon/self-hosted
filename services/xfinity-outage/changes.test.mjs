@@ -689,6 +689,52 @@ test('Slack text escapes Xfinity text and leaves out a missing start', () => {
   )
 })
 
+// Review 4, finding 1: rescheduled maintenance once kept the first scheduled
+// start, a time that never happened.
+test('rescheduled maintenance names the start it actually had', () => {
+  const m = (start, end) =>
+    listed({ planned: true, start, etr: end, id: 'MAINT-1' })
+  const runs = replay([
+    [CLEARED, '2026-10-20T16:00:20Z'],
+    [
+      m('2026-10-22T00:00:00-07:00', '2026-10-22T06:00:00-07:00'),
+      '2026-10-20T16:15:20Z'
+    ],
+    [
+      m('2026-10-23T02:00:00-07:00', '2026-10-23T08:00:00-07:00'),
+      '2026-10-21T16:15:20Z'
+    ],
+    [
+      m('2026-10-23T02:00:00-07:00', '2026-10-23T08:00:00-07:00'),
+      '2026-10-23T09:15:20Z'
+    ],
+    [CLEARED, '2026-10-23T15:15:20Z']
+  ])
+  assert.match(runs[1].telegram, /Planned maintenance scheduled/)
+  assert.equal(runs[1].slack, '')
+  assert.match(runs[2].telegram, /Outage ETA pushed back/)
+  assert.match(
+    runs[3].slack,
+    /^:red_circle: \*Xfinity: Internet is down \(planned maintenance\)\*\nPlanned maintenance started at 2:00 AM PDT/
+  )
+  assert.match(
+    runs[4].telegram,
+    /cleared the outage that started at 2:00 AM PDT\./
+  )
+  assert.match(
+    runs[4].slack,
+    /cleared the outage that started at 2:00 AM PDT\./
+  )
+  // Only the first notice names the original schedule.
+  assert.doesNotMatch(
+    runs
+      .slice(2)
+      .map(r => r.telegram + r.slack)
+      .join(),
+    /12:00 AM/
+  )
+})
+
 // Review 4, finding 4: the Slack lines did not always pair.
 test('Slack lines always pair: one start and one clear per stretch of outage', () => {
   const other = listed({ id: 'OUTAGE-2', start: '2026-10-20T08:00:00-07:00' })
