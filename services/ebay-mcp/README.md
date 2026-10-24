@@ -27,6 +27,11 @@ never arguments or build variables. A new service waits without opening its
 listener until credentials are supplied. Missing credentials require a new
 deployment after variable injection. Surrounding whitespace is rejected.
 
+For credential replacement, verify a production token grant with the saved
+1Password pair, stage both variables through stdin with `--skip-deploys`, and
+push a service-scoped change. After deployment, verify an actual listing read
+through the official tools.
+
 ## Runtime and deployment
 
 The pinned `mcp-proxy` adapter (`6.7.19`) holds the official stdio process and
