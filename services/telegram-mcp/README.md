@@ -20,3 +20,14 @@ this copy of the same Telegram session.
 
 Build and run locally before each push. `/ping` checks the HTTP adapter; an MCP
 tool call is still needed to verify the Telegram account is authorized.
+
+## Replacing an authorization session
+
+Terminate the old authorization in Telegram's Devices settings and save the
+replacement in the existing 1Password item. Changing Railway's variable does
+not reconnect the already-running upstream process. Set the replacement through
+stdin with `--skip-deploys`, then deploy through this repository's GitOps path.
+After startup, make an authenticated account read through the gateway. A healthy
+HTTP adapter or successful tool discovery does not prove the session works.
+
+The incident record is the Craft [Railway env var breach response Index](https://docs.craft.do/editor/d/53687cd7-874b-cff7-84ed-3a082a04cb77/5f8e4e12-cd52-bc9b-0454-3368f2cb8484).
