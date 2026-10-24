@@ -28,6 +28,12 @@ private administration. The maintenance secret belongs in that agent workflow,
 not in the MCP backend or the Keycloak container's runtime environment.
 Do not use the development server or its embedded database in Railway.
 
+For a database-password rotation, update the existing MySQL account as well as
+the `Railway Keycloak` source field. Keep `KC_DB_PASSWORD` referenced to
+`MySQL.KEYCLOAK_MYSQL_PASSWORD`. The MySQL README owns the dual-password cutover.
+Verify fresh private maintenance access and public OAuth after this consumer's
+GitOps rollout, before discarding the retired database password.
+
 Agentgateway will expose only the personal realm, public discovery, and login
 assets under `/auth`. Keep `/auth/admin`, the master realm, and port 9000 private.
 The proxy must overwrite forwarded protocol, host, and port headers. Keycloak's
