@@ -95,6 +95,22 @@ item holds a separate repository path and restic password. `.env.template`
 resolves the backup credentials and the dedicated Kuma monitor URL through
 `swarp secrets refresh`.
 
+## Replacing backup credentials
+
+Update the shared B2 key in both backup services. A new restic encryption key
+requires a new repository, initialized explicitly before cutover. Preserve the
+old repository's location and password. After the new configuration is running,
+move `/app/data/storages/.whatsapp-backup-last-success` to a private recovery
+copy. This makes the next loop check due instead of waiting up to 24 hours for
+the previous destination's marker. Let the loop write its new marker only after
+the full backup succeeds. Verify the stored snapshot, a private restore, and the
+job's actual Kuma heartbeat before reporting recovery.
+
+The heartbeat's Railway source is `KUMA_PUSH_PATH`; `HEARTBEAT_URL` is derived
+from it. Keep that reference when replacing the monitor's push token.
+
+The incident record is the Craft [Railway env var breach response Index](https://docs.craft.do/editor/d/53687cd7-874b-cff7-84ed-3a082a04cb77/5f8e4e12-cd52-bc9b-0454-3368f2cb8484).
+
 ## Backup verification
 
 ```bash
