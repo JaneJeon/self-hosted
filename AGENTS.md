@@ -2,7 +2,18 @@
 
 Operational knowledge for AI agents working on this repo. For project docs, see [README.md](README.md). For service-specific details, read the `README.md` in each service's directory under `services/`.
 
-## Active MCP overnight work (2026-10-05)
+## Active Railway breach recovery (2026-10-24)
+
+When continuing the October 21 security response, read Craft's
+`Railway env var breach response — Index`
+(`4656b19f-9bf7-b4a9-fd79-868041d04c6c`) and its Log before acting.
+The ignored local `.agent-state/railway-breach-recovery.md` records the current
+next step, private helper locations, pending checks, and owned test resources.
+If that local checkpoint is unavailable, use the Craft record rather than
+reconstructing the incident from the earlier migration notes. Update both as
+work progresses. Incident evidence belongs in Craft, not service READMEs.
+
+## Earlier MCP migration (2026-10-05)
 
 When continuing this migration after interruption or compaction, read `.agent-state/mcp-overnight.md` and Craft migration Index `1bb694d1-0c1d-e4e0-e7f2-ab5adcc75a82` before acting. The local checkpoint has the current next step and private artifact locations; Craft owns durable decisions and evidence. Update both as work progresses.
 
