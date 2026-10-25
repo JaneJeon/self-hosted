@@ -18,6 +18,12 @@ a request to initialize one.
 
 ## Replacing backup credentials
 
+When replacing the Kuma push token, update the existing backup monitor and save
+its URL in the existing 1Password `heartbeat url` field. Preserve Railway's
+private HTTP references while changing only the token. Stage with
+`--skip-deploys`, deploy through git push, and verify a real backup completion
+and stored monitor receipt. A hand-written push does not prove the backup ran.
+
 The B2 application key is shared with WhatsApp's backup. Update both consumers
 from the existing 1Password item through stdin, with deployments suppressed
 until the complete configuration is ready.
