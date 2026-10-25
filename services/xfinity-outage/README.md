@@ -107,3 +107,16 @@ two consecutive misses, so these show as yellow bars and correctly do not page.
 ### Volume
 
 Mount at `/data`. The default file store writes `last_state.json` here to track outage state across runs.
+
+### Replacing environment credentials
+
+The local `.env.template` resolves the Telegram Alerts token and Kuma heartbeat
+URL from their existing 1Password sources. Alerts is shared with
+Hoyolab and Home Assistant; prepare all three consumers before revoking it.
+
+For a Kuma push-token replacement, preserve the existing monitor and replace
+only the token in Railway's private HTTP URL. Stage variables with
+`--skip-deploys`, verify the committed configuration, and deploy through git push.
+Verify a real outage check and its stored Kuma receipt. An unchanged outage
+state sends no Telegram or Slack message, so a successful run alone does not
+prove those delivery paths. Do not invent an outage to test them.
