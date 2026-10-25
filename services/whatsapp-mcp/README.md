@@ -108,6 +108,11 @@ job's actual Kuma heartbeat before reporting recovery.
 
 The heartbeat's Railway source is `KUMA_PUSH_PATH`; `HEARTBEAT_URL` is derived
 from it. Keep that reference when replacing the monitor's push token.
+Save the replacement in the existing 1Password `monitor url` field and change
+only the token in `KUMA_PUSH_PATH`. Preserve the monitor and its settings; stage
+with `--skip-deploys` before the GitOps rollout. After deployment, verify a real
+backup and the stored receipt. Restarting a paired service does not prove a
+daily backup ran, and a manual push would create false evidence.
 
 The incident record is the Craft [Railway env var breach response Index](https://docs.craft.do/editor/d/53687cd7-874b-cff7-84ed-3a082a04cb77/5f8e4e12-cd52-bc9b-0454-3368f2cb8484).
 
