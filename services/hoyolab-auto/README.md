@@ -10,6 +10,18 @@ DO NOT MANUALLY SET THE DOMAIN, DO NOT WILLY NILLY OVERWRITE THE URLs!
 
 Also you CANNOT have the `https://` prefix if using the Railway private domains like this!
 
+When replacing a push token, preserve its monitor and all settings. Save the
+replacement URL in `Self Hosting/Hoyolab Auto - Railway`, then replace only the
+token in the existing Railway variable, preserving its private HTTP references.
+Stage all three variables with `--skip-deploys` before deploying through git push.
+Check the real process, login and redemption heartbeat receipts separately;
+calling the push URLs by hand would create false evidence.
+
+The local template also resolves both bot tokens. Alerts is shared with Xfinity
+and Home Assistant; update those existing consumers together when replacing it.
+The Notifications bot belongs to this service. Check each replacement with
+Telegram `getMe` and preserve its bot identity before deployment.
+
 ## Notification routing and reminders
 
 `TELEGRAM_NOTIFICATIONS_BOT_TOKEN` / `TELEGRAM_CHAT_ID` receive Receipt messages
