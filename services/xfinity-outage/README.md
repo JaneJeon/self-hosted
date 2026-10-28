@@ -2,6 +2,10 @@
 
 Checks the Xfinity Status Center API every 15 minutes for outage status at your home address. Sends a Telegram notification when something changes: new outage detected, outage cleared, restore estimate posted or moved, or outage type reclassified. A dropped restore estimate is logged but not sent. Does not re-notify for the same ongoing outage. Messages keep naming the start time the first alert gave, even when Xfinity moves it while the outage lasts; a start still ahead, such as rescheduled maintenance, follows Xfinity.
 
+Future maintenance messages include the full Pacific date and time. They keep the API's scheduled end (`outageInfoResponseList[].endTime`) separate from its restoration estimate (`customerMessage.etr`) and quote Xfinity's maintenance warning with the home street masked. Start, end, estimate or message changes produce a maintenance update without saying the internet is already down. A dropped estimate remains silent. The first check of an older saved maintenance state sends one corrected-details message, then identical checks stay quiet.
+
+The website comparison and verification record for this change live in Craft, `Workspace/Xfinity maintenance message mismatch — 2026-10-27`.
+
 Xfinity also lists notices that are not outages: `outageType` `Informational`, such as "Technician in your area … you could experience brief interruptions". When an outage turns into a notice, the message takes Xfinity's title and quotes the notice, without saying the internet is back, and "Internet is back" comes once Xfinity lists nothing at all. A notice on its own gets one message in Xfinity's words, and a notice going away sends nothing. On 2026-10-20 Home Assistant's heartbeat was back 14 minutes before the notice appeared, but the notice itself warns of interruptions, so it is not taken as the all-clear. A notice's words are kept and sent with the home street masked, in case one ever names it.
 
 Why it handles a clearing outage and the building check this way, the 2026-10-19 and 2026-10-20 evidence behind them, and what is still unknown: Craft, `Workspace/Xfinity outage monitor cleared-outage message — 2026-10-19`.
