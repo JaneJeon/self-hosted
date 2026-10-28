@@ -33,6 +33,8 @@ export function extractState(data, now = new Date(), street = null) {
       planned: null,
       services: null,
       startTime: null,
+      maintenanceEnd: null,
+      maintenanceText: null,
       etr: null,
       etrDisplay: null,
       shortDescription: null,
@@ -45,6 +47,8 @@ export function extractState(data, now = new Date(), street = null) {
 
   const outage = outages[0]
   const notice = isNotice(msg)
+  const start = readableTime(outage.startTime?.iso)
+  const end = readableTime(outage.endTime?.iso)
   return {
     hasOutage: true,
     notice,
@@ -53,11 +57,21 @@ export function extractState(data, now = new Date(), street = null) {
     planned: msg.planned ?? false,
     services: outage.services ?? [],
     startTime: outage.startTime?.iso ?? null,
+    // A scheduled window is separate from the restore estimate. Xfinity can
+    // provide endTime while customerMessage.etr is null.
+    maintenanceEnd:
+      msg.planned && start !== null && end !== null && end >= start
+        ? outage.endTime.iso
+        : null,
+    maintenanceText: msg.planned
+      ? maskStreet(textOf(msg.messages?.detailedDescription), street)
+      : null,
     etr: msg.etr?.iso ?? null,
     etrDisplay: msg.etrOutputString ?? null,
-    shortDescription: notice
-      ? maskStreet(msg.messages?.shortDescription ?? null, street)
-      : msg.messages?.shortDescription ?? null,
+    shortDescription:
+      notice || msg.planned
+        ? maskStreet(msg.messages?.shortDescription ?? null, street)
+        : msg.messages?.shortDescription ?? null,
     // Kept only for a notice: an outage's detailedDescription names the
     // street address.
     noticeText: notice
@@ -250,6 +264,26 @@ function homeChanges(old, next) {
   if (before !== 'outage' || old.outageId !== next.outageId)
     return [{ type: 'new_outage' }]
 
+  if (upcoming(next)) {
+    // Saved states from before the window parser omitted both the date in
+    // the alert and Xfinity's endTime. Correct those details once, through
+    // the normal send/save path, without claiming a reschedule occurred.
+    if (!Object.hasOwn(old, 'maintenanceEnd'))
+      return [{ type: 'maintenance_details' }]
+    const etrChange = compareEtr(old, next)
+    if (
+      !upcoming(old) ||
+      readableTime(old.startTime) !== readableTime(next.startTime) ||
+      readableTime(old.maintenanceEnd) !== readableTime(next.maintenanceEnd) ||
+      (etrChange && etrChange.type !== 'etr_cleared') ||
+      compareType(old, next)?.type === 'type_changed'
+    )
+      return [{ type: 'maintenance_updated' }]
+    if (old.maintenanceText !== next.maintenanceText)
+      return [{ type: 'maintenance_details' }]
+    return []
+  }
+
   const changes = []
   const etrChange = compareEtr(old, next)
   if (etrChange) changes.push(etrChange)
@@ -350,6 +384,26 @@ function servicesOf(state) {
   return esc((list.length ? list : ['Internet']).join(', '))
 }
 
+function maintenanceMessage(state, title) {
+  const start = esc(formatDateTime(state.startTime))
+  const end = readableTime(state.maintenanceEnd)
+  const etr = esc(etrText(state))
+  const schedule =
+    end !== null
+      ? `Scheduled window: ${start} – ${esc(
+          formatDateTime(state.maintenanceEnd)
+        )}.`
+      : `Starts ${start}.` + (etr ? '' : ' Xfinity has not given an end time.')
+  const estimate = etr ? `\nXfinity estimates restoration by ${etr}.` : ''
+  const body = textOf(state.maintenanceText)
+  const description = body
+    ? `Xfinity says:\n${esc(body)}`
+    : `Xfinity has scheduled maintenance that may affect your ${servicesOf(
+        state
+      )} service.`
+  return `<b>Xfinity: ${title}</b>\n\n${schedule}${estimate}\n\n${description}`
+}
+
 // Returns '' when no change is worth a notification.
 export function buildMessage(changes, state) {
   const parts = []
@@ -361,13 +415,7 @@ export function buildMessage(changes, state) {
       const ahead = upcoming(state)
       const since = formatTime(ahead ? state.startTime : startOf(state))
       if (ahead) {
-        parts.push(
-          `<b>Xfinity: Planned maintenance scheduled</b>\n\n` +
-            `Xfinity has scheduled maintenance that may affect your ${svc} service.\n` +
-            (etr
-              ? `Window: ${since} – ${etr}.`
-              : `Starts ${since}. Xfinity has not given an end time.`)
-        )
+        parts.push(maintenanceMessage(state, 'Planned maintenance scheduled'))
       } else if (state.planned) {
         parts.push(
           `<b>Xfinity: Internet is down (planned maintenance)</b>\n\n` +
@@ -386,6 +434,10 @@ export function buildMessage(changes, state) {
             neighborLine(state.building)
         )
       }
+    } else if (c.type === 'maintenance_details') {
+      parts.push(maintenanceMessage(state, 'Planned maintenance details'))
+    } else if (c.type === 'maintenance_updated') {
+      parts.push(maintenanceMessage(state, 'Planned maintenance update'))
     } else if (c.type === 'resolved') {
       const scheduledAhead =
         c.planned &&

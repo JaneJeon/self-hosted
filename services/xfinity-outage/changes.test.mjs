@@ -712,7 +712,8 @@ test('rescheduled maintenance names the start it actually had', () => {
   ])
   assert.match(runs[1].telegram, /Planned maintenance scheduled/)
   assert.equal(runs[1].slack, '')
-  assert.match(runs[2].telegram, /Outage ETA pushed back/)
+  assert.match(runs[2].telegram, /Planned maintenance update/)
+  assert.doesNotMatch(runs[2].telegram, /Internet still down/)
   assert.match(
     runs[3].slack,
     /^:red_circle: \*Xfinity: Internet is down \(planned maintenance\)\*\nPlanned maintenance started at 2:00 AM PDT/
