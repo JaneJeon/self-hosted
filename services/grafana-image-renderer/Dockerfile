@@ -1,1 +1,1 @@
-FROM grafana/grafana-image-renderer:v5.8.10
+FROM grafana/grafana-image-renderer:v5.12.7
