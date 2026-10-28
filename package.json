@@ -15,6 +15,6 @@
     "lint-staged": "^16.0.0",
     "npm-run-all2": "^8.0.0",
     "prettier": "^3.0.0",
-    "railway": "3.11.0"
+    "railway": "3.16.0"
   }
 }
