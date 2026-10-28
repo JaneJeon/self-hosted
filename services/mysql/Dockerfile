@@ -15,7 +15,7 @@ RUN mkdir /rendered && \
         < "$f" > "/rendered/$(basename "${f%.envsubst}")"; \
     done
 
-FROM mysql:8.4.9
+FROM mysql:8.4.10
 
 # jemalloc eliminates ~3-4 MB/day RSS growth from glibc malloc fragmentation (see README § Memory)
 RUN microdnf install -y oracle-epel-release-el9 \
