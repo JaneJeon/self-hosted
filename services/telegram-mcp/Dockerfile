@@ -1,4 +1,4 @@
-FROM alpine:3.23 AS source
+FROM alpine:3.24 AS source
 
 RUN apk add --no-cache ca-certificates git
 ARG TELEGRAM_REF=0b1e2b48fd80b5f6d3688779043c6dd891a905b2
