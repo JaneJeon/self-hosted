@@ -9,8 +9,11 @@ RUN git init /src \
     && test "$(git -C /src rev-parse HEAD)" = "$EBAY_REF"
 WORKDIR /src
 COPY path-variables.patch /tmp/path-variables.patch
+COPY rest-spec-fallback.patch /tmp/rest-spec-fallback.patch
 RUN git apply --check /tmp/path-variables.patch \
-    && git apply /tmp/path-variables.patch
+    && git apply /tmp/path-variables.patch \
+    && git apply --check /tmp/rest-spec-fallback.patch \
+    && git apply /tmp/rest-spec-fallback.patch
 RUN npm ci --ignore-scripts --no-audit --no-fund \
     && npm run build \
     && npm prune --omit=dev --ignore-scripts --no-audit --no-fund
