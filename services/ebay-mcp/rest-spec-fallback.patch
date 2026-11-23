@@ -1,0 +1,216 @@
+diff --git a/src/helper/openapi-helper.ts b/src/helper/openapi-helper.ts
+index e4fd690..f117731 100644
+--- a/src/helper/openapi-helper.ts
++++ b/src/helper/openapi-helper.ts
+@@ -11,6 +11,7 @@ import util from "util";
+ import { z, type ZodTypeAny } from "zod";
+ import { buildHeadersFromInput, makeRequestWithTokenRefresh } from "../helper/http-helper.js";
+ import { logger } from "../helper/logger.js";
++import { DOMAIN_NAME, RECALL_SPEC_BY_PROMPT_URL, SUPPORTED_CALLING_METHODS, USER_ENVIRONMENT } from "../constant/constants.js";
+
+
+
+@@ -59,31 +60,165 @@ export function readSchema2Map(obj: unknown): unknown {
+   return obj;
+ }
+
++type OperationRequest = {
++  url: string;
++  method: string;
++};
++
++function parseSpec(data: unknown): unknown {
++  if (typeof data !== "string") {
++    return data;
++  }
++  try {
++    return JSON.parse(data);
++  } catch {
++    try {
++      return yaml.load(data);
++    } catch {
++      return undefined;
++    }
++  }
++}
++
++function isOpenApiDocument(data: unknown): data is OpenAPIV3.Document {
++  const doc = data as OpenAPIV3.Document | undefined;
++  return typeof doc?.openapi === "string"
++    && typeof doc.info?.title === "string"
++    && !!doc.paths && typeof doc.paths === "object";
++}
++
++function matchesEndpoint(
++  server: OpenAPIV3.ServerObject,
++  path: string,
++  requestUrl: URL,
++  requestSegments: string[],
++): boolean {
++  const serverUrl = server.url.replace(/\{([^{}]+)\}/g,
++    (placeholder, name: string) => server.variables?.[name]?.default ?? placeholder);
++  const base = URL.parse(serverUrl);
++  if (!base || base.origin !== requestUrl.origin || base.username || base.password || base.search || base.hash) {
++    return false;
++  }
++
++  const specPath = base.pathname.replace(/\/$/, "") + path;
++  const segments = specPath.split("/").map(decodeURIComponent);
++  return segments.length === requestSegments.length && segments.every((segment, index) => {
++    const requested = requestSegments[index];
++    if (/^\{[^{}\/]+\}$/.test(segment)) {
++      return requested === segment || (requested.length > 0 && !/[{}\/]/.test(requested));
++    }
++    return requested === segment;
++  });
++}
++
++function mergeParameters(path: OpenAPIV3.PathItemObject, operation: OpenAPIV3.OperationObject) {
++  const own = operation.parameters ?? [];
++  const inherited = (path.parameters ?? []).filter(param => !own.some(override =>
++    !("$ref" in param) && !("$ref" in override) && param.in === override.in && param.name === override.name));
++  return [...inherited, ...own];
++}
++
++/**
++ * Recover the requested operation from eBay's prompt-based discovery response.
++ * The response can contain full specifications from several API families.
++ */
++async function resolveOperationByPrompt(
++  specTitle: string,
++  operationId: string,
++  request: OperationRequest,
++  headers: Record<string, string>,
++): Promise<OpenAPIV3.Document> {
++  const method = request.method.toLowerCase() as OpenAPIV3.HttpMethods;
++  const requestUrl = new URL(request.url);
++  if (!SUPPORTED_CALLING_METHODS[USER_ENVIRONMENT].includes(method)
++    || requestUrl.origin !== `https://${DOMAIN_NAME[USER_ENVIRONMENT]}`
++    || requestUrl.username || requestUrl.password) {
++    throw new Error("The requested eBay endpoint or HTTP method is not supported");
++  }
++
++  const url = util.format(RECALL_SPEC_BY_PROMPT_URL, encodeURIComponent(`${specTitle} ${operationId}`));
++  const response = await makeRequestWithTokenRefresh({ method: "GET", url, headers });
++  const data = parseSpec(response.data);
++  const candidates = Array.isArray(data) ? data.map(parseSpec) : [data];
++  const requestSegments = requestUrl.pathname.split("/").map(decodeURIComponent);
++  const matches: OpenAPIV3.Document[] = [];
++
++  for (const candidate of candidates) {
++    if (!isOpenApiDocument(candidate) || candidate.info.title.trim().toLowerCase() !== specTitle.trim().toLowerCase()) {
++      continue;
++    }
++    const doc = await SwaggerParser.dereference(candidate, {
++      resolve: { external: false },
++      dereference: { circular: "ignore" },
++    }) as OpenAPIV3.Document;
++    const paths = Object.entries(doc.paths).flatMap(([path, pathItem]) => {
++      const operation = pathItem?.[method];
++      if (!pathItem || !operation) {
++        return [];
++      }
++      const servers = operation.servers ?? pathItem.servers ?? doc.servers ?? [];
++      return servers.some(server => matchesEndpoint(server, path, requestUrl, requestSegments))
++        ? [{ path, pathItem, operation }]
++        : [];
++    });
++    // OpenAPI matches concrete paths before templated ones, for example
++    // /item/get_item_by_legacy_id before /item/{item_id}.
++    const concretePaths = paths.filter(({ path }) => !path.includes("{"));
++    const matchingPaths = concretePaths.length > 0 ? concretePaths : paths;
++    const [match] = matchingPaths;
++    if (matchingPaths.length > 1) {
++      throw new Error(`Multiple eBay paths match ${specTitle} / ${operationId}`);
++    }
++    if (!match || match.operation.operationId !== operationId) {
++      continue;
++    }
++
++    const { path, pathItem, operation } = match;
++    const parameters = mergeParameters(pathItem, operation);
++    if (parameters.some(parameter => "$ref" in parameter)
++      || (operation.requestBody && "$ref" in operation.requestBody)) {
++      throw new Error("The eBay specification contains an unresolved request definition");
++    }
++    // Narrow the document to the matched operation for the upstream validator.
++    matches.push({
++      ...doc,
++      servers: [{ url: requestUrl.origin }],
++      paths: { [path]: { [method]: { ...operation, parameters } } },
++    });
++  }
++
++  if (matches.length !== 1) {
++    throw new Error(`Expected one eBay specification for ${specTitle} / ${operationId}, found ${matches.length}`);
++  }
++  return matches[0];
++}
++
+ /**
+- * Query api spec and parse to OpenAPI document (supports both JSON and YAML)
++ * Query the field-based eBay spec lookup first and recover from its documented
++ * 404 via prompt discovery (eBay/npm-public-api-mcp#35 and #36).
+  */
+-export async function queryAndParseOpenApiDoc(specTitle: string, operationId : string, specUrl: string): Promise<OpenAPIV3.Document> {
+-  const url = util.format(specUrl, specTitle, operationId);
++export async function queryAndParseOpenApiDoc(
++  specTitle: string,
++  operationId: string,
++  specUrl: string,
++  request: OperationRequest,
++): Promise<OpenAPIV3.Document> {
++  const url = util.format(specUrl, encodeURIComponent(specTitle), encodeURIComponent(operationId));
+   const headers = await buildHeadersFromInput(undefined, false);
+-  const apiSpecRes = await makeRequestWithTokenRefresh({
+-    method: 'GET',
+-    url,
+-    headers,
+-  });
+-  const docString = apiSpecRes.data;
++
+   try {
+-    // Try parsing as JSON first
+-    return JSON.parse(docString) as OpenAPIV3.Document;
+-  } catch (jsonError) {
+-    try {
+-      // If JSON fails, try parsing as YAML
+-      return yaml.load(docString) as OpenAPIV3.Document;
+-    } catch (yamlError) {
+-      const _jsonMsg = jsonError instanceof Error ? jsonError.message : String(jsonError);
+-      const _yamlMsg = yamlError instanceof Error ? yamlError.message : String(yamlError);
+-      logger.error("failed to parse OpenAPI document !!!");
+-      return {} as OpenAPIV3.Document;
++    const response = await makeRequestWithTokenRefresh({ method: "GET", url, headers });
++    const doc = parseSpec(response.data);
++    if (isOpenApiDocument(doc)) {
++      return doc;
++    }
++    logger.error("failed to parse OpenAPI document");
++    return {} as OpenAPIV3.Document;
++  } catch (error) {
++    if (!axios.isAxiosError(error) || error.response?.status !== 404) {
++      throw error;
+     }
++    return resolveOperationByPrompt(specTitle, operationId, request, headers);
+   }
+ }
+
+diff --git a/src/service/openapi-service.ts b/src/service/openapi-service.ts
+index 5d15fb6..5de6535 100644
+--- a/src/service/openapi-service.ts
++++ b/src/service/openapi-service.ts
+@@ -224,9 +224,11 @@ function registerInvokeApiTool(server: McpServer): void {
+       try {
+         // Build headers
+         const headers = await buildHeadersFromInput(input.headers, true);
+-        // query and parse apiSpec by specTitle and operationId
+-        const openApiDoc = await queryAndParseOpenApiDoc(input.specTitle, input.operationId, RECALL_SPEC_WITH_FIELD_URL);
+         const replacedDomainUrl = replaceDomainNameByEnvironment(input.url);
++        const openApiDoc = await queryAndParseOpenApiDoc(input.specTitle, input.operationId, RECALL_SPEC_WITH_FIELD_URL, {
++          url: replacedDomainUrl,
++          method: input.method,
++        });
+
+         // Validate req parameters against OpenAPI spec
+         const reqParamValidation = validateRequestParametersFromHelper(replacedDomainUrl, openApiDoc, input.method, {

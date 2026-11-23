@@ -56,9 +56,15 @@ stateless transport so backend rollouts do not leave a cached dead session.
 ## Listing search and details
 
 `query_ebay_api` discovers eBay API specifications. `call_ebay_api` invokes their
-operations. Both depend on eBay's MCP discovery API in addition to the target
-marketplace API. Discovery can return a large specification; request a narrow
-operation and keep listing result limits small.
+operations. When eBay's operation lookup returns HTTP 404, `call_ebay_api` uses
+the prompt-based discovery endpoint and requires one specification matching the
+title, operation ID, method, and full endpoint. It validates the request before
+making a fresh eBay API call. eBay still enforces the application token's API
+permissions. [Upstream issue](https://github.com/eBay/npm-public-api-mcp/issues/35)
+and [proposed fix](https://github.com/eBay/npm-public-api-mcp/pull/36).
+
+Discovery can return a large specification. Request a narrow operation and keep
+listing result limits small.
 
 For keyword search, call `call_ebay_api` with:
 
@@ -89,7 +95,8 @@ EBAY_MCP_TEST_IMAGE=ebay-mcp:test python3 services/ebay-mcp/tests/test-container
 ```
 
 The container suite checks placeholder encoding, startup gating, whitespace
-rejection and enforced production application mode without real credentials.
+rejection, enforced production application mode, and operation lookup recovery
+without real credentials.
 On October 19, 2026, the Linux AMD64 image also passed real official-tool
 discovery, three listing prices and raw-placeholder details through the edited
 gateway. The same session returned details after a backend restart, with the

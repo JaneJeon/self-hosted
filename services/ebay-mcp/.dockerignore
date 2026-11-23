@@ -2,3 +2,4 @@
 !Dockerfile
 !entrypoint.sh
 !path-variables.patch
+!rest-spec-fallback.patch

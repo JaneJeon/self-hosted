@@ -68,6 +68,21 @@ console.log('URL substitution assertions passed');
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("URL substitution assertions passed", result.stdout)
 
+    def test_spec_lookup_fallback_at_mcp_tool_handler(self) -> None:
+        fixture = SERVICE_DIR / "tests" / "spec-fallback.mjs"
+        result = docker(
+            "run",
+            "--rm",
+            "--entrypoint",
+            "node",
+            "--mount",
+            f"type=bind,src={fixture},dst=/tmp/spec-fallback.mjs,readonly",
+            IMAGE,
+            "/tmp/spec-fallback.mjs",
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("MCP fallback regression assertions passed", result.stdout)
+
     def test_missing_credentials_wait_without_listening_on_8080(self) -> None:
         name = f"ebay-mcp-test-{uuid.uuid4().hex[:12]}"
         started = docker("run", "--detach", "--name", name, IMAGE, timeout=30)
