@@ -23,7 +23,7 @@ jobs:
   guard-fixture:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build pinned query image
         run: docker build -t codex-whatsapp-trial:20261005 services/whatsapp-trial
       - name: Build pinned gateway for the policy fixture
