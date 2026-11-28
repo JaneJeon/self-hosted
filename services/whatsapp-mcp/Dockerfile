@@ -26,7 +26,7 @@ RUN sed -i 's/mcp.NewToolResultStructured(/newStructuredResult(/g' \
     && go test ./ui/mcp
 RUN go build -ldflags="-w -s" -o /out/whatsapp
 
-FROM restic/restic:0.18.1 AS restic-source
+FROM restic/restic:0.19.1 AS restic-source
 
 FROM alpine:3.23
 
