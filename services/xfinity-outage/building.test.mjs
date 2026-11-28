@@ -4,6 +4,7 @@ import {
   BUILDING_OFF,
   attachBuilding,
   buildingQuery,
+  canonicalHomeAddress,
   homeOutageIds,
   homeParts,
   neighborError,
@@ -139,10 +140,26 @@ test('at most five neighbors are checked', () => {
   assert.equal(pickNeighbors(many, HOME).length, 5)
 })
 
-test('a 404 means no Xfinity service; a malformed body is a failure', () => {
-  assert.deepEqual(neighborError(httpError('HTTP 404', 404)), {
-    status: 'no-service'
-  })
+test('a canonical home lookup can change formatting but must keep the same unit', () => {
+  const home = '100+Main+St%2C+Unit+303%2C+Springfield+CA+94000'
+  const data = typeahead(['APT 304', 'APT 303A'])
+  data.addresses.push(
+    { fullStreetAddress: '100 MAIN ST SPRINGFIELD CA 94000' },
+    { fullStreetAddress: '100 MAIN ST APT 303 SPRINGFIELD CA 94001' },
+    { fullStreetAddress: '100 MAIN ST W APT 303 SPRINGFIELD CA 94000' }
+  )
+  assert.equal(canonicalHomeAddress(data, home), null)
+  const canonical = '100 MAIN ST APT 303 SPRINGFIELD CA 94000'
+  data.addresses.push({ fullStreetAddress: canonical })
+  assert.equal(canonicalHomeAddress(data, home), canonical)
+  assert.equal(canonicalHomeAddress(data, neighborParam(canonical)), null)
+})
+
+test('only a recognized no-service response is skipped for a neighbor', () => {
+  const notFound = httpError('HTTP 404', 404)
+  assert.equal(neighborError(notFound).status, 'error')
+  notFound.code = 'XFINITY_SERVICE_NOT_FOUND'
+  assert.deepEqual(neighborError(notFound), { status: 'no-service' })
   assert.equal(neighborError(httpError('HTTP 500', 500)).status, 'error')
   for (const bad of [
     null,

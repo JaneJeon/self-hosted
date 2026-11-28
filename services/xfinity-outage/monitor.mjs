@@ -21,6 +21,8 @@ import {
   BUILDING_OFF,
   attachBuilding,
   buildingQuery,
+  canonicalHomeAddress,
+  decodeHome,
   homeOutageIds,
   homeParts,
   neighborError,
@@ -119,8 +121,25 @@ async function fetchOutageStatus(token, address, timeoutMs = HTTP_TIMEOUT_MS) {
     },
     signal: AbortSignal.timeout(timeoutMs)
   })
-  if (!resp.ok)
-    throw httpError(`Outage API returned HTTP ${resp.status}`, resp.status)
+  if (!resp.ok) {
+    const err = httpError(
+      `Outage API returned HTTP ${resp.status}`,
+      resp.status
+    )
+    if (resp.status === 404) {
+      const body = await readJson(resp, 'Outage API').catch(() => null)
+      const message = body?.error?.errorMessage ?? body?.errorMessage
+      if (
+        typeof message === 'string' &&
+        /^(?:not_found:\s*)?Xfinity service is not found in the provided address\.?$/i.test(
+          message.trim()
+        )
+      ) {
+        err.code = 'XFINITY_SERVICE_NOT_FOUND'
+      }
+    }
+    throw err
+  }
   return readJson(resp, 'Outage API')
 }
 
@@ -140,6 +159,59 @@ async function fetchTypeahead(token, query, timeoutMs) {
   if (!resp.ok)
     throw httpError(`Typeahead API returned HTTP ${resp.status}`, resp.status)
   return readJson(resp, 'Typeahead API')
+}
+
+async function fetchHomeStatus(token, address) {
+  try {
+    return await withRetry(() => fetchOutageStatus(token, address), {
+      label: 'outage status',
+      logger
+    })
+  } catch (err) {
+    if (err.status !== 404) throw err
+
+    logger.warn(
+      { serviceNotFound: err.code === 'XFINITY_SERVICE_NOT_FOUND' },
+      'home address lookup returned 404, checking Xfinity address suggestions'
+    )
+    try {
+      const suggestions = await fetchTypeahead(
+        token,
+        decodeHome(address).trim(),
+        8_000
+      )
+      const canonical = canonicalHomeAddress(suggestions, address)
+      if (canonical) {
+        const data = await fetchOutageStatus(
+          token,
+          neighborParam(canonical),
+          7_000
+        )
+        if (
+          !Array.isArray(data?.outageInfoResponseList) ||
+          (data.outageInfoResponseList.length > 0 && !data.customerMessage)
+        ) {
+          throw new Error('Invalid outage response')
+        }
+        logger.info(
+          'home address lookup recovered using Xfinity address suggestion'
+        )
+        return data
+      }
+      logger.warn(
+        'Xfinity offered no alternate spelling for the same home address'
+      )
+    } catch (fallbackError) {
+      logger.warn(
+        {
+          reason: fallbackError.status ?? fallbackError.name,
+          code: fallbackError.code
+        },
+        'Xfinity address fallback failed'
+      )
+    }
+    throw err
+  }
 }
 
 // The whole building check gets one 20-second budget, one attempt per call,
@@ -281,10 +353,7 @@ async function main() {
   const token = await withRetry(getSessionToken, { label: 'session', logger })
   logger.info('session token obtained')
 
-  const data = await withRetry(() => fetchOutageStatus(token, address), {
-    label: 'outage status',
-    logger
-  })
+  const data = await fetchHomeStatus(token, address)
   // The street, to mask in a notice's words: see maskStreet.
   const homeState = extractState(data, new Date(), homeParts(address)?.street)
   const homeIds = homeOutageIds(data)
