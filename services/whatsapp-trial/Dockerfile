@@ -1,4 +1,4 @@
-FROM alpine:3.23 AS source
+FROM alpine:3.24 AS source
 RUN apk add --no-cache ca-certificates git
 ARG WHATSAPP_REF=895404542017f34a900f9f572a5497c275a96440
 RUN git init /src \
