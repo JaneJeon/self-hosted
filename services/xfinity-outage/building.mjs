@@ -28,7 +28,7 @@ export const SHARED_MIN = 2
 export const HOME_SEEN_MS = 6 * 60 * 60 * 1000
 export const HOME_SEEN_MAX_MS = 7 * 24 * 60 * 60 * 1000
 
-function decodeHome(homeAddress) {
+export function decodeHome(homeAddress) {
   const raw = String(homeAddress ?? '').replace(/\+/g, ' ')
   try {
     return decodeURIComponent(raw)
@@ -66,6 +66,35 @@ export function buildingQuery(homeAddress) {
   const home = homeParts(homeAddress)
   if (!home) return null
   return [home.street, home.marker, home.rest].filter(Boolean).join(' ')
+}
+
+// Recover only from an equivalent label for the same address. An apartment
+// must match its unit, street and locality, never a neighbor or the building
+// address without the unit.
+export function canonicalHomeAddress(typeahead, homeAddress) {
+  const configured = decodeHome(homeAddress)
+  const normalize = text =>
+    text.replace(/[,.]/g, ' ').trim().toUpperCase().replace(/\s+/g, ' ')
+  const home = normalize(configured)
+  const homeUnit = splitUnit(home)
+  const entries = Array.isArray(typeahead?.addresses) ? typeahead.addresses : []
+  for (const entry of entries) {
+    const full = entry?.fullStreetAddress
+    if (typeof full !== 'string' || neighborParam(full) === homeAddress)
+      continue
+    const candidate = normalize(full)
+    if (candidate === home) return full
+    const unit = splitUnit(candidate)
+    if (
+      homeUnit &&
+      unit?.street === homeUnit.street &&
+      unit.unit === homeUnit.unit &&
+      unit.rest === homeUnit.rest
+    ) {
+      return full
+    }
+  }
+  return null
 }
 
 // A residential apartment's unit, "APT 816" giving "816" and "APT 3B" giving
@@ -153,10 +182,9 @@ export function neighborResult(data) {
   }
 }
 
-// A 404 means "Xfinity service is not found in the provided address": no
-// Xfinity there, so it is not checked. Anything else is a failed lookup.
+// Skip an address only when Xfinity explicitly says it has no service.
 export function neighborError(err) {
-  if (err?.status === 404) return { status: 'no-service' }
+  if (err?.code === 'XFINITY_SERVICE_NOT_FOUND') return { status: 'no-service' }
   return { status: 'error', reason: err?.status ?? err?.name ?? 'error' }
 }
 
